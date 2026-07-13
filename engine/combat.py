@@ -9,6 +9,7 @@ from rich.console import Console
 from rich.prompt import Prompt
 
 from engine.character import Character
+from engine.quests import notify_step, print_quest_result
 
 console = Console()
 
@@ -87,6 +88,8 @@ def _handle_victory(character: Character, enemy: Enemy) -> None:
         f"\n[bold bright_magenta]{enemy.name} goes down.[/bold bright_magenta] "
         f"+{enemy.credits_reward} credits, +{enemy.xp_reward} XP."
     )
+    for result in notify_step(character, "kill", enemy.name):
+        print_quest_result(console, result)
 
 
 TRAUMA_BILL = 40

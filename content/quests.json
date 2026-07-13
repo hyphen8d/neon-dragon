@@ -1,0 +1,48 @@
+{
+  "quests": [
+    {
+      "id": "word_on_the_street",
+      "title": "Word on the Street",
+      "hook": "\"Go rattle Static Rin's cage at the Noodle Bar, see what she's picked up. Then come tell me.\"",
+      "steps": [
+        {"type": "talk", "target": "Chrome Noodle Bar", "description": "Talk to Static Rin at the Chrome Noodle Bar."},
+        {"type": "talk", "target": "Fixer Board", "description": "Report back to The Fixer."}
+      ],
+      "reward": {"credits": 20, "xp": 10, "reputation": 5},
+      "complete_text": "\"Good. Knowing things before everyone else — that's half the job.\""
+    },
+    {
+      "id": "chrome_debt",
+      "title": "Chrome Debt",
+      "hook": "\"Ganger crew's been shaking down my clients. Handle one of them in the Undercity, then report back.\"",
+      "steps": [
+        {"type": "kill", "target": "Street Ganger", "description": "Take down a Street Ganger in the Undercity."},
+        {"type": "talk", "target": "Fixer Board", "description": "Report back to The Fixer."}
+      ],
+      "reward": {"credits": 40, "xp": 20, "reputation": 10},
+      "complete_text": "\"One down. Credits are yours — spend 'em quiet.\""
+    },
+    {
+      "id": "drone_bounty",
+      "title": "Drone Bounty",
+      "hook": "\"Corp's lost control of a delivery drone. Scrap it in the Undercity before it wanders into the wrong feed. Report back after.\"",
+      "steps": [
+        {"type": "kill", "target": "Rogue Drone", "description": "Scrap the Rogue Drone in the Undercity."},
+        {"type": "talk", "target": "Fixer Board", "description": "Report back to The Fixer."}
+      ],
+      "reward": {"credits": 45, "xp": 20, "reputation": 8},
+      "complete_text": "\"Nice and quiet. That's how the corp likes it. Here's your cut.\""
+    },
+    {
+      "id": "corp_trouble",
+      "title": "Corp Trouble",
+      "hook": "\"A corp patrol's been leaning on my Undercity contacts. Put one down, then get back here.\"",
+      "steps": [
+        {"type": "kill", "target": "Corp Patrol Trooper", "description": "Take down a Corp Patrol Trooper in the Undercity."},
+        {"type": "talk", "target": "Fixer Board", "description": "Report back to The Fixer."}
+      ],
+      "reward": {"credits": 60, "xp": 30, "reputation": 15},
+      "complete_text": "\"That'll rattle them for a while. Nice work.\""
+    }
+  ]
+}

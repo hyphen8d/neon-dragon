@@ -13,6 +13,7 @@ from engine.character import Character
 from engine.combat import run_combat
 from engine.encounters import roll_encounter
 from engine.npcs import npc_at, random_line
+from engine.quests import accept_quest, available_quests, current_step, get_quest, notify_step, print_quest_result
 
 console = Console()
 
@@ -127,6 +128,9 @@ def visit_undercity(character: Character) -> None:
 def visit_location(character: Character, location: str) -> None:
     print_arrival(location)
 
+    for result in notify_step(character, "talk", location):
+        print_quest_result(console, result)
+
     npc = npc_at(location)
     if npc is None:
         console.print("[dim](nothing to do here yet — coming in a later phase)[/dim]")
@@ -134,6 +138,52 @@ def visit_location(character: Character, location: str) -> None:
 
     console.print(f"[bold cyan]{npc['name']}[/bold cyan] [dim]— {npc['bio']}[/dim]")
     console.print(f"  {random_line(npc)}")
+
+
+def visit_fixer_board(character: Character) -> None:
+    print_arrival("Fixer Board")
+
+    for result in notify_step(character, "talk", "Fixer Board"):
+        print_quest_result(console, result)
+
+    npc = npc_at("Fixer Board")
+    console.print(f"[bold cyan]{npc['name']}[/bold cyan] [dim]— {npc['bio']}[/dim]")
+    console.print(f"  {random_line(npc)}")
+
+    active_ids = list(character.active_quests.keys())
+    if active_ids:
+        console.print("\n[bright_magenta]Active contracts:[/bright_magenta]")
+        for quest_id in active_ids:
+            quest = get_quest(quest_id)
+            step = current_step(character, quest_id)
+            console.print(f"  [bold]{quest['title']}[/bold] — {step['description']}")
+
+    open_quests = available_quests(character)
+    if not open_quests:
+        console.print("\n[dim]No new contracts posted right now.[/dim]")
+        return
+
+    console.print("\n[bright_magenta]Open contracts:[/bright_magenta]")
+    table = Table(border_style="bright_cyan", show_header=False)
+    table.add_column("#", justify="right", style="bright_magenta")
+    table.add_column("Title", style="bold white")
+    table.add_column("Hook", style="dim")
+    for i, quest in enumerate(open_quests, start=1):
+        table.add_row(str(i), quest["title"], quest["hook"])
+    console.print(table)
+
+    choice = Prompt.ask(
+        "Take a contract? (0 to skip)",
+        choices=[str(i) for i in range(len(open_quests) + 1)],
+        show_choices=False,
+    )
+    if choice == "0":
+        return
+
+    chosen_quest = open_quests[int(choice) - 1]
+    accept_quest(character, chosen_quest["id"])
+    console.print(f"\n[bold bright_magenta]Contract accepted:[/bold bright_magenta] {chosen_quest['title']}")
+    console.print(f"  {chosen_quest['steps'][0]['description']}")
 
 
 def enter_hub(character: Character) -> None:
@@ -154,5 +204,7 @@ def enter_hub(character: Character) -> None:
 
         if chosen == "Undercity":
             visit_undercity(character)
+        elif chosen == "Fixer Board":
+            visit_fixer_board(character)
         else:
             visit_location(character, chosen)
