@@ -106,6 +106,36 @@
       "min_level": 7
     },
     {
+      "id": "turf_war",
+      "title": "Turf War",
+      "board": "Fixer Board",
+      "hook": "\"A gang boss is muscling out my usual contacts, carving up territory that isn't his. Cut the head off, then come tell me.\"",
+      "steps": [
+        {"type": "kill", "target": "Ganger Boss", "description": "Take down the Ganger Boss in the Undercity."},
+        {"type": "talk", "target": "Fixer Board", "description": "Report back to The Fixer."}
+      ],
+      "reward": {"credits": 75, "xp": 32, "reputation": 16},
+      "complete_text": "\"Territory's a lot quieter without a boss running it. Good work.\"",
+      "min_reputation": 12,
+      "min_charisma": 0,
+      "min_level": 4
+    },
+    {
+      "id": "blacksite_leak",
+      "title": "Blacksite Leak",
+      "board": "Fixer Board",
+      "hook": "\"Word is a corp's running an off-books enforcer through the Undercity — no ID, no paper trail. Somebody wants that connection erased. Handle it.\"",
+      "steps": [
+        {"type": "kill", "target": "Corp Blacksite Enforcer", "description": "Take down the Corp Blacksite Enforcer in the Undercity."},
+        {"type": "talk", "target": "Fixer Board", "description": "Report back to The Fixer."}
+      ],
+      "reward": {"credits": 200, "xp": 80, "reputation": 40},
+      "complete_text": "\"Whoever sent him isn't going to send another. Not soon, anyway.\"",
+      "min_reputation": 40,
+      "min_charisma": 0,
+      "min_level": 9
+    },
+    {
       "id": "loose_ends",
       "title": "Loose Ends",
       "board": "Chrome Noodle Bar",
@@ -179,6 +209,36 @@
       "min_reputation": 0,
       "min_charisma": 6,
       "min_level": 5
+    },
+    {
+      "id": "something_in_the_pipes",
+      "title": "Something in the Pipes",
+      "board": "Chrome Noodle Bar",
+      "hook": "\"Something's been dragging drunks into the storm drains and not letting go. Bad for the bar's reputation. Handle it, then come tell me.\"",
+      "steps": [
+        {"type": "kill", "target": "Sewer Hound", "description": "Deal with whatever's in the drains, in the Undercity."},
+        {"type": "talk", "target": "Chrome Noodle Bar", "description": "Report back to Endr3am."}
+      ],
+      "reward": {"credits": 20, "xp": 10, "reputation": 4},
+      "complete_text": "\"Good. People drink better when they're not worried about what's under the street.\"",
+      "min_reputation": 0,
+      "min_charisma": 0,
+      "min_level": 1
+    },
+    {
+      "id": "fence_trouble",
+      "title": "Fence Trouble",
+      "board": "Chrome Noodle Bar",
+      "hook": "\"A scavenger's been fencing goods that were supposed to disappear quietly. Make sure they do. You've got the charm to get close first.\"",
+      "steps": [
+        {"type": "kill", "target": "Scav Prowler", "description": "Deal with the Scav Prowler in the Undercity."},
+        {"type": "talk", "target": "Chrome Noodle Bar", "description": "Report back to Endr3am."}
+      ],
+      "reward": {"credits": 35, "xp": 16, "reputation": 7},
+      "complete_text": "\"Discreet. I like that in a merc.\"",
+      "min_reputation": 0,
+      "min_charisma": 6,
+      "min_level": 1
     }
   ]
 }

@@ -79,19 +79,20 @@ def read_choice(console: Console, choices: list[str], prompt: str = "") -> str:
         console.print(f"{key}\n[{DANGER}]Not a valid option — try again.[/{DANGER}]")
 
 
-def hotkey_bracket(key: str, label: str, affordable: bool = True) -> str:
+def hotkey_bracket(key: str, label: str, affordable: bool = True, reason: str = "Insufficient Funds") -> str:
     """Bold-bracket the hotkey letter where it naturally occurs in label
     (e.g. "Deposit" + "D" -> "[D]eposit"). Falls back to a leading
     "[X] label" if the key isn't actually in the label text.
 
     When affordable is False, the whole option renders dimmed gray instead
-    of the usual bright accent, with an "[Insufficient Funds]" note
-    appended, so a player can visually scan a menu for what they can
-    actually pay for."""
+    of the usual bright accent, with a bracketed note appended (defaults to
+    "[Insufficient Funds]"; pass `reason` for a different blocker, e.g. a
+    daily cap) so a player can visually scan a menu for what they can
+    actually do right now."""
     idx = label.upper().find(key.upper())
     if not affordable:
         base = f"[{key.upper()}]{label}" if idx == -1 else f"{label[:idx]}[{label[idx].upper()}]{label[idx + 1:]}"
-        return f"[{TEXT_DIM}]{base}[/{TEXT_DIM}] [{NOTE}][Insufficient Funds][/{NOTE}]"
+        return f"[{TEXT_DIM}]{base}[/{TEXT_DIM}] [{NOTE}][{reason}][/{NOTE}]"
     if idx == -1:
         return f"[{HOTKEY}][{key.upper()}][/{HOTKEY}] {label}"
     return (

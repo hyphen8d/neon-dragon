@@ -38,7 +38,8 @@ A menu of locations the player travels between:
    keep sessions unconstrained.)
 5. Choosing Leave asks for a Yes/No confirmation first — it's a
    consequential action (resets Faction Heat, the daily drink limit,
-   and Hyphen8d's stock/market), not a plain menu back-out. Confirming
+   the Chrome Noodle Bar free rest, RoboDOJO's daily sparring cap, and
+   Hyphen8d's stock/market), not a plain menu back-out. Confirming
    sends the merc home to sleep: the day counter increments, HP fully
    restores, status effects clear, and a "Daily Data Feed" panel
    summarizes standing. This is also when Faction Heat (section 8)
@@ -91,7 +92,10 @@ Board** (gated by Reputation, run by The Fixer) and **Endr3am's board** at
 the Chrome Noodle Bar (gated by Charisma). A third gate, **Level**, applies
 to contracts on either board and is tied to the same tiers that unlock
 Undercity's tougher enemies (`min_reputation`, `min_charisma`, `min_level`
-in the schema). 12 contracts total as of this pass. Beyond gating
+in the schema). 16 contracts total as of this pass (9 Fixer Board, 7
+Chrome Noodle Bar) — weighted toward the higher reputation/level end,
+since that's where a repeat player ran out of new contracts first.
+Beyond gating
 Endr3am's board, Charisma also gets Hyphen8d's Hut prices down (2%
 off per point, capped at 40%) — a general economic lever any class can
 lean into, not tied to a specific class right now (see section 4). Some
@@ -109,9 +113,13 @@ uses, so nothing else needs to know the roll happened.
 
 **Quantum Cores** (`Character.quantum_cores`): a rare secondary
 currency, LORD-gem-style. 4% drop chance (`QUANTUM_CORE_DROP_CHANCE`
-in `hub.py`) on a successful Slice Drop Box crack and on a Tier 3 Pit win only
-(gladiators now carry a `tier` field in `content/pit.json`; Tiers 1-2
-never drop). Spent at a hidden **Black Market** inside Hyphen8d's Hut
+in `hub.py`) on a successful Slice Drop Box crack and on a top-tier
+Pit win only (gladiators carry a `tier` field in `content/pit.json`;
+`visit_the_pit` computes the top tier from whatever's in the file
+rather than a hardcoded number, so adding a new toughest gladiator —
+as of this pass, tier 4's **Kingpin Draxx** — moves the drop
+eligibility with it instead of requiring a code change). Spent at a
+hidden **Black Market** inside Hyphen8d's Hut
 — reachable via an `[M]` hotkey deliberately left off the visible
 Buy/Sell/Leave menu text, so it's undiscoverable without either
 digging through the code or trying keys — selling four elite
@@ -165,6 +173,26 @@ guaranteed 2-round Stun, bypasses dodge). Cooldown state lives in
 `run_combat`'s local loop, not on the saved Character — it resets
 every fight.
 
+**RoboDOJO abilities** (`content` is Python, not JSON, for now —
+see `engine/combat.py`'s `ABILITIES` and `_learn_ability` in
+`engine/hub.py`): a second, class-independent tier of combat moves,
+purchased once for credits and permanent afterward
+(`Character.learned_abilities`). A class special and any learned
+abilities are unified into one `Move` list per fight
+(`_character_moves`), each with its own hotkey and cooldown, so a
+Street Samurai who's bought both abilities fights with three extra
+options beyond the core four. Two exist so far: **Adrenal Surge**
+(heal on demand, 4-round cooldown) and **Kill Switch** (a guaranteed
+hit that ignores enemy dodge_chance entirely, 4-round cooldown).
+
+Sparring itself (training a stat) is capped at `TRAINING_ATTEMPTS_PER_DAY`
+(3) bouts, shared across all three stats rather than per-stat, tracked on
+`Character.training_attempts_today` and reset on sleep — spent on the
+attempt regardless of win or loss, same "one training day" framing as
+Chrome Noodle Bar's Buy a Round. Learning an ability is unlimited and
+untouched by the cap, since it's a one-time purchase, not a repeatable
+action.
+
 Charisma talks down the trauma bill from a lost fight: 3% off per
 point, capped at 45%. A high-Charisma build still goes down in a
 fight the same as anyone else, but pays less to get patched up.
@@ -182,9 +210,16 @@ forgotten black-market drop boxes, the old low-risk loot/nothing
 pool). The location panel's arrival text carries a "LOCAL AREA
 NETSCAN" readout listing all three with their risk profile, so the
 mechanical hints live in the environment description instead of
-cluttering the hotkey prompt itself. Combat pool includes three
-level-gated tiers (Ronin Netrunner L3+, Corp Strike Team L5+, Chrome
-Beast L7+) so difficulty rises with the player instead of staying flat.
+cluttering the hotkey prompt itself. Combat pool is 10 enemies as of
+this pass: five at L1 (Street Ganger, Rogue Drone, Corp Patrol
+Trooper, Scav Prowler, Sewer Hound — enough that the earliest,
+most-repeated fights don't all read the same) plus level-gated tiers
+above that (Ganger Boss L4+, Ronin Netrunner L3+, Corp Strike Team
+L5+, Chrome Beast L7+, Corp Blacksite Enforcer L9+) so difficulty
+keeps rising instead of flattening out once a player out-levels
+Chrome Beast. Hunt Cache's loot/nothing pool is six entries (three
+loot, three nothing) for the same reason — no single flavor line
+repeating every single low-risk sweep.
 
 **Faction Heat** (`engine/heat.py`): killing more than 3 enemies of the
 same faction in a single day builds heat with that faction — currently
@@ -230,6 +265,16 @@ as opportunistic bad luck rather than a targeted retaliation.
 6. ~~Daily turn limit + day-end/reset cycle~~ — cut, see section 3
 7. Hyphen8d's Hut economy + cyberware
 8. Polish: color palette, ASCII panels, flavor text pass
+
+## 11. Future Ideas (not built)
+
+- **RoboDOJO belt ranks**: hitting stat thresholds through training could
+  unlock a small permanent passive (e.g. +crit chance) instead of just
+  more flat stat points — floated alongside the RoboDOJO abilities work
+  in section 7, parked for later rather than built now. Likely makes
+  more sense as part of a broader **Achievement system** (belts, contract
+  streaks, faction standing, etc.) than as a RoboDOJO-only mechanic, so
+  worth revisiting once that idea has more shape.
 
 ## Notes
 

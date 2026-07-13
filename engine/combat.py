@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import random
 from dataclasses import dataclass, field
+from typing import Callable
 
 from rich.console import Console
 from rich.panel import Panel
@@ -70,6 +71,21 @@ class Enemy:
     @property
     def alive(self) -> bool:
         return self.hp > 0
+
+
+@dataclass
+class Move:
+    """An extra combat action beyond the core Attack/Tech/Defend/Flee four —
+    either a class's built-in special or a RoboDOJO-learned ability. Each
+    gets its own hotkey, label, and independent per-fight cooldown; `effect`
+    is called as effect(character, enemy, drunk_penalty, console) regardless
+    of which fields it actually uses, so run_combat can dispatch to any of
+    them the same way."""
+
+    key: str
+    label: str
+    cooldown: int
+    effect: Callable[[Character, "Enemy", int, Console], None]
 
 
 def _player_line(text: str) -> str:
@@ -229,14 +245,101 @@ def _samurai_slash(character: Character, enemy: Enemy, drunk_penalty: int, conso
         console.print(_player_line(f"[{TEXT_DIM}]No blood to spill — {enemy.name}'s chassis shrugs it off.[/{TEXT_DIM}]"))
 
 
-def _override_system(enemy: Enemy, console: Console) -> None:
+def _override_system(character: Character, enemy: Enemy, drunk_penalty: int, console: Console) -> None:
     """Deals no damage but forces a guaranteed multi-round stun — a hack,
-    not a physical hit, so it isn't subject to dodge_chance."""
+    not a physical hit, so it isn't subject to dodge_chance. Ignores
+    character/drunk_penalty; kept in the signature so every Move's effect
+    can be called the same way (see run_combat)."""
     apply_effect(enemy, "stunned", OVERRIDE_STUN_DURATION)
     console.print(_player_line(
         f"[{INFO}]Override System![/{INFO}] You lock {enemy.name}'s systems — "
         f"stunned for {OVERRIDE_STUN_DURATION} rounds."
     ))
+
+
+ADRENAL_SURGE_HEAL = 15
+KILL_SWITCH_BONUS = 3
+
+
+def _adrenal_surge(character: Character, enemy: Enemy, drunk_penalty: int, console: Console) -> None:
+    """Combat stims — heals a flat amount on the spot. Class-independent
+    (RoboDOJO ability); ignores the enemy entirely."""
+    missing = character.max_hp - character.hp
+    healed = min(missing, ADRENAL_SURGE_HEAL)
+    old_hp = character.hp
+    character.hp += healed
+    if healed > 0:
+        console.print(_player_line(
+            f"[{ACCENT}]Adrenal Surge![/{ACCENT}] Combat stims flood your system. +{healed} HP. "
+            f"[{TEXT_DIM}](Your HP: {old_hp} -> {character.hp})[/{TEXT_DIM}]"
+        ))
+    else:
+        console.print(_player_line(f"[{TEXT_DIM}]Adrenal Surge fires, but you're already at full health.[/{TEXT_DIM}]"))
+
+
+def _kill_switch(character: Character, enemy: Enemy, drunk_penalty: int, console: Console) -> None:
+    """A guaranteed opening — ignores enemy dodge_chance entirely, unlike a
+    normal Attack. Class-independent (RoboDOJO ability)."""
+    stat_value = max(0, character.attack - drunk_penalty) + KILL_SWITCH_BONUS
+    old_hp = enemy.hp
+    dmg, crit = roll_damage(stat_value, enemy.defense)
+    enemy.hp -= dmg
+    new_hp = max(0, enemy.hp)
+    prefix = f"[{CREDITS}]CRITICAL![/{CREDITS}] " if crit else ""
+
+    if not enemy.alive:
+        line = random.choice(FINISHING_LINES).format(enemy=enemy.name, dmg=dmg)
+        console.print(_player_line(f"{prefix}[{ACCENT}]{line}[/{ACCENT}] [{TEXT_DIM}]({enemy.name} HP: {old_hp} -> 0)[/{TEXT_DIM}]"))
+        return
+
+    console.print(_player_line(
+        f"{prefix}[{RARE}]Kill Switch![/{RARE}] No dodge, no mercy — your opening strike {_impact_verb(dmg)} "
+        f"{enemy.name} for {dmg} damage. [{TEXT_DIM}]({enemy.name} HP: {old_hp} -> {new_hp})[/{TEXT_DIM}]"
+    ))
+
+
+# Purchasable at RoboDOJO, independent of class — see engine/hub.py's
+# _learn_ability. Once learned, an ability is permanent on the Character
+# (learned_abilities) and shows up as an extra Move in every future fight,
+# alongside any class special.
+ABILITY_COOLDOWN = 4
+
+ABILITIES: dict[str, dict] = {
+    "adrenal_surge": {
+        "name": "Adrenal Surge",
+        "hotkey": "H",
+        "cost": 120,
+        "cooldown": ABILITY_COOLDOWN,
+        "flavor": f"Combat stims — heal {ADRENAL_SURGE_HEAL} HP mid-fight.",
+        "effect": _adrenal_surge,
+    },
+    "kill_switch": {
+        "name": "Kill Switch",
+        "hotkey": "K",
+        "cost": 180,
+        "cooldown": ABILITY_COOLDOWN,
+        "flavor": "A guaranteed opening strike — always connects, dodge or no dodge.",
+        "effect": _kill_switch,
+    },
+}
+
+
+def _character_moves(character: Character) -> list[Move]:
+    """Every extra combat action available this fight beyond the core
+    Attack/Tech/Defend/Flee four: the class's built-in special (if any),
+    plus any abilities learned at RoboDOJO, each as its own Move with an
+    independent cooldown. Order is class special first, then abilities in
+    the order they were learned."""
+    moves: list[Move] = []
+    special = CLASS_SPECIALS.get(character.char_class)
+    if special:
+        key, label = special
+        effect = _samurai_slash if key == "S" else _override_system
+        moves.append(Move(key=key, label=label, cooldown=SPECIAL_COOLDOWN, effect=effect))
+    for ability_id in character.learned_abilities:
+        ability = ABILITIES[ability_id]
+        moves.append(Move(key=ability["hotkey"], label=ability["name"], cooldown=ability["cooldown"], effect=ability["effect"]))
+    return moves
 
 
 def _choose_inventory_item(character: Character, console: Console) -> str | None:
@@ -309,8 +412,8 @@ def _print_combat_hud(
     character: Character,
     enemy: Enemy,
     enemy_max_hp: int,
-    special: tuple[str, str] | None,
-    special_cooldown: int,
+    moves: list[Move],
+    cooldowns: dict[str, int],
 ) -> None:
     """The persistent combat dashboard — player status on the left, enemy
     vitals on the right — redrawn fresh at the top of every round."""
@@ -321,10 +424,10 @@ def _print_combat_hud(
         ("Tech", str(character.tech)),
         ("Status", _effects_text(character)),
     ]
-    if special:
-        _, slabel = special
-        cd_text = f"[{ACCENT}]Ready[/{ACCENT}]" if special_cooldown <= 0 else f"[{TEXT_DIM}]{special_cooldown} round(s)[/{TEXT_DIM}]"
-        player_rows.append((slabel, cd_text))
+    for move in moves:
+        cd = cooldowns[move.key]
+        cd_text = f"[{ACCENT}]Ready[/{ACCENT}]" if cd <= 0 else f"[{TEXT_DIM}]{cd} round(s)[/{TEXT_DIM}]"
+        player_rows.append((move.label, cd_text))
     player_panel = _combatant_panel(character.name, character.hp, character.max_hp, player_rows, BORDER, NAME)
 
     enemy_rows = [
@@ -412,8 +515,9 @@ def run_combat(character: Character, enemy_data: dict) -> bool:
     enemy = Enemy(**enemy_data)
     enemy_max_hp = enemy.hp
 
-    special = CLASS_SPECIALS.get(character.char_class)
-    special_cooldown = 0  # rounds left before the class special is usable again
+    moves = _character_moves(character)
+    moves_by_key = {move.key: move for move in moves}
+    cooldowns: dict[str, int] = {move.key: 0 for move in moves}
 
     while character.hp > 0 and enemy.alive:
         console.clear()
@@ -421,9 +525,10 @@ def run_combat(character: Character, enemy_data: dict) -> bool:
         # and the action menu's cooldown label always agree — previously
         # the HUD showed the pre-decrement value and the menu showed the
         # post-decrement one, disagreeing by one round every fight.
-        if special_cooldown > 0:
-            special_cooldown -= 1
-        _print_combat_hud(character, enemy, enemy_max_hp, special, special_cooldown)
+        for key in cooldowns:
+            if cooldowns[key] > 0:
+                cooldowns[key] -= 1
+        _print_combat_hud(character, enemy, enemy_max_hp, moves, cooldowns)
         console.print()
 
         stunned = process_round_start(character, console, is_player=True)
@@ -435,17 +540,18 @@ def run_combat(character: Character, enemy_data: dict) -> bool:
             console.print(_player_line(f"[{WARNING}]You're stunned — you can't act this round![/{WARNING}]"))
         else:
             options = [("A", "Attack"), ("T", "Tech/Hack"), ("D", "Defend"), ("F", "Flee")]
-            if special:
-                skey, slabel = special
-                label = slabel if special_cooldown <= 0 else f"{slabel} ({special_cooldown})"
-                options.append((skey, label))
+            for move in moves:
+                cd = cooldowns[move.key]
+                label = move.label if cd <= 0 else f"{move.label} ({cd})"
+                options.append((move.key, label))
             if character.inventory:
                 options.append(("I", "Items"))
 
             while True:
                 action = hotkey_prompt(console, options)
-                if special and action == special[0] and special_cooldown > 0:
-                    console.print(f"[{TEXT_DIM}]{special[1]} is still recharging ({special_cooldown} more round(s)).[/{TEXT_DIM}]")
+                if action in moves_by_key and cooldowns[action] > 0:
+                    move = moves_by_key[action]
+                    console.print(f"[{TEXT_DIM}]{move.label} is still recharging ({cooldowns[action]} more round(s)).[/{TEXT_DIM}]")
                     continue
                 if action == "I":
                     item_id = _choose_inventory_item(character, console)
@@ -468,12 +574,10 @@ def run_combat(character: Character, enemy_data: dict) -> bool:
                 defending = True
                 brace = random.choice(DEFEND_FLAVOR)
                 console.print(_player_line(f"[{TEXT_DIM}]{brace}[/{TEXT_DIM}]"))
-            elif special and action == special[0]:
-                if special[0] == "S":
-                    _samurai_slash(character, enemy, drunk_penalty, console)
-                else:
-                    _override_system(enemy, console)
-                special_cooldown = SPECIAL_COOLDOWN
+            elif action in moves_by_key:
+                move = moves_by_key[action]
+                move.effect(character, enemy, drunk_penalty, console)
+                cooldowns[action] = move.cooldown
             elif action == "I":
                 pass  # item effect already resolved in the selection loop above
             else:

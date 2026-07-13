@@ -61,6 +61,9 @@ class Character:
     market_modifier: dict = field(default_factory=dict)  # today's price event, see engine/shop.py
     market_stock: list = field(default_factory=list)  # item ids Hyphen8d's Hut carries today
     bought_round_today: bool = False  # Chrome Noodle Bar's Buy a round, once per day, resets on sleep
+    learned_abilities: list = field(default_factory=list)  # RoboDOJO ability ids, permanent, independent of class
+    rested_today: bool = False  # Chrome Noodle Bar's free rest, once per day, resets on sleep
+    training_attempts_today: int = 0  # RoboDOJO sparring bouts used today, resets on sleep
 
     @classmethod
     def new(cls, name: str, char_class: str) -> "Character":

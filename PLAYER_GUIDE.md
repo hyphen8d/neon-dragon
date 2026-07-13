@@ -55,7 +55,10 @@ Static Rin, the bartender, has a pool of flavor lines, and it's a step
 in several contracts. It's also a free rest stop: if you're below half
 HP, you're topped up to half for free — doesn't do anything once
 you're at or above that (Doc Wire's Clinic is still the only way to
-heal further or clear status effects).
+heal further or clear status effects). Good for one free top-up a
+day — if you've already used it and drop below half HP again before
+you sleep, the bar won't heal you a second time; the free rest
+resets when you sleep.
 
 From there you pick one thing to do:
 
@@ -149,21 +152,43 @@ regardless of how many effects or how severe — a no-op if you're not
 carrying any).
 
 ### RoboDOJO
-Permanently trains a stat (Attack, Defense, or Tech — not Charisma,
-which comes from cyberware instead) up by 1. Cost scales with the
-stat's current value — 40 credits base, +5
-credits for every point you already have (so Attack 8 costs 80 for
-the next point, Attack 20 costs 140). No hard cap, but grinding one
-stat sky-high gets progressively more expensive rather than staying
-flat forever. Each stat's sparring bout has its own short flavor
-line, but the underlying training mechanic is unchanged.
+Two things happen here: stat training and learning abilities.
+
+**Training** a stat (Attack, Defense, or Tech — not Charisma, which
+comes from cyberware instead) is a real fight against a themed
+sparring drone now, not an instant purchase — losing (or fleeing)
+costs you nothing beyond whatever the fight itself did (HP, a
+trauma bill if you go down). Winning permanently trains the stat up
+by 1 and *then* charges a credit fee, scaled to the stat's current
+value — 40 credits base, +5 credits for every point you already
+have (so Attack 8 costs 80 on a win, Attack 20 costs 140). No cap on
+the cost itself, so grinding one stat sky-high gets progressively
+more expensive rather than staying flat forever. That fee is
+deducted even if it takes you into debt — same as a trauma bill.
+
+You only get **3 sparring bouts a day**, shared across all three
+stats (not 3 each) — a fourth attempt just gets you waved off the
+mats until you sleep. An attempt costs you one of those 3 whether
+you win or lose, so a loss still eats into the day's quota.
+
+**Learning an ability** ([B]) is a one-time credit purchase,
+independent of class and permanent once bought. A learned ability
+shows up as an extra combat option in every future fight, right
+alongside your class's special, each with its own cooldown:
+
+- **Adrenal Surge** (120 credits) — heal 15 HP on demand mid-fight,
+  4-round cooldown.
+- **Kill Switch** (180 credits) — a guaranteed hit that ignores
+  enemy dodge entirely, unlike a normal Attack. 4-round cooldown.
 
 ### The Pit
-Choose a fight from a fixed roster of three gladiators, toughest
-paying out the most. Wins grant credits, XP, and reputation — this is
-one of the two ways to earn reputation (the other is Fixer Board
-contracts). Beating the toughest of the three has the same rare shot
-at a Quantum Core as a clean Slice Drop Box crack does.
+Choose a fight from a fixed roster of five gladiators (two evenly
+matched at the bottom tier, then three tougher tiers above that),
+toughest paying out the most. Wins grant credits, XP, and reputation
+— this is one of the two ways to earn reputation (the other is Fixer
+Board contracts). Beating the current toughest gladiator has the
+same rare shot at a Quantum Core as a clean Slice Drop Box crack
+does.
 
 ### Fixer Board
 Accept, track, and turn in contracts from The Fixer. Each contract is
@@ -212,9 +237,14 @@ turn 1, then locked out for 3 rounds after each use):
 - **Netrunner — [O]verride System** — no damage, but guarantees 2
   rounds of Stun. Not a physical hit, so enemy dodge doesn't apply.
 
-While it's on cooldown, the combat menu shows rounds remaining next to
-the move's name; picking it early just tells you it's still recharging
-without costing your turn.
+Abilities learned at RoboDOJO (see below) stack on top of your class
+special as more of these extra combat options, each with its own
+independent cooldown — a Street Samurai who's bought both abilities
+fights with three extra options beyond the core four.
+
+While a move is on cooldown, the combat menu shows rounds remaining
+next to its name; picking it early just tells you it's still
+recharging without costing your turn.
 
 Damage is roughly `stat + random(1-6) - enemy defense`, minimum 1.
 Every hit — yours or theirs — has a 20% chance to be a **critical hit**
@@ -273,15 +303,16 @@ bleeding or stunned, you'll carry it into whatever you do next
 at Doc Wire's Clinic. Enemy status effects don't carry over — they
 reset with each new fight.
 
-Currently: Street Gangers, Chrome Beasts, and Scrap Dog Vex/The Widow
-(Pit) can inflict Bleeding; Rogue Drones and Corp Patrol Troopers can
-inflict Stunned. Ironclad Marta (Pit) doesn't inflict anything. On
-your side, Razor Claws causes Bleeding and Target-Lock Eyes causes
-Stunned.
+Currently: Street Gangers, Sewer Hounds, Ganger Bosses, Chrome
+Beasts, and Scrap Dog Vex/The Widow (Pit) can inflict Bleeding;
+Rogue Drones, Corp Patrol Troopers, Corp Blacksite Enforcers, and
+Volt Jockey (Pit) can inflict Stunned. Ironclad Marta and Kingpin
+Draxx (Pit) don't inflict anything. On your side, Razor Claws causes
+Bleeding and Target-Lock Eyes causes Stunned.
 
 ## Contracts
 
-12 contracts total across two boards — the Fixer Board and Endr3am's
+16 contracts total across two boards — the Fixer Board and Endr3am's
 board at the Chrome Noodle Bar. Contracts chain "talk" (visit a
 location) and "kill" (defeat a named enemy) steps, accepted, tracked,
 and turned in at their own board even if the steps happen elsewhere.
@@ -290,8 +321,9 @@ Completing one pays credits, XP, and reputation.
 Three gates control what's on offer: **Reputation** (Fixer Board),
 **Charisma** (Endr3am's board), and **Level** (both boards, tied to
 the same tiers that unlock tougher Undercity enemies — several
-higher-tier contracts specifically ask you to take down a Ronin
-Netrunner, Corp Strike Team, or Chrome Beast). Some contracts stack
+higher-tier contracts specifically ask you to take down a Ganger
+Boss, Ronin Netrunner, Corp Strike Team, Chrome Beast, or Corp
+Blacksite Enforcer). Some contracts stack
 two gates at once for the harder jobs. A locked contract always shows
 exactly what you're short on.
 
@@ -326,7 +358,8 @@ permanent grudge.
 
 Pressing **[L]eave** at the hub asks you to confirm — it's a bigger
 deal than a normal menu back-out, since it costs your daily Buy a
-round and resets Faction Heat, Hyphen8d's stock, and today's market.
+round, your Chrome Noodle Bar free rest, and your RoboDOJO sparring
+bouts, and resets Faction Heat, Hyphen8d's stock, and today's market.
 Confirm and your merc heads home to sleep, not straight back to the
 main menu. That advances the day counter, fully
 heals you, clears every status effect you're carrying, resolves
@@ -348,7 +381,8 @@ unexpected one — so nothing since your last visit is lost.
 A few things mentioned in the game's design notes but not implemented:
 
 - Charisma still has no effect on dialogue.
-- No ability/skill system beyond each class's single combat special —
-  RoboDOJO trains stats, not abilities.
 - A third, charisma-focused class is pulled pending a redesign.
 - No fetch/deliver contracts — only talk/kill steps exist so far.
+- RoboDOJO belt-rank milestones (permanent passives for hitting stat
+  thresholds) are a floated idea, not built — likely folded into a
+  future Achievement system rather than shipped on their own.

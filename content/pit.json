@@ -18,6 +18,23 @@
       "inflict_duration": 2
     },
     {
+      "id": "volt_jockey",
+      "name": "Volt Jockey",
+      "faction": "Gladiator",
+      "tier": 1,
+      "intro": "A jittery brawler steps in with sparking gauntlets, grinning like the last jolt didn't kill him.",
+      "hp": 18,
+      "attack": 7,
+      "defense": 4,
+      "credits_reward": 38,
+      "xp_reward": 11,
+      "reputation_reward": 11,
+      "scan_desc": "Rig: Salvaged capacitor gauntlets. Discharge's inconsistent, but it's real when it lands.",
+      "inflict_effect": "stunned",
+      "inflict_chance": 0.25,
+      "inflict_duration": 1
+    },
+    {
       "id": "ironclad_marta",
       "name": "Ironclad Marta",
       "faction": "Gladiator",
@@ -47,6 +64,21 @@
       "inflict_effect": "bleed",
       "inflict_chance": 0.35,
       "inflict_duration": 2
+    },
+    {
+      "id": "kingpin_draxx",
+      "name": "Kingpin Draxx",
+      "faction": "Gladiator",
+      "tier": 4,
+      "intro": "The crowd goes dead quiet. Kingpin Draxx doesn't do warm-ups — he just steps into the ring like he already won.",
+      "hp": 40,
+      "attack": 14,
+      "defense": 9,
+      "credits_reward": 110,
+      "xp_reward": 38,
+      "reputation_reward": 38,
+      "dodge_chance": 0.2,
+      "scan_desc": "Record: Runs the Pit's back-room bets as much as he fights in it. Doesn't need luck when he's this fast."
     }
   ]
 }

@@ -62,6 +62,44 @@
       }
     },
     {
+      "id": "scav_prowler",
+      "type": "combat",
+      "weight": 18,
+      "min_level": 1,
+      "intro": "A wiry scavenger breaks from the shadows, already sizing up what you're carrying.",
+      "enemy": {
+        "name": "Scav Prowler",
+        "faction": "Scavs",
+        "hp": 14,
+        "attack": 5,
+        "defense": 3,
+        "credits_reward": 28,
+        "xp_reward": 13,
+        "dodge_chance": 0.15,
+        "scan_desc": "Profile: Independent scavenger, travels light. Hits opportunistically, bolts if it's losing."
+      }
+    },
+    {
+      "id": "sewer_hound",
+      "type": "combat",
+      "weight": 16,
+      "min_level": 1,
+      "intro": "Something large and wrong-shaped splashes up out of a flooded drainage tunnel, chrome jaw gleaming.",
+      "enemy": {
+        "name": "Sewer Hound",
+        "faction": "Feral",
+        "hp": 15,
+        "attack": 6,
+        "defense": 2,
+        "credits_reward": 26,
+        "xp_reward": 13,
+        "scan_desc": "Biology: Feral canine, chrome-grafted jaw implants. Bred — or built — for the tunnels.",
+        "inflict_effect": "bleed",
+        "inflict_chance": 0.3,
+        "inflict_duration": 2
+      }
+    },
+    {
       "id": "ronin_netrunner",
       "type": "combat",
       "weight": 15,
@@ -77,6 +115,26 @@
         "xp_reward": 25,
         "scan_desc": "Signature: Masterless netrunner rig. Reflex augments running hot, expect evasive footwork.",
         "dodge_chance": 0.2
+      }
+    },
+    {
+      "id": "ganger_boss",
+      "type": "combat",
+      "weight": 12,
+      "min_level": 4,
+      "intro": "A gang boss steps out flanked by nobody — confident enough to not need backup, or stupid enough not to bring any.",
+      "enemy": {
+        "name": "Ganger Boss",
+        "faction": "Street Gang",
+        "hp": 30,
+        "attack": 10,
+        "defense": 7,
+        "credits_reward": 70,
+        "xp_reward": 30,
+        "scan_desc": "Record: Runs a crew, doesn't fight fair. Blade's seen more use than the knuckledusters.",
+        "inflict_effect": "bleed",
+        "inflict_chance": 0.3,
+        "inflict_duration": 2
       }
     },
     {
@@ -118,6 +176,27 @@
       }
     },
     {
+      "id": "corp_blacksite_enforcer",
+      "type": "combat",
+      "weight": 6,
+      "min_level": 9,
+      "intro": "A figure in unmarked matte-black armor steps from the dark, no corp logo, no ID ping, nothing but bad intentions.",
+      "enemy": {
+        "name": "Corp Blacksite Enforcer",
+        "faction": "Corp",
+        "hp": 60,
+        "attack": 15,
+        "defense": 12,
+        "credits_reward": 140,
+        "xp_reward": 55,
+        "dodge_chance": 0.15,
+        "scan_desc": "Loadout: Prototype black-ops gear, unmarked and untraceable. Whatever corp sent this doesn't want it linked back.",
+        "inflict_effect": "stunned",
+        "inflict_chance": 0.3,
+        "inflict_duration": 1
+      }
+    },
+    {
       "id": "scavenger_stash",
       "type": "loot",
       "weight": 18,
@@ -126,11 +205,41 @@
       "credits": [10, 35]
     },
     {
+      "id": "forgotten_terminal",
+      "type": "loot",
+      "weight": 15,
+      "min_level": 1,
+      "intro": "A dead corp terminal, long since written off, still has a residual credit cache rattling around in its offline ledger. Not much, but it's yours now.",
+      "credits": [8, 30]
+    },
+    {
+      "id": "black_market_cache",
+      "type": "loot",
+      "weight": 10,
+      "min_level": 1,
+      "intro": "Tucked behind a collapsed support strut, someone's forgotten stash — small-time, but somebody's loss is your gain tonight.",
+      "credits": [15, 40]
+    },
+    {
       "id": "nothing_static",
       "type": "nothing",
       "weight": 20,
       "min_level": 1,
       "intro": "Your scanner pulses against stripped fiber-optics and empty dead links. Just rain and neon static tonight. This cache sector has been picked completely clean."
+    },
+    {
+      "id": "dead_signal",
+      "type": "nothing",
+      "weight": 16,
+      "min_level": 1,
+      "intro": "A promising frequency spike turns out to be nothing — a dead access panel, wires stripped down to nothing years ago. Somebody beat you to this one a long time back."
+    },
+    {
+      "id": "false_positive",
+      "type": "nothing",
+      "weight": 14,
+      "min_level": 1,
+      "intro": "Your scanner lights up, then flatlines. False positive — a chunk of scrap metal throwing off the right kind of signature and nothing else."
     }
   ]
 }

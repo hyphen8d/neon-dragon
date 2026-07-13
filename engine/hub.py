@@ -11,9 +11,9 @@ from rich.prompt import IntPrompt
 from rich.rule import Rule
 from rich.table import Table
 
-from engine.bestiary import enemy_faction
+from engine.bestiary import TRAINING_DRONES, enemy_faction
 from engine.character import CYBERWARE_SLOTS, Character, hp_style
-from engine.combat import run_combat
+from engine.combat import ABILITIES, run_combat
 from engine.encounters import roll_combat_encounter, roll_scavenge_encounter
 from engine.heat import AMBUSH_CHANCE, hot_factions, reset_daily_kills
 from engine.help import show_help
@@ -68,7 +68,8 @@ from engine.ui import OPTION_SEPARATOR, hotkey_bracket, hotkey_prompt, make_hp_b
 
 console = Console(width=120, highlight=False)
 
-# Rare secondary currency drop — Jack In runs and Tier 3 Pit wins only.
+# Rare secondary currency drop — Jack In runs and top-tier Pit wins only
+# (whichever tier is highest in content/pit.json; see visit_the_pit).
 QUANTUM_CORE_DROP_CHANCE = 0.04
 
 # Location -> hub hotkey letter. Kept as an explicit dict (rather than
@@ -603,6 +604,11 @@ def visit_doc_wires_clinic(character: Character) -> None:
 TRAIN_BASE_COST = 40
 TRAIN_SURCHARGE_PER_POINT = 5
 
+# Shared across all three stats, not per-stat — three sparring bouts total
+# per day, however you split them. Resets on sleep (_sleep_and_advance_day),
+# same pattern as Chrome Noodle Bar's Buy a Round.
+TRAINING_ATTEMPTS_PER_DAY = 3
+
 TRAINABLE_STATS: dict[str, tuple[str, str]] = {
     "A": ("attack", "Attack"),
     "D": ("defense", "Defense"),
@@ -629,48 +635,128 @@ def visit_robodojo(character: Character) -> None:
         print_quest_result(console, character, result)
 
     print_menu_divider("Training")
+    attempts_left = TRAINING_ATTEMPTS_PER_DAY - character.training_attempts_today
+    can_train = attempts_left > 0
     table = Table(border_style=BORDER, show_header=False)
     table.add_column("Stat", style=TEXT)
     table.add_column("Current", justify="right")
-    table.add_column("Next +1 costs", justify="right")
-    affordable_stats: dict[str, bool] = {}
+    table.add_column("Fee on win", justify="right")
     for key, (attr, label) in TRAINABLE_STATS.items():
         current = getattr(character, attr)
-        cost = _train_cost(current)
-        affordable = character.credits >= cost
-        affordable_stats[key] = affordable
-        table.add_row(hotkey_bracket(key, label, affordable), str(current), str(cost))
+        table.add_row(hotkey_bracket(key, label, can_train, reason="Capped Today"), str(current), str(_train_cost(current)))
 
     right_panel = _station_data_panel(
         "TRAINING LOG",
-        [("Credits", f"[{CREDITS}]{character.credits}[/{CREDITS}]")],
+        [
+            ("Credits", f"[{CREDITS}]{character.credits}[/{CREDITS}]"),
+            ("Bouts left today", f"{max(0, attempts_left)}/{TRAINING_ATTEMPTS_PER_DAY}"),
+        ],
         extra=table,
     )
     _interaction_deck(npc_at("RoboDOJO"), right_panel)
-    console.print(f"[{TEXT_DIM}]A training drone powers up, servos whirring, waiting for you to pick a discipline.[/{TEXT_DIM}]")
+    if can_train:
+        console.print(
+            f"[{TEXT_DIM}]A training drone powers up, servos whirring, waiting for you to pick a discipline. "
+            f"Spar it for real — win and the stat gain sticks, but the fee's only charged on a win.[/{TEXT_DIM}]"
+        )
+    else:
+        console.print(
+            f"[{TEXT_DIM}]Daryl waves you off the mats. \"You're done sparring for today, choom. "
+            f"Body needs to recover. Come back tomorrow.\"[/{TEXT_DIM}]"
+        )
 
-    options = [(k, label) for k, (_, label) in TRAINABLE_STATS.items()]
+    ability_table = Table(title=f"[{LABEL}]Abilities[/{LABEL}]", border_style=BORDER, show_header=False)
+    ability_table.add_column("Ability", style=TEXT)
+    ability_table.add_column("Status")
+    ability_table.add_column("Cost", justify="right")
+    ability_table.add_column("Effect", style=TEXT_DIM)
+    for ability_id, ability in ABILITIES.items():
+        learned = ability_id in character.learned_abilities
+        status = f"[{ACCENT}]Learned[/{ACCENT}]" if learned else f"[{TEXT_DIM}]Available[/{TEXT_DIM}]"
+        cost_text = f"[{TEXT_DIM}]—[/{TEXT_DIM}]" if learned else str(ability["cost"])
+        ability_table.add_row(ability["name"], status, cost_text, ability["flavor"])
+    console.print(ability_table)
+
+    options = [(k, label, can_train) for k, (_, label) in TRAINABLE_STATS.items()] + [
+        ("B", "Learn Ability", True),
+        ("L", "Leave", True),
+    ]
     menu_text = OPTION_SEPARATOR.join(
-        hotkey_bracket(key, label, affordable_stats[key]) for key, label in options
-    ) + OPTION_SEPARATOR + hotkey_bracket("L", "Leave")
-    choice = read_choice(console, [k for k, _ in options] + ["L"], prompt=f"Train which stat?\n{menu_text}")
+        hotkey_bracket(key, label, affordable, reason="Capped Today") for key, label, affordable in options
+    )
+    choice = read_choice(console, [k for k, _, _ in options], prompt=f"What'll it be?\n{menu_text}")
     console.rule(style=TEXT_DIM)
     if choice == "L":
         return
-
-    attr, label = TRAINABLE_STATS[choice]
-    cost = _train_cost(getattr(character, attr))
-    if character.credits < cost:
-        console.print(f"[{DANGER}]Not enough credits to train right now.[/{DANGER}]")
+    if choice == "B":
+        _learn_ability(character)
         return
 
+    _spar(character, choice)
+
+
+def _spar(character: Character, choice: str) -> None:
+    """Train a stat by actually fighting a themed sparring drone (see
+    TRAINING_DRONES) instead of an instant guaranteed purchase — winning
+    grants +1 to the stat and only then charges the credit fee; losing (or
+    fleeing) costs nothing extra beyond whatever the fight itself did.
+    Capped at TRAINING_ATTEMPTS_PER_DAY bouts, shared across all three
+    stats, spent on the attempt regardless of outcome."""
+    if character.training_attempts_today >= TRAINING_ATTEMPTS_PER_DAY:
+        console.print(f"[{DANGER}]You're tapped out for today — Daryl won't let you back on the mats.[/{DANGER}]")
+        return
+
+    attr, label = TRAINABLE_STATS[choice]
+    character.training_attempts_today += 1
     console.print(f"[{TEXT_DIM}]{SPARRING_FLAVOR[attr]}[/{TEXT_DIM}]")
+    won = run_combat(character, dict(TRAINING_DRONES[attr]))
+
+    if not won:
+        console.print(f"\n[{TEXT_DIM}]No stat gain this time — the drone resets for another round tomorrow.[/{TEXT_DIM}]")
+        return
+
+    cost = _train_cost(getattr(character, attr))
     character.credits -= cost
     setattr(character, attr, getattr(character, attr) + 1)
     console.print(
-        f"[{ACCENT}]{label} increased to {getattr(character, attr)}.[/{ACCENT}] "
+        f"\n[{ACCENT}]Training paid off.[/{ACCENT}] {label} increased to {getattr(character, attr)}. "
         f"-{cost} credits."
     )
+
+
+def _learn_ability(character: Character) -> None:
+    available = [aid for aid in ABILITIES if aid not in character.learned_abilities]
+    if not available:
+        console.print(f"\n[{TEXT_DIM}]You've learned everything Daryl's cleared to teach.[/{TEXT_DIM}]")
+        return
+
+    table = Table(border_style=BORDER, show_header=False)
+    table.add_column("#", justify="right", style=LABEL)
+    table.add_column("Ability", style=TEXT)
+    table.add_column("Cost", justify="right")
+    table.add_column("Effect", style=TEXT_DIM)
+    for i, ability_id in enumerate(available, start=1):
+        ability = ABILITIES[ability_id]
+        table.add_row(str(i), ability["name"], str(ability["cost"]), ability["flavor"])
+    console.print(table)
+
+    choice = read_choice(
+        console,
+        [str(i) for i in range(len(available) + 1)],
+        prompt="Learn which ability? (0 to cancel)",
+    )
+    if choice == "0":
+        return
+
+    ability_id = available[int(choice) - 1]
+    ability = ABILITIES[ability_id]
+    if character.credits < ability["cost"]:
+        console.print(f"[{DANGER}]Not enough credits for that.[/{DANGER}]")
+        return
+
+    character.credits -= ability["cost"]
+    character.learned_abilities.append(ability_id)
+    console.print(f"[{ACCENT}]Learned:[/{ACCENT}] {ability['name']}. -{ability['cost']} credits.")
 
 
 def visit_the_pit(character: Character) -> None:
@@ -699,10 +785,11 @@ def visit_the_pit(character: Character) -> None:
     gladiator = gladiators[int(choice) - 1]
     console.print(f"\n[{TEXT_DIM}]{gladiator['intro']}[/{TEXT_DIM}]")
     tier = gladiator.get("tier")
+    top_tier = max(g.get("tier", 0) for g in gladiators)
     enemy_data = {k: v for k, v in gladiator.items() if k not in ("id", "intro", "tier")}
     won = run_combat(character, enemy_data)
 
-    if won and tier == 3 and random.random() < QUANTUM_CORE_DROP_CHANCE:
+    if won and tier == top_tier and random.random() < QUANTUM_CORE_DROP_CHANCE:
         character.quantum_cores += 1
         console.print(
             f"\n[{INFO}]Tucked in the gladiator's rig, something that isn't scrap — "
@@ -722,9 +809,12 @@ def visit_chrome_noodle_bar(character: Character) -> None:
     rest_floor = int(character.max_hp * REST_THRESHOLD)
     if character.hp >= rest_floor:
         rest_text = f"[{TEXT_DIM}]Already rested — no free heal available[/{TEXT_DIM}]"
+    elif character.rested_today:
+        rest_text = f"[{TEXT_DIM}]Already used today's free rest[/{TEXT_DIM}]"
     else:
         healed = rest_floor - character.hp
         character.hp = rest_floor
+        character.rested_today = True
         rest_text = f"[{ACCENT}]+{healed} HP, on the house[/{ACCENT}]"
 
     board_active = [
@@ -1155,12 +1245,20 @@ def show_character_info(character: Character) -> None:
     else:
         inventory.add_row("Nothing carried", "")
 
+    abilities = _themed_table("RoboDOJO Abilities")
+    if character.learned_abilities:
+        for ability_id in character.learned_abilities:
+            abilities.add_row(ABILITIES[ability_id]["name"], "Learned")
+    else:
+        abilities.add_row("None learned yet", "")
+
     grid = Table.grid(padding=(0, 2))
     grid.add_column()
     grid.add_column()
     grid.add_row(attributes, economy)
     grid.add_row(contracts, loadout)
     grid.add_row(effects, inventory)
+    grid.add_row(abilities)
     console.print(grid)
 
     kills = _themed_table("Kills by Faction")
@@ -1193,6 +1291,8 @@ def _sleep_and_advance_day(character: Character) -> None:
     reset_daily_kills(character)
     roll_daily_market(character)
     character.bought_round_today = False
+    character.rested_today = False
+    character.training_attempts_today = 0
 
     healed = character.max_hp - character.hp
     character.hp = character.max_hp
