@@ -460,6 +460,9 @@ def visit_chrome_noodle_bar(character: Character) -> None:
     console.print(f"[bold cyan]{npc['name']}[/bold cyan] [dim]— {npc['bio']}[/dim]")
     console.print(f"  {random_line(npc)}")
 
+    for result in notify_step(character, "talk", "Chrome Noodle Bar"):
+        print_quest_result(console, character, result)
+
     rest_floor = int(character.max_hp * REST_THRESHOLD)
     if character.hp >= rest_floor:
         console.print("\n[dim]You're rested enough already. No need to linger.[/dim]")
@@ -471,13 +474,22 @@ def visit_chrome_noodle_bar(character: Character) -> None:
             f"+{healed} HP, on the house."
         )
 
+    choice = Prompt.ask(
+        "\n[bright_magenta]1[/bright_magenta] Talk to Endr3am about work  [bright_magenta]0[/bright_magenta] Leave",
+        choices=["0", "1"],
+        show_choices=False,
+    )
+    if choice != "1":
+        return
+
+    _visit_endr3am(character)
+
+
+def _visit_endr3am(character: Character) -> None:
     print_menu_divider("Contract Board")
     broker = get_npc("endr3am")
     console.print(f"[bold cyan]{broker['name']}[/bold cyan] [dim]— {broker['bio']}[/dim]")
     console.print(f"  {random_line(broker)}")
-
-    for result in notify_step(character, "talk", "Chrome Noodle Bar"):
-        print_quest_result(console, character, result)
     _browse_contract_board(character, "Chrome Noodle Bar")
 
 
