@@ -16,7 +16,7 @@ from engine.save import delete_save, list_saves, load_character, save_character,
 
 console = Console(highlight=False)
 
-VERSION = "Alpha 1.0"
+VERSION = "Alpha 1.5"
 
 LORE = (
     "Neo Meridian never sleeps and never forgives. Corp towers own the sky, "
