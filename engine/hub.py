@@ -14,6 +14,7 @@ from engine.character import CYBERWARE_SLOTS, Character
 from engine.combat import run_combat
 from engine.encounters import roll_encounter
 from engine.help import show_help
+from engine.leveling import xp_for_next_level
 from engine.npcs import npc_at, random_line
 from engine.pit import load_gladiators
 from engine.quests import (
@@ -358,7 +359,7 @@ def visit_chrome_noodle_bar(character: Character) -> None:
     print_arrival("Chrome Noodle Bar")
 
     for result in notify_step(character, "talk", "Chrome Noodle Bar"):
-        print_quest_result(console, result)
+        print_quest_result(console, character, result)
 
     npc = npc_at("Chrome Noodle Bar")
     console.print(f"[bold cyan]{npc['name']}[/bold cyan] [dim]— {npc['bio']}[/dim]")
@@ -381,7 +382,7 @@ def visit_location(character: Character, location: str) -> None:
     print_arrival(location)
 
     for result in notify_step(character, "talk", location):
-        print_quest_result(console, result)
+        print_quest_result(console, character, result)
 
     npc = npc_at(location)
     if npc is None:
@@ -396,7 +397,7 @@ def visit_fixer_board(character: Character) -> None:
     print_arrival("Fixer Board")
 
     for result in notify_step(character, "talk", "Fixer Board"):
-        print_quest_result(console, result)
+        print_quest_result(console, character, result)
 
     npc = npc_at("Fixer Board")
     console.print(f"[bold cyan]{npc['name']}[/bold cyan] [dim]— {npc['bio']}[/dim]")
@@ -573,7 +574,7 @@ def show_character_info(character: Character) -> None:
 
     attributes = _themed_table("Attributes")
     attributes.add_row("Level", str(character.level))
-    attributes.add_row("XP", str(character.xp))
+    attributes.add_row("XP", f"{character.xp}/{xp_for_next_level(character)}")
     attributes.add_row("HP", f"{character.hp}/{character.max_hp}")
     attributes.add_row("Attack", str(character.attack))
     attributes.add_row("Defense", str(character.defense))

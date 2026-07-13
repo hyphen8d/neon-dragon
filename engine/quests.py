@@ -9,6 +9,7 @@ from typing import Any
 from rich.console import Console
 
 from engine.character import Character
+from engine.leveling import check_level_up
 
 CONTENT_PATH = Path(__file__).resolve().parent.parent / "content" / "quests.json"
 
@@ -93,7 +94,7 @@ def notify_step(character: Character, step_type: str, target: str) -> list[dict[
     return results
 
 
-def print_quest_result(console: Console, result: dict[str, Any]) -> None:
+def print_quest_result(console: Console, character: Character, result: dict[str, Any]) -> None:
     quest = result["quest"]
     if result["completed"]:
         reward = quest["reward"]
@@ -102,6 +103,7 @@ def print_quest_result(console: Console, result: dict[str, Any]) -> None:
         console.print(
             f"  +{reward['credits']} credits, +{reward['xp']} XP, +{reward['reputation']} reputation."
         )
+        check_level_up(character, console)
     else:
         console.print(
             f"\n[bright_magenta]Quest updated:[/bright_magenta] {quest['title']} — "

@@ -9,6 +9,7 @@ from rich.console import Console
 from rich.prompt import Prompt
 
 from engine.character import Character
+from engine.leveling import check_level_up
 from engine.quests import notify_step, print_quest_result
 from engine.status_effects import EFFECT_LABELS, apply_effect, process_round_start
 
@@ -110,8 +111,9 @@ def _handle_victory(character: Character, enemy: Enemy) -> None:
     if enemy.reputation_reward:
         reward_text += f", +{enemy.reputation_reward} reputation"
     console.print(f"\n[bold bright_magenta]{enemy.name} goes down.[/bold bright_magenta] {reward_text}.")
+    check_level_up(character, console)
     for result in notify_step(character, "kill", enemy.name):
-        print_quest_result(console, result)
+        print_quest_result(console, character, result)
 
 
 TRAUMA_BILL = 40

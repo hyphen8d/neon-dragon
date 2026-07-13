@@ -11,6 +11,7 @@ from rich.text import Text
 from engine.character import CLASSES, Character
 from engine.help import show_help
 from engine.hub import enter_hub
+from engine.leveling import xp_for_next_level
 from engine.save import list_saves, load_character, save_character, save_exists
 
 console = Console(highlight=False)
@@ -50,7 +51,7 @@ def print_character_sheet(character: Character) -> None:
     table.add_column("Stat", style="cyan")
     table.add_column("Value", style="bold white")
     table.add_row("Level", str(character.level))
-    table.add_row("XP", str(character.xp))
+    table.add_row("XP", f"{character.xp}/{xp_for_next_level(character)}")
     table.add_row("HP", f"{character.hp}/{character.max_hp}")
     table.add_row("Attack", str(character.attack))
     table.add_row("Defense", str(character.defense))

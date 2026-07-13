@@ -38,9 +38,11 @@ Charisma actually does something mechanically — see below.)
 - **Reputation** — earned from Pit fights and completed Fixer Board
   contracts. Gates higher-tier contracts (see Fixer Board below). Not
   used anywhere else yet.
-- **XP / Level** — XP accumulates from combat and quests. Leveling
-  itself isn't wired up to anything yet — no automatic stat growth or
-  level-up rewards.
+- **XP / Level** — XP comes from combat kills and completed Fixer
+  Board contracts. Every 50 XP is a level: +3 Max HP, +1 Attack, +1
+  Defense, +1 Tech, and a full heal. A single big XP reward can trigger
+  multiple level-ups at once. Charisma doesn't grow on level-up since
+  it has no mechanical effect anywhere yet.
 
 ## The Hub — Neo Meridian
 
@@ -164,5 +166,3 @@ A few things mentioned in the game's design notes but not implemented:
 - Charisma has no mechanical effect.
 - No ability/skill system — the Dojo trains stats, not abilities.
 - No fetch/deliver quests — only talk/kill steps exist so far.
-- Leveling doesn't do anything yet — XP accumulates, but no level-up
-  ever triggers (no stat growth, no rewards).
