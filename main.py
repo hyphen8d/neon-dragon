@@ -18,17 +18,17 @@ console = Console()
 VERSION = "Alpha 1.0"
 
 LORE = (
-    "Neo Meridian never sleeps and never forgives.\n"
-    "Corp towers own the sky. Fixers and gangs own the streets underneath.\n"
-    "Rain never stops — it just changes color under the neon.\n"
-    "Chrome is cheap. Everything else costs more than you think."
+    "Neo Meridian never sleeps and never forgives. Corp towers own the sky, "
+    "fixers and gangs own the streets underneath, and the rain never stops — "
+    "it just changes color under the neon. Chrome is cheap. Everything else "
+    "costs more than you think."
 )
 
 
 def print_title() -> None:
     header = Text("N E O N   D R A G O N", style="bold bright_magenta", justify="center")
     version = Text(VERSION, style="dim cyan", justify="center")
-    lore = Text(LORE, style="italic", justify="center")
+    lore = Text(LORE, style="italic", justify="left")
     body = Group(header, version, Text(""), lore)
     console.print(Panel(body, border_style="bright_cyan", padding=(1, 4), width=64))
 
