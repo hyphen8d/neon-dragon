@@ -10,6 +10,7 @@ from rich.prompt import Prompt
 
 from engine.character import Character
 from engine.quests import notify_step, print_quest_result
+from engine.status_effects import EFFECT_LABELS, apply_effect, process_round_start
 
 console = Console()
 
@@ -23,6 +24,9 @@ class Enemy:
     credits_reward: int
     xp_reward: int
     reputation_reward: int = 0
+    inflict_effect: str | None = None
+    inflict_chance: float = 0.0
+    inflict_duration: int = 0
 
     @property
     def alive(self) -> bool:
@@ -39,34 +43,42 @@ def run_combat(character: Character, enemy_data: dict) -> None:
     console.print(f"\n[bold red]{enemy.name}[/bold red] (HP {enemy.hp}) blocks your path.")
 
     while character.hp > 0 and enemy.alive:
+        stunned = process_round_start(character, console)
+        if character.hp <= 0:
+            break
+
         console.print(
             f"\n[bright_cyan]{character.name}[/bright_cyan] HP {character.hp}/{character.max_hp}   "
             f"[red]{enemy.name}[/red] HP {max(enemy.hp, 0)}"
         )
-        action = Prompt.ask(
-            "[bright_magenta]1[/bright_magenta] Attack  [bright_magenta]2[/bright_magenta] Tech/Hack  "
-            "[bright_magenta]3[/bright_magenta] Defend  [bright_magenta]4[/bright_magenta] Flee",
-            choices=["1", "2", "3", "4"],
-            show_choices=False,
-        )
-        defending = False
 
-        if action == "1":
-            dmg = roll_damage(character.attack, enemy.defense)
-            enemy.hp -= dmg
-            console.print(f"[white]You strike for {dmg} damage.[/white]")
-        elif action == "2":
-            dmg = roll_damage(character.tech, enemy.defense)
-            enemy.hp -= dmg
-            console.print(f"[white]You hack their systems for {dmg} damage.[/white]")
-        elif action == "3":
-            defending = True
-            console.print("[dim]You brace for the hit.[/dim]")
+        defending = False
+        if stunned:
+            console.print("[yellow]You're stunned — you can't act this round![/yellow]")
         else:
-            if random.random() < 0.5:
-                console.print("[dim]You slip into the shadows and get away.[/dim]")
-                return
-            console.print("[dim]You can't shake them — they block your escape.[/dim]")
+            action = Prompt.ask(
+                "[bright_magenta]1[/bright_magenta] Attack  [bright_magenta]2[/bright_magenta] Tech/Hack  "
+                "[bright_magenta]3[/bright_magenta] Defend  [bright_magenta]4[/bright_magenta] Flee",
+                choices=["1", "2", "3", "4"],
+                show_choices=False,
+            )
+
+            if action == "1":
+                dmg = roll_damage(character.attack, enemy.defense)
+                enemy.hp -= dmg
+                console.print(f"[white]You strike for {dmg} damage.[/white]")
+            elif action == "2":
+                dmg = roll_damage(character.tech, enemy.defense)
+                enemy.hp -= dmg
+                console.print(f"[white]You hack their systems for {dmg} damage.[/white]")
+            elif action == "3":
+                defending = True
+                console.print("[dim]You brace for the hit.[/dim]")
+            else:
+                if random.random() < 0.5:
+                    console.print("[dim]You slip into the shadows and get away.[/dim]")
+                    return
+                console.print("[dim]You can't shake them — they block your escape.[/dim]")
 
         if not enemy.alive:
             break
@@ -76,6 +88,11 @@ def run_combat(character: Character, enemy_data: dict) -> None:
             dmg = max(0, dmg // 2)
         character.hp = max(0, character.hp - dmg)
         console.print(f"[red]{enemy.name} hits you for {dmg} damage.[/red]")
+
+        if enemy.inflict_effect and random.random() < enemy.inflict_chance:
+            apply_effect(character, enemy.inflict_effect, enemy.inflict_duration)
+            label = EFFECT_LABELS.get(enemy.inflict_effect, enemy.inflict_effect)
+            console.print(f"[yellow]The hit leaves you {label.lower()}![/yellow]")
 
     if character.hp <= 0:
         _handle_defeat(character)
@@ -87,6 +104,7 @@ def _handle_victory(character: Character, enemy: Enemy) -> None:
     character.credits += enemy.credits_reward
     character.xp += enemy.xp_reward
     character.reputation += enemy.reputation_reward
+    character.kills[enemy.name] = character.kills.get(enemy.name, 0) + 1
     reward_text = f"+{enemy.credits_reward} credits, +{enemy.xp_reward} XP"
     if enemy.reputation_reward:
         reward_text += f", +{enemy.reputation_reward} reputation"

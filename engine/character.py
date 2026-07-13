@@ -45,6 +45,8 @@ class Character:
     cyberware: dict = field(default_factory=lambda: {slot: None for slot in CYBERWARE_SLOTS})
     active_quests: dict = field(default_factory=dict)  # quest_id -> current step index
     completed_quests: list = field(default_factory=list)
+    status_effects: dict = field(default_factory=dict)  # effect name -> rounds remaining
+    kills: dict = field(default_factory=dict)  # enemy name -> times defeated
 
     @classmethod
     def new(cls, name: str, char_class: str) -> "Character":

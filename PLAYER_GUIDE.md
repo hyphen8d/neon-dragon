@@ -70,7 +70,9 @@ outright from the Sell menu.
 
 ### Doc Wire's Clinic
 Heals HP for credits at a flat rate (2 credits per HP), capped to
-whatever you can afford. No-op if you're already at full health.
+whatever you can afford. No-op if you're already at full health. Also
+where you clear status effects — a flat 15 credits cures everything
+you're carrying, regardless of how many effects or how severe.
 
 ### The Dojo
 Permanently trains a stat (Attack, Defense, Tech, or Charisma) up by
@@ -106,12 +108,41 @@ and bills you a flat 40 credits from whatever's on hand — this can put
 you in debt (negative credits) if you don't have enough. Banked
 credits at NetVault are never touched by this.
 
+### Status effects
+
+Some enemies have a chance to inflict a status effect when they hit
+you:
+
+- **Bleeding** — 3 damage at the start of each of your turns for the
+  effect's duration.
+- **Stunned** — you lose your action for that round entirely (no
+  Attack, Tech/Hack, Defend, or Flee).
+
+Effects tick down once per round and expire on their own, but they
+don't clear just by leaving combat — if you win a fight while still
+bleeding or stunned, you'll carry it into whatever you do next
+(including your next fight) until it wears off or you pay to clear it
+at Doc Wire's Clinic.
+
+Currently: Street Gangers and Scrap Dog Vex/The Widow (Pit) can inflict
+Bleeding; Rogue Drones and Corp Patrol Troopers can inflict Stunned.
+Ironclad Marta (Pit) doesn't inflict anything.
+
 ## Quests
 
 Quests chain "talk" (visit a location) and "kill" (defeat a named
 enemy) steps. All contracts are managed at the Fixer Board — accepted,
 tracked, and turned in there, even if the steps in between happen
 elsewhere. Completing a contract pays credits, XP, and reputation.
+
+## Checking your status
+
+From inside the hub, type **i** at the "Where to?" prompt to pull up
+your full character info: core stats, cyberware loadout, active
+status effects, quest counts (active/completed), and a running kill
+tally by enemy type. This doesn't cost a turn.
+
+Type **?** the same way to reopen this guide mid-session.
 
 ## Saving
 
@@ -123,7 +154,7 @@ automatically whenever you leave the hub back to the main menu.
 A few things mentioned in the game's design notes but not implemented:
 
 - Charisma has no mechanical effect.
-- No status effects (poison, stun, etc.) — Doc Wire's "cure status
-  effects" is flavor text only.
 - No ability/skill system — the Dojo trains stats, not abilities.
 - No fetch/deliver quests — only talk/kill steps exist so far.
+- Leveling doesn't do anything yet — XP accumulates, but no level-up
+  ever triggers (no stat growth, no rewards).

@@ -11,7 +11,10 @@
         "attack": 5,
         "defense": 2,
         "credits_reward": 25,
-        "xp_reward": 12
+        "xp_reward": 12,
+        "inflict_effect": "bleed",
+        "inflict_chance": 0.25,
+        "inflict_duration": 2
       }
     },
     {
@@ -25,7 +28,10 @@
         "attack": 4,
         "defense": 5,
         "credits_reward": 30,
-        "xp_reward": 15
+        "xp_reward": 15,
+        "inflict_effect": "stunned",
+        "inflict_chance": 0.25,
+        "inflict_duration": 1
       }
     },
     {
@@ -39,7 +45,10 @@
         "attack": 7,
         "defense": 6,
         "credits_reward": 45,
-        "xp_reward": 25
+        "xp_reward": 25,
+        "inflict_effect": "stunned",
+        "inflict_chance": 0.3,
+        "inflict_duration": 1
       }
     },
     {

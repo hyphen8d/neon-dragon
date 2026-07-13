@@ -25,6 +25,7 @@ from engine.quests import (
     print_quest_result,
 )
 from engine.shop import buy_and_equip, get_item, load_cyberware, sell_back_value, unequip
+from engine.status_effects import EFFECT_LABELS, cure_all
 
 console = Console()
 
@@ -107,6 +108,7 @@ def print_hub_menu(character: Character, location_names: list[str]) -> None:
     for i, name in enumerate(location_names, start=1):
         table.add_row(str(i), name, LOCATIONS[name])
     table.add_row("0", "Leave", "Head home and save your progress.")
+    table.add_row("i", "Character Info", "View your full stats, gear, quests, and kills.")
     table.add_row("?", "Help", "Open the player guide.")
     console.print(table)
 
@@ -195,12 +197,41 @@ def visit_netvault(character: Character) -> None:
 HEAL_COST_PER_HP = 2
 
 
+CURE_COST = 15
+
+
+def _offer_cure(character: Character) -> None:
+    if not character.status_effects:
+        return
+
+    labels = ", ".join(EFFECT_LABELS.get(e, e) for e in character.status_effects)
+    console.print(f"\n[yellow]Active effects:[/yellow] {labels}")
+
+    action = Prompt.ask(
+        f"Clear those for {CURE_COST} credits? [bright_magenta]1[/bright_magenta] Yes  "
+        f"[bright_magenta]0[/bright_magenta] No",
+        choices=["0", "1"],
+        show_choices=False,
+    )
+    if action != "1":
+        return
+    if character.credits < CURE_COST:
+        console.print("[red]Not enough credits for that.[/red]")
+        return
+
+    character.credits -= CURE_COST
+    cured = cure_all(character)
+    console.print(f"[bold bright_magenta]Cleared {cured} status effect(s).[/bold bright_magenta] -{CURE_COST} credits.")
+
+
 def visit_doc_wires_clinic(character: Character) -> None:
     print_arrival("Doc Wire's Clinic")
 
     npc = npc_at("Doc Wire's Clinic")
     console.print(f"[bold cyan]{npc['name']}[/bold cyan] [dim]— {npc['bio']}[/dim]")
     console.print(f"  {random_line(npc)}")
+
+    _offer_cure(character)
 
     missing = character.max_hp - character.hp
     if missing <= 0:
@@ -482,6 +513,46 @@ def visit_chop_shop(character: Character) -> None:
         _sell_cyberware(character)
 
 
+def show_character_info(character: Character) -> None:
+    console.print()
+    console.rule(f"[bold bright_magenta]{character.name}[/bold bright_magenta] [dim]— {character.char_class}[/dim]")
+
+    stats = Table(border_style="bright_magenta")
+    stats.add_column("Stat", style="cyan")
+    stats.add_column("Value", style="bold white")
+    stats.add_row("Level", str(character.level))
+    stats.add_row("XP", str(character.xp))
+    stats.add_row("HP", f"{character.hp}/{character.max_hp}")
+    stats.add_row("Attack", str(character.attack))
+    stats.add_row("Defense", str(character.defense))
+    stats.add_row("Tech", str(character.tech))
+    stats.add_row("Charisma", str(character.charisma))
+    stats.add_row("Credits", str(character.credits))
+    stats.add_row("Banked", str(character.banked_credits))
+    stats.add_row("Reputation", str(character.reputation))
+    console.print(stats)
+
+    print_loadout(character)
+
+    console.print("\n[bright_magenta]Status effects:[/bright_magenta]")
+    if character.status_effects:
+        for effect, remaining in character.status_effects.items():
+            label = EFFECT_LABELS.get(effect, effect)
+            console.print(f"  {label} — {remaining} round(s) left")
+    else:
+        console.print("  [dim]None.[/dim]")
+
+    console.print("\n[bright_magenta]Quests:[/bright_magenta]")
+    console.print(f"  Active: {len(character.active_quests)}   Completed: {len(character.completed_quests)}")
+
+    console.print("\n[bright_magenta]Kills:[/bright_magenta]")
+    if character.kills:
+        for name, count in sorted(character.kills.items()):
+            console.print(f"  {name}: {count}")
+    else:
+        console.print("  [dim]None yet.[/dim]")
+
+
 def enter_hub(character: Character) -> None:
     location_names = list(LOCATIONS.keys())
     while True:
@@ -489,7 +560,7 @@ def enter_hub(character: Character) -> None:
         print_hub_menu(character, location_names)
         choice = Prompt.ask(
             "Where to?",
-            choices=[str(i) for i in range(len(location_names) + 1)] + ["?"],
+            choices=[str(i) for i in range(len(location_names) + 1)] + ["?", "i"],
             show_choices=False,
         )
         if choice == "0":
@@ -497,6 +568,9 @@ def enter_hub(character: Character) -> None:
             return
         if choice == "?":
             show_help(console)
+            continue
+        if choice == "i":
+            show_character_info(character)
             continue
 
         chosen = location_names[int(choice) - 1]
