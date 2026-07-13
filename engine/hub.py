@@ -181,6 +181,47 @@ def visit_netvault(character: Character) -> None:
         _withdraw(character)
 
 
+HEAL_COST_PER_HP = 2
+
+
+def visit_doc_wires_clinic(character: Character) -> None:
+    print_arrival("Doc Wire's Clinic")
+
+    npc = npc_at("Doc Wire's Clinic")
+    console.print(f"[bold cyan]{npc['name']}[/bold cyan] [dim]— {npc['bio']}[/dim]")
+    console.print(f"  {random_line(npc)}")
+
+    missing = character.max_hp - character.hp
+    if missing <= 0:
+        console.print("\n[dim]You're already at full health. Doc Wire waves you off.[/dim]")
+        return
+
+    console.print(
+        f"\nHP: [bold]{character.hp}/{character.max_hp}[/bold]   "
+        f"Patch-up rate: {HEAL_COST_PER_HP} credits/HP"
+    )
+
+    max_affordable = min(missing, character.credits // HEAL_COST_PER_HP)
+    if max_affordable <= 0:
+        console.print("[red]You can't afford so much as a bandage right now.[/red]")
+        return
+
+    amount = IntPrompt.ask(f"Heal how much HP? (0 to cancel, up to {max_affordable})")
+    if amount <= 0:
+        return
+    if amount > max_affordable:
+        console.print("[red]You can't afford that much healing.[/red]")
+        return
+
+    cost = amount * HEAL_COST_PER_HP
+    character.hp += amount
+    character.credits -= cost
+    console.print(
+        f"[bold bright_magenta]Patched up.[/bold bright_magenta] "
+        f"HP {character.hp}/{character.max_hp}. -{cost} credits."
+    )
+
+
 def visit_location(character: Character, location: str) -> None:
     print_arrival(location)
 
@@ -376,5 +417,7 @@ def enter_hub(character: Character) -> None:
             visit_chop_shop(character)
         elif chosen == "NetVault":
             visit_netvault(character)
+        elif chosen == "Doc Wire's Clinic":
+            visit_doc_wires_clinic(character)
         else:
             visit_location(character, chosen)
