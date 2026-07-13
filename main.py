@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from rich.console import Console
 from rich.panel import Panel
-from rich.prompt import Confirm, IntPrompt, Prompt
+from rich.prompt import IntPrompt, Prompt
 from rich.table import Table
 
 from engine.character import CLASSES, Character
@@ -14,15 +14,27 @@ from engine.save import list_saves, load_character, save_character, save_exists
 console = Console()
 
 TITLE = """[bold bright_magenta]N E O N   D R A G O N[/bold bright_magenta]
-[cyan]// neo meridian, after dark //[/cyan]"""
+[cyan]// neo meridian, after dark //[/cyan]
+[dim purple]rain on chrome, neon on wet asphalt[/dim purple]"""
 
 
 def print_title() -> None:
     console.print(Panel.fit(TITLE, border_style="bright_cyan", padding=(1, 6)))
 
 
+def print_main_menu() -> None:
+    table = Table(border_style="bright_cyan", show_header=False)
+    table.add_column("#", justify="right", style="bright_magenta")
+    table.add_column("Action", style="bold white")
+    table.add_row("1", "New Runner")
+    table.add_row("2", "Load Runner")
+    table.add_row("3", "Quit")
+    console.print(table)
+
+
 def print_character_sheet(character: Character) -> None:
-    table = Table(title=f"{character.name} — {character.char_class}", border_style="bright_magenta")
+    console.rule(f"[bold bright_magenta]{character.name}[/bold bright_magenta] [dim]— {character.char_class}[/dim]")
+    table = Table(border_style="bright_magenta")
     table.add_column("Stat", style="cyan")
     table.add_column("Value", style="bold white")
     table.add_row("Level", str(character.level))
@@ -114,13 +126,8 @@ def main() -> None:
     print_title()
     while True:
         console.print()
-        choice = Prompt.ask(
-            "[bright_magenta]1[/bright_magenta]) New Runner   "
-            "[bright_magenta]2[/bright_magenta]) Load Runner   "
-            "[bright_magenta]3[/bright_magenta]) Quit\n",
-            choices=["1", "2", "3"],
-            show_choices=False,
-        )
+        print_main_menu()
+        choice = Prompt.ask("Choose", choices=["1", "2", "3"], show_choices=False)
 
         if choice == "1":
             character = create_character()

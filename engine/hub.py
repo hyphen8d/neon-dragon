@@ -285,7 +285,12 @@ def visit_chop_shop(character: Character) -> None:
 
     print_loadout(character)
 
-    action = Prompt.ask("[1] Buy  [2] Sell  [0] Leave", choices=["0", "1", "2"], show_choices=False)
+    action = Prompt.ask(
+        "[bright_magenta]1[/bright_magenta] Buy  [bright_magenta]2[/bright_magenta] Sell  "
+        "[bright_magenta]0[/bright_magenta] Leave",
+        choices=["0", "1", "2"],
+        show_choices=False,
+    )
     if action == "1":
         _buy_cyberware(character)
     elif action == "2":

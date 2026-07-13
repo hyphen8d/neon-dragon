@@ -43,7 +43,8 @@ def run_combat(character: Character, enemy_data: dict) -> None:
             f"[red]{enemy.name}[/red] HP {max(enemy.hp, 0)}"
         )
         action = Prompt.ask(
-            "[1] Attack  [2] Tech/Hack  [3] Defend  [4] Flee",
+            "[bright_magenta]1[/bright_magenta] Attack  [bright_magenta]2[/bright_magenta] Tech/Hack  "
+            "[bright_magenta]3[/bright_magenta] Defend  [bright_magenta]4[/bright_magenta] Flee",
             choices=["1", "2", "3", "4"],
             show_choices=False,
         )
