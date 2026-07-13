@@ -28,8 +28,23 @@ from engine.quests import (
 )
 from engine.shop import buy_and_equip, get_item, load_cyberware, sell_back_value, unequip
 from engine.status_effects import EFFECT_LABELS, apply_effect, cure_all
+from engine.ui import hotkey_bracket, hotkey_prompt
 
 console = Console(highlight=False)
+
+# Location -> hub hotkey letter. Kept as an explicit dict (rather than
+# deriving from LOCATIONS' first letters) so the mapping is easy to scan
+# and guaranteed collision-free with the Actions row below.
+LOCATION_HOTKEYS: dict[str, str] = {
+    "C": "Chrome Noodle Bar",
+    "U": "Undercity",
+    "N": "NetVault",
+    "H": "Hyphen8d's Hut",
+    "D": "Doc Wire's Clinic",
+    "R": "RoboDOJO",
+    "P": "The Pit",
+    "F": "Fixer Board",
+}
 
 # Location -> one-line flavor for the hub menu table. Real content (rest,
 # shop, combat, etc.) is wired up location by location in later phases.
@@ -124,7 +139,7 @@ def print_status(character: Character) -> None:
     )
 
 
-def print_hub_menu(character: Character, location_names: list[str]) -> None:
+def print_hub_menu(character: Character) -> None:
     console.rule("[bright_magenta]Neo Meridian[/bright_magenta]")
     print_status(character)
     console.print()
@@ -134,11 +149,10 @@ def print_hub_menu(character: Character, location_names: list[str]) -> None:
         border_style="bright_cyan",
         show_header=False,
     )
-    locations.add_column("#", justify="right", style="bright_magenta")
     locations.add_column("Location", style="bold white")
     locations.add_column("Description", style="dim")
-    for i, name in enumerate(location_names, start=1):
-        locations.add_row(str(i), name, LOCATIONS[name])
+    for key, name in LOCATION_HOTKEYS.items():
+        locations.add_row(hotkey_bracket(key, name), LOCATIONS[name])
     console.print(locations)
 
     actions = Table(
@@ -146,12 +160,11 @@ def print_hub_menu(character: Character, location_names: list[str]) -> None:
         border_style="bright_cyan",
         show_header=False,
     )
-    actions.add_column("#", justify="right", style="bright_magenta")
     actions.add_column("Action", style="bold white")
     actions.add_column("Description", style="dim")
-    actions.add_row("i", "Character Info", "View your full stats, gear, contracts, and kills.")
-    actions.add_row("?", "Help", "Open the player guide.")
-    actions.add_row("0", "Leave", "Head home and save your progress.")
+    actions.add_row(hotkey_bracket("I", "Character Info"), "View your full stats, gear, contracts, and kills.")
+    actions.add_row("[bold bright_magenta][?][/bold bright_magenta] Help", "Open the player guide.")
+    actions.add_row(hotkey_bracket("L", "Leave"), "Head home and save your progress.")
     console.print(actions)
 
 
@@ -217,19 +230,20 @@ def visit_undercity(character: Character) -> None:
     print_arrival("Undercity")
 
     print_menu_divider("The Streets")
-    choice = Prompt.ask(
-        "[bright_magenta]1[/bright_magenta] Jack in (steal credits, risk a trace)  "
-        "[bright_magenta]2[/bright_magenta] Find a fight  "
-        "[bright_magenta]3[/bright_magenta] Scavenge  "
-        "[bright_magenta]0[/bright_magenta] Leave",
-        choices=["0", "1", "2", "3"],
-        show_choices=False,
+    choice = hotkey_prompt(
+        console,
+        [
+            ("J", "Jack in (steal credits, risk a trace)"),
+            ("F", "Find a fight"),
+            ("S", "Scavenge"),
+            ("L", "Leave"),
+        ],
     )
-    if choice == "1":
+    if choice == "J":
         _jack_in(character)
-    elif choice == "2":
+    elif choice == "F":
         _find_a_fight(character)
-    elif choice == "3":
+    elif choice == "S":
         _scavenge(character)
 
 
@@ -279,15 +293,10 @@ def visit_netvault(character: Character) -> None:
         f"Banked: [bold yellow]{character.banked_credits}[/bold yellow] [dim](safe from death-loss)[/dim]"
     )
 
-    action = Prompt.ask(
-        "[bright_magenta]1[/bright_magenta] Deposit  [bright_magenta]2[/bright_magenta] Withdraw  "
-        "[bright_magenta]0[/bright_magenta] Leave",
-        choices=["0", "1", "2"],
-        show_choices=False,
-    )
-    if action == "1":
+    action = hotkey_prompt(console, [("D", "Deposit"), ("W", "Withdraw"), ("L", "Leave")])
+    if action == "D":
         _deposit(character)
-    elif action == "2":
+    elif action == "W":
         _withdraw(character)
 
 
@@ -329,13 +338,10 @@ def _cure(character: Character) -> None:
         console.print("[dim]No status effects to clear.[/dim]")
         return
 
-    action = Prompt.ask(
-        f"Clear those for {CURE_COST} credits? [bright_magenta]1[/bright_magenta] Yes  "
-        f"[bright_magenta]0[/bright_magenta] No",
-        choices=["0", "1"],
-        show_choices=False,
+    action = hotkey_prompt(
+        console, [("Y", "Yes"), ("N", "No")], prompt=f"Clear those for {CURE_COST} credits?"
     )
-    if action != "1":
+    if action != "Y":
         return
     if character.credits < CURE_COST:
         console.print("[red]Not enough credits for that.[/red]")
@@ -366,15 +372,10 @@ def visit_doc_wires_clinic(character: Character) -> None:
         labels = ", ".join(EFFECT_LABELS.get(e, e) for e in character.status_effects)
         console.print(f"[yellow]Active effects:[/yellow] {labels}")
 
-    action = Prompt.ask(
-        "[bright_magenta]1[/bright_magenta] Heal  [bright_magenta]2[/bright_magenta] Cure Effects  "
-        "[bright_magenta]0[/bright_magenta] Leave",
-        choices=["0", "1", "2"],
-        show_choices=False,
-    )
-    if action == "1":
+    action = hotkey_prompt(console, [("H", "Heal"), ("C", "Cure Effects"), ("L", "Leave")])
+    if action == "H":
         _heal(character)
-    elif action == "2":
+    elif action == "C":
         _cure(character)
 
 
@@ -382,9 +383,9 @@ TRAIN_BASE_COST = 40
 TRAIN_SURCHARGE_PER_POINT = 5
 
 TRAINABLE_STATS: dict[str, tuple[str, str]] = {
-    "1": ("attack", "Attack"),
-    "2": ("defense", "Defense"),
-    "3": ("tech", "Tech"),
+    "A": ("attack", "Attack"),
+    "D": ("defense", "Defense"),
+    "T": ("tech", "Tech"),
 }
 
 SPARRING_FLAVOR: dict[str, str] = {
@@ -406,21 +407,20 @@ def visit_robodojo(character: Character) -> None:
 
     print_menu_divider("Training")
     table = Table(border_style="bright_cyan", show_header=False)
-    table.add_column("#", justify="right", style="bright_magenta")
     table.add_column("Stat", style="bold white")
     table.add_column("Current", justify="right")
     table.add_column("Next +1 costs", justify="right")
     for key, (attr, label) in TRAINABLE_STATS.items():
         current = getattr(character, attr)
-        table.add_row(key, label, str(current), str(_train_cost(current)))
+        table.add_row(hotkey_bracket(key, label), str(current), str(_train_cost(current)))
     console.print(table)
 
-    choice = Prompt.ask(
-        "Train which stat? (0 to cancel)",
-        choices=["0", *TRAINABLE_STATS.keys()],
-        show_choices=False,
+    choice = hotkey_prompt(
+        console,
+        [(k, label) for k, (_, label) in TRAINABLE_STATS.items()] + [("L", "Leave")],
+        prompt="Train which stat?",
     )
-    if choice == "0":
+    if choice == "L":
         return
 
     attr, label = TRAINABLE_STATS[choice]
@@ -491,16 +491,14 @@ def visit_chrome_noodle_bar(character: Character) -> None:
             f"+{healed} HP, on the house."
         )
 
-    choice = Prompt.ask(
-        "\n[bright_magenta]1[/bright_magenta] Buy a round  "
-        "[bright_magenta]2[/bright_magenta] Check the shady booth in the back  "
-        "[bright_magenta]0[/bright_magenta] Leave",
-        choices=["0", "1", "2"],
-        show_choices=False,
+    console.print()
+    choice = hotkey_prompt(
+        console,
+        [("B", "Buy a round"), ("C", "Check the shady booth in the back"), ("L", "Leave")],
     )
-    if choice == "1":
+    if choice == "B":
         _buy_a_round(character)
-    elif choice == "2":
+    elif choice == "C":
         _visit_endr3am(character)
 
 
@@ -730,15 +728,10 @@ def visit_hyphen8ds_hut(character: Character) -> None:
 
     print_loadout(character)
 
-    action = Prompt.ask(
-        "[bright_magenta]1[/bright_magenta] Buy  [bright_magenta]2[/bright_magenta] Sell  "
-        "[bright_magenta]0[/bright_magenta] Leave",
-        choices=["0", "1", "2"],
-        show_choices=False,
-    )
-    if action == "1":
+    action = hotkey_prompt(console, [("B", "Buy"), ("S", "Sell"), ("L", "Leave")])
+    if action == "B":
         _buy_cyberware(character)
-    elif action == "2":
+    elif action == "S":
         _sell_cyberware(character)
 
 
@@ -807,26 +800,26 @@ def show_character_info(character: Character) -> None:
 
 
 def enter_hub(character: Character) -> None:
-    location_names = list(LOCATIONS.keys())
     while True:
         console.print()
-        print_hub_menu(character, location_names)
+        print_hub_menu(character)
         choice = Prompt.ask(
             "Where to?",
-            choices=[str(i) for i in range(len(location_names) + 1)] + ["?", "i"],
+            choices=[*LOCATION_HOTKEYS.keys(), "I", "L", "?"],
             show_choices=False,
-        )
-        if choice == "0":
+            case_sensitive=False,
+        ).upper()
+        if choice == "L":
             console.print("[dim]You head back, credits and gear safe... for now.[/dim]")
             return
         if choice == "?":
             show_help(console)
             continue
-        if choice == "i":
+        if choice == "I":
             show_character_info(character)
             continue
 
-        chosen = location_names[int(choice) - 1]
+        chosen = LOCATION_HOTKEYS[choice]
 
         if chosen == "Undercity":
             visit_undercity(character)

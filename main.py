@@ -13,6 +13,7 @@ from engine.help import show_help
 from engine.hub import enter_hub
 from engine.leveling import xp_for_next_level
 from engine.save import delete_save, list_saves, load_character, save_character, save_exists
+from engine.ui import hotkey_bracket, hotkey_prompt
 
 console = Console(highlight=False)
 
@@ -78,15 +79,20 @@ def print_title() -> None:
     console.print(Panel(body, border_style="bright_cyan", padding=(1, 4), width=64))
 
 
+MAIN_MENU_OPTIONS: list[tuple[str, str]] = [
+    ("N", "New Merc"),
+    ("L", "Load Merc"),
+    ("D", "Delete Merc"),
+    ("H", "Help"),
+    ("Q", "Quit"),
+]
+
+
 def print_main_menu() -> None:
     table = Table(border_style="bright_cyan", show_header=False)
-    table.add_column("#", justify="right", style="bright_magenta")
     table.add_column("Action", style="bold white")
-    table.add_row("1", "New Merc")
-    table.add_row("2", "Load Merc")
-    table.add_row("3", "Delete Merc")
-    table.add_row("4", "Help")
-    table.add_row("5", "Quit")
+    for key, label in MAIN_MENU_OPTIONS:
+        table.add_row(hotkey_bracket(key, label))
     console.print(table)
 
 
@@ -111,9 +117,11 @@ def print_character_sheet(character: Character) -> None:
 
 def choose_class() -> str:
     class_names = list(CLASSES.keys())
+    # First letter of each class name is unique among current classes
+    # (Street Samurai / Netrunner); revisit if a future class collides.
+    hotkeys = {name[0].upper(): name for name in class_names}
 
     table = Table(border_style="bright_cyan")
-    table.add_column("#", justify="right", style="bright_magenta")
     table.add_column("Class", style="bold magenta")
     table.add_column("Flavor")
     table.add_column("HP", justify="right")
@@ -121,11 +129,10 @@ def choose_class() -> str:
     table.add_column("DEF", justify="right")
     table.add_column("TECH", justify="right")
     table.add_column("CHA", justify="right")
-    for i, name in enumerate(class_names, start=1):
+    for key, name in hotkeys.items():
         stats = CLASSES[name]
         table.add_row(
-            str(i),
-            name,
+            hotkey_bracket(key, name),
             stats["flavor"],
             str(stats["hp"]),
             str(stats["attack"]),
@@ -135,8 +142,8 @@ def choose_class() -> str:
         )
     console.print(table)
 
-    choice = IntPrompt.ask("Choose your path", choices=[str(i) for i in range(1, len(class_names) + 1)])
-    return class_names[choice - 1]
+    choice = hotkey_prompt(console, list(hotkeys.items()), prompt="Choose your path")
+    return hotkeys[choice]
 
 
 def create_character() -> Character:
@@ -188,13 +195,12 @@ def delete_character() -> None:
         return
 
     name = slug.replace("_", " ")
-    confirm = Prompt.ask(
-        f"Really delete '{name}'? This can't be undone. "
-        f"[bright_magenta]1[/bright_magenta] Yes  [bright_magenta]0[/bright_magenta] No",
-        choices=["0", "1"],
-        show_choices=False,
+    confirm = hotkey_prompt(
+        console,
+        [("Y", "Yes"), ("N", "No")],
+        prompt=f"Really delete '{name}'? This can't be undone.",
     )
-    if confirm == "1":
+    if confirm == "Y":
         delete_save(slug)
         console.print(f"[red]{name} deleted.[/red]")
 
@@ -204,21 +210,21 @@ def main() -> None:
     while True:
         console.print()
         print_main_menu()
-        choice = Prompt.ask("Choose", choices=["1", "2", "3", "4", "5"], show_choices=False)
+        choice = hotkey_prompt(console, MAIN_MENU_OPTIONS)
 
-        if choice == "1":
+        if choice == "N":
             character = create_character()
-        elif choice == "2":
+        elif choice == "L":
             slug = choose_existing_save()
             if slug is None:
                 continue
             character = load_character(slug)
             console.print()
             print_character_sheet(character)
-        elif choice == "3":
+        elif choice == "D":
             delete_character()
             continue
-        elif choice == "4":
+        elif choice == "H":
             show_help(console)
             continue
         else:

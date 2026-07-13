@@ -38,8 +38,10 @@ python3 -m venv .venv
   charisma-gated contracts)
 - Turn-based combat with status effects (Bleeding, Stunned) and
   per-enemy factions (Street Gang, Corp, Gladiator)
-- In-game character info (`i`) and help (`?`) screens, accessible
+- In-game character info (`[I]`) and help (`[?]`) screens, accessible
   mid-session without spending a turn
+- Bracket-hotkey menus throughout — every screen shows a bold-bracketed
+  letter you type (plus Enter) to choose an option
 - JSON save/load, one file per character, autosaved on returning to
   the main menu
 

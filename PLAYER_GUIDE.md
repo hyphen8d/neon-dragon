@@ -227,7 +227,7 @@ exactly what you're short on.
 
 ## Checking your status
 
-From inside the hub, type **i** at the "Where to?" prompt to pull up
+From inside the hub, press **[I]** at the "Where to?" prompt to pull up
 your full character info: attributes, credits/banked, reputation and
 contract counts, cyberware loadout, active status effects, and a kill
 tally grouped by faction. This doesn't cost a turn.
@@ -238,7 +238,7 @@ Enemies belong to a faction: **Street Gang** (Street Gangers), **Corp**
 Pit roster). The kill tally groups by faction first, then breaks down
 by individual enemy underneath.
 
-Type **?** the same way to reopen this guide mid-session.
+Press **[?]** the same way to reopen this guide mid-session.
 
 ## Saving
 

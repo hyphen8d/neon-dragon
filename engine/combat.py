@@ -6,13 +6,13 @@ import random
 from dataclasses import dataclass, field
 
 from rich.console import Console
-from rich.prompt import Prompt
 
 from engine.character import Character, hp_style
 from engine.leveling import check_level_up
 from engine.quests import notify_step, print_quest_result
 from engine.shop import get_item
 from engine.status_effects import DRUNK_STAT_PENALTY, EFFECT_LABELS, apply_effect, has_effect, process_round_start
+from engine.ui import hotkey_prompt
 
 console = Console(highlight=False)
 
@@ -118,24 +118,22 @@ def run_combat(character: Character, enemy_data: dict) -> None:
         if stunned:
             console.print("[yellow]You're stunned — you can't act this round![/yellow]")
         else:
-            action = Prompt.ask(
-                "[bright_magenta]1[/bright_magenta] Attack  [bright_magenta]2[/bright_magenta] Tech/Hack  "
-                "[bright_magenta]3[/bright_magenta] Defend  [bright_magenta]4[/bright_magenta] Flee",
-                choices=["1", "2", "3", "4"],
-                show_choices=False,
+            action = hotkey_prompt(
+                console,
+                [("A", "Attack"), ("T", "Tech/Hack"), ("D", "Defend"), ("F", "Flee")],
             )
 
             drunk_penalty = DRUNK_STAT_PENALTY if has_effect(character, "drunk") else 0
 
-            if action == "1":
+            if action == "A":
                 stat_value = max(0, character.attack - drunk_penalty)
                 if _player_hit(enemy, stat_value, "strike", console) and enemy.alive:
                     _gear_inflict(character, enemy, "arm", console)
-            elif action == "2":
+            elif action == "T":
                 stat_value = max(0, character.tech - drunk_penalty)
                 if _player_hit(enemy, stat_value, "hack their systems", console) and enemy.alive:
                     _gear_inflict(character, enemy, "eyes", console)
-            elif action == "3":
+            elif action == "D":
                 defending = True
                 console.print("[dim]You brace for the hit.[/dim]")
             else:
