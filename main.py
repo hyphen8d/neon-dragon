@@ -8,6 +8,7 @@ from rich.prompt import IntPrompt, Prompt
 from rich.table import Table
 
 from engine.character import CLASSES, Character
+from engine.help import show_help
 from engine.hub import enter_hub
 from engine.save import list_saves, load_character, save_character, save_exists
 
@@ -28,7 +29,8 @@ def print_main_menu() -> None:
     table.add_column("Action", style="bold white")
     table.add_row("1", "New Runner")
     table.add_row("2", "Load Runner")
-    table.add_row("3", "Quit")
+    table.add_row("3", "Help")
+    table.add_row("4", "Quit")
     console.print(table)
 
 
@@ -128,7 +130,7 @@ def main() -> None:
     while True:
         console.print()
         print_main_menu()
-        choice = Prompt.ask("Choose", choices=["1", "2", "3"], show_choices=False)
+        choice = Prompt.ask("Choose", choices=["1", "2", "3", "4"], show_choices=False)
 
         if choice == "1":
             character = create_character()
@@ -139,6 +141,9 @@ def main() -> None:
             character = load_character(slug)
             console.print()
             print_character_sheet(character)
+        elif choice == "3":
+            show_help(console)
+            continue
         else:
             console.print("[dim]Stay chrome.[/dim]")
             break

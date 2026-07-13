@@ -12,9 +12,18 @@ from rich.table import Table
 from engine.character import CYBERWARE_SLOTS, Character
 from engine.combat import run_combat
 from engine.encounters import roll_encounter
+from engine.help import show_help
 from engine.npcs import npc_at, random_line
 from engine.pit import load_gladiators
-from engine.quests import accept_quest, available_quests, current_step, get_quest, notify_step, print_quest_result
+from engine.quests import (
+    accept_quest,
+    available_quests,
+    current_step,
+    get_quest,
+    locked_quests,
+    notify_step,
+    print_quest_result,
+)
 from engine.shop import buy_and_equip, get_item, load_cyberware, sell_back_value, unequip
 
 console = Console()
@@ -98,6 +107,7 @@ def print_hub_menu(character: Character, location_names: list[str]) -> None:
     for i, name in enumerate(location_names, start=1):
         table.add_row(str(i), name, LOCATIONS[name])
     table.add_row("0", "Leave", "Head home and save your progress.")
+    table.add_row("?", "Help", "Open the player guide.")
     console.print(table)
 
 
@@ -327,6 +337,13 @@ def visit_fixer_board(character: Character) -> None:
             step = current_step(character, quest_id)
             console.print(f"  [bold]{quest['title']}[/bold] — {step['description']}")
 
+    locked = locked_quests(character)
+    if locked:
+        console.print(
+            f"\n[dim]{len(locked)} more contract(s) on the board need more reputation "
+            f"before The Fixer will hand them over.[/dim]"
+        )
+
     open_quests = available_quests(character)
     if not open_quests:
         console.print("\n[dim]No new contracts posted right now.[/dim]")
@@ -472,12 +489,15 @@ def enter_hub(character: Character) -> None:
         print_hub_menu(character, location_names)
         choice = Prompt.ask(
             "Where to?",
-            choices=[str(i) for i in range(len(location_names) + 1)],
+            choices=[str(i) for i in range(len(location_names) + 1)] + ["?"],
             show_choices=False,
         )
         if choice == "0":
             console.print("[dim]You head back, credits and gear safe... for now.[/dim]")
             return
+        if choice == "?":
+            show_help(console)
+            continue
 
         chosen = location_names[int(choice) - 1]
 

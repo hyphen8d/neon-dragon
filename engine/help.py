@@ -1,0 +1,17 @@
+"""Render the player guide inside the game, straight from PLAYER_GUIDE.md."""
+
+from __future__ import annotations
+
+from pathlib import Path
+
+from rich.console import Console
+from rich.markdown import Markdown
+
+GUIDE_PATH = Path(__file__).resolve().parent.parent / "PLAYER_GUIDE.md"
+
+
+def show_help(console: Console) -> None:
+    console.print()
+    console.rule("[bold bright_magenta]Player Guide[/bold bright_magenta]")
+    console.print(Markdown(GUIDE_PATH.read_text()))
+    console.rule(style="bright_cyan")

@@ -9,7 +9,8 @@
         {"type": "talk", "target": "Fixer Board", "description": "Report back to The Fixer."}
       ],
       "reward": {"credits": 20, "xp": 10, "reputation": 5},
-      "complete_text": "\"Good. Knowing things before everyone else — that's half the job.\""
+      "complete_text": "\"Good. Knowing things before everyone else — that's half the job.\"",
+      "min_reputation": 0
     },
     {
       "id": "chrome_debt",
@@ -20,7 +21,8 @@
         {"type": "talk", "target": "Fixer Board", "description": "Report back to The Fixer."}
       ],
       "reward": {"credits": 40, "xp": 20, "reputation": 10},
-      "complete_text": "\"One down. Credits are yours — spend 'em quiet.\""
+      "complete_text": "\"One down. Credits are yours — spend 'em quiet.\"",
+      "min_reputation": 0
     },
     {
       "id": "drone_bounty",
@@ -31,7 +33,8 @@
         {"type": "talk", "target": "Fixer Board", "description": "Report back to The Fixer."}
       ],
       "reward": {"credits": 45, "xp": 20, "reputation": 8},
-      "complete_text": "\"Nice and quiet. That's how the corp likes it. Here's your cut.\""
+      "complete_text": "\"Nice and quiet. That's how the corp likes it. Here's your cut.\"",
+      "min_reputation": 10
     },
     {
       "id": "corp_trouble",
@@ -42,7 +45,8 @@
         {"type": "talk", "target": "Fixer Board", "description": "Report back to The Fixer."}
       ],
       "reward": {"credits": 60, "xp": 30, "reputation": 15},
-      "complete_text": "\"That'll rattle them for a while. Nice work.\""
+      "complete_text": "\"That'll rattle them for a while. Nice work.\"",
+      "min_reputation": 20
     }
   ]
 }

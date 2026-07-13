@@ -25,11 +25,25 @@ def get_quest(quest_id: str) -> dict[str, Any]:
     raise KeyError(quest_id)
 
 
+def _not_taken(character: Character, quest: dict[str, Any]) -> bool:
+    return quest["id"] not in character.active_quests and quest["id"] not in character.completed_quests
+
+
 def available_quests(character: Character) -> list[dict[str, Any]]:
+    """Quests not yet taken/completed whose reputation requirement is met."""
     return [
         q
         for q in load_quests()
-        if q["id"] not in character.active_quests and q["id"] not in character.completed_quests
+        if _not_taken(character, q) and character.reputation >= q.get("min_reputation", 0)
+    ]
+
+
+def locked_quests(character: Character) -> list[dict[str, Any]]:
+    """Quests not yet taken/completed but still below their reputation requirement."""
+    return [
+        q
+        for q in load_quests()
+        if _not_taken(character, q) and character.reputation < q.get("min_reputation", 0)
     ]
 
 
