@@ -24,14 +24,6 @@ CLASSES: dict[str, dict] = {
         "tech": 9,
         "charisma": 4,
     },
-    "Fixer": {
-        "flavor": "Knows everyone, owes everyone, works every angle for a cut.",
-        "hp": 24,
-        "attack": 4,
-        "defense": 4,
-        "tech": 4,
-        "charisma": 8,
-    },
 }
 
 

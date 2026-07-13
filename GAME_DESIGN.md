@@ -43,8 +43,12 @@ A menu of locations the player travels between each turn:
 
 - Core stats: HP, Attack (Chrome/Melee), Defense (Armor), Tech (hacking/
   ranged), Charisma (dialogue/quest checks), Credits, XP/Level.
-- Optional class flavor at creation: **Street Samurai** (melee-focused),
-  **Netrunner** (tech/hacking-focused), **Fixer** (charisma/quest-focused).
+- Class flavor at creation: **Street Samurai** (melee-focused), **Netrunner**
+  (tech/hacking-focused). A third class, **Fixer** (charisma/quest-focused),
+  is deferred — Charisma has no mechanical hooks yet (no dialogue checks,
+  shop discounts, or charisma-gated quest paths), so a charisma-build class
+  would just be a diluted hybrid of the other two. Reintroduce it once
+  Charisma does something.
 - Cyberware slots instead of traditional armor slots (arm, eyes, spine,
   skin) — each grants a stat bonus, sourced from the Chop Shop.
 
