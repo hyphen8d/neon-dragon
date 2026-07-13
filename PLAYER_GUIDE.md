@@ -48,8 +48,11 @@ Every session loops through this menu. Locations:
 
 ### Chrome Noodle Bar
 Static Rin, the bartender, has a pool of flavor lines and occasional
-job rumors. No mechanical effect — a flavor stop, and a step in the
-"Word on the Street" contract.
+job rumors, and it's a step in the "Word on the Street" contract. It's
+also a free rest stop: if you're below half HP, you're topped up to
+half for free. Doesn't do anything once you're at or above that —
+Doc Wire's Clinic is still the only way to heal further or clear
+status effects.
 
 ### Undercity
 Random encounters, weighted: gang fights, a rogue drone, a corp

@@ -351,6 +351,32 @@ def visit_the_pit(character: Character) -> None:
     run_combat(character, enemy_data)
 
 
+REST_THRESHOLD = 0.5  # free rest tops you up to this fraction of max HP, no further
+
+
+def visit_chrome_noodle_bar(character: Character) -> None:
+    print_arrival("Chrome Noodle Bar")
+
+    for result in notify_step(character, "talk", "Chrome Noodle Bar"):
+        print_quest_result(console, result)
+
+    npc = npc_at("Chrome Noodle Bar")
+    console.print(f"[bold cyan]{npc['name']}[/bold cyan] [dim]— {npc['bio']}[/dim]")
+    console.print(f"  {random_line(npc)}")
+
+    rest_floor = int(character.max_hp * REST_THRESHOLD)
+    if character.hp >= rest_floor:
+        console.print("\n[dim]You're rested enough already. No need to linger.[/dim]")
+        return
+
+    healed = rest_floor - character.hp
+    character.hp = rest_floor
+    console.print(
+        f"\n[bold bright_magenta]You crash in a booth for a while, noodles going cold.[/bold bright_magenta] "
+        f"+{healed} HP, on the house."
+    )
+
+
 def visit_location(character: Character, location: str) -> None:
     print_arrival(location)
 
@@ -620,6 +646,8 @@ def enter_hub(character: Character) -> None:
 
         if chosen == "Undercity":
             visit_undercity(character)
+        elif chosen == "Chrome Noodle Bar":
+            visit_chrome_noodle_bar(character)
         elif chosen == "Fixer Board":
             visit_fixer_board(character)
         elif chosen == "Chop Shop":
