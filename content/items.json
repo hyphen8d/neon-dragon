@@ -1,0 +1,76 @@
+{
+  "cyberware": [
+    {
+      "id": "chrome_arm_mk1",
+      "name": "Chrome Arm Mk.I",
+      "slot": "arm",
+      "cost": 80,
+      "stat": "attack",
+      "bonus": 3,
+      "flavor": "Servo-driven forearm. Dents street signs on a bad day."
+    },
+    {
+      "id": "razor_claws",
+      "name": "Razor Claws",
+      "slot": "arm",
+      "cost": 150,
+      "stat": "attack",
+      "bonus": 6,
+      "flavor": "Retractable monofilament blades. Illegal in six districts."
+    },
+    {
+      "id": "optic_scanner",
+      "name": "Optic Scanner",
+      "slot": "eyes",
+      "cost": 90,
+      "stat": "tech",
+      "bonus": 4,
+      "flavor": "Threat ID overlay, night vision, mild headaches."
+    },
+    {
+      "id": "target_lock_eyes",
+      "name": "Target-Lock Eyes",
+      "slot": "eyes",
+      "cost": 160,
+      "stat": "tech",
+      "bonus": 7,
+      "flavor": "Military surplus. Tracks micro-movements you can't even see."
+    },
+    {
+      "id": "spinal_brace",
+      "name": "Spinal Brace",
+      "slot": "spine",
+      "cost": 100,
+      "stat": "defense",
+      "bonus": 4,
+      "flavor": "Shock-absorbing lattice welded to your vertebrae."
+    },
+    {
+      "id": "reflex_booster",
+      "name": "Reflex Booster",
+      "slot": "spine",
+      "cost": 170,
+      "stat": "defense",
+      "bonus": 7,
+      "flavor": "Cuts reaction time in half. Makes your handwriting worse."
+    },
+    {
+      "id": "synth_derm",
+      "name": "Synth-Derm",
+      "slot": "skin",
+      "cost": 70,
+      "stat": "charisma",
+      "bonus": 3,
+      "flavor": "Flawless, poreless, faintly iridescent under neon."
+    },
+    {
+      "id": "mirrorskin",
+      "name": "Mirrorskin",
+      "slot": "skin",
+      "cost": 140,
+      "stat": "charisma",
+      "bonus": 6,
+      "flavor": "Reflective subdermal weave. People remember your silhouette, not your face."
+    }
+  ]
+}

@@ -9,11 +9,12 @@ from rich.panel import Panel
 from rich.prompt import Prompt
 from rich.table import Table
 
-from engine.character import Character
+from engine.character import CYBERWARE_SLOTS, Character
 from engine.combat import run_combat
 from engine.encounters import roll_encounter
 from engine.npcs import npc_at, random_line
 from engine.quests import accept_quest, available_quests, current_step, get_quest, notify_step, print_quest_result
+from engine.shop import buy_and_equip, get_item, load_cyberware, sell_back_value, unequip
 
 console = Console()
 
@@ -186,6 +187,111 @@ def visit_fixer_board(character: Character) -> None:
     console.print(f"  {chosen_quest['steps'][0]['description']}")
 
 
+def print_loadout(character: Character) -> None:
+    console.print("\n[bright_magenta]Your chrome:[/bright_magenta]")
+    table = Table(border_style="bright_cyan", show_header=False)
+    table.add_column("Slot", style="bold white")
+    table.add_column("Installed", style="dim")
+    for slot in CYBERWARE_SLOTS:
+        item_id = character.cyberware[slot]
+        installed = get_item(item_id)["name"] if item_id else "-- empty --"
+        table.add_row(slot.capitalize(), installed)
+    console.print(table)
+
+
+def print_catalog(catalog: list[dict]) -> None:
+    console.print("\n[bright_magenta]For sale:[/bright_magenta]")
+    table = Table(border_style="bright_cyan")
+    table.add_column("#", justify="right", style="bright_magenta")
+    table.add_column("Item", style="bold white")
+    table.add_column("Slot")
+    table.add_column("Bonus")
+    table.add_column("Cost", justify="right")
+    table.add_column("Flavor", style="dim")
+    for i, item in enumerate(catalog, start=1):
+        table.add_row(
+            str(i),
+            item["name"],
+            item["slot"].capitalize(),
+            f"+{item['bonus']} {item['stat']}",
+            str(item["cost"]),
+            item["flavor"],
+        )
+    console.print(table)
+
+
+def _buy_cyberware(character: Character) -> None:
+    catalog = load_cyberware()
+    print_catalog(catalog)
+
+    choice = Prompt.ask(
+        "Buy which item? (0 to cancel)",
+        choices=[str(i) for i in range(len(catalog) + 1)],
+        show_choices=False,
+    )
+    if choice == "0":
+        return
+
+    item = catalog[int(choice) - 1]
+    old_id = character.cyberware[item["slot"]]
+    trade_in = sell_back_value(get_item(old_id)) if old_id else 0
+    if character.credits + trade_in < item["cost"]:
+        console.print("[red]Not enough credits for that, even with a trade-in.[/red]")
+        return
+
+    buy_and_equip(character, item["id"])
+    if old_id:
+        console.print(f"[dim]{get_item(old_id)['name']} pulled and sold back for parts.[/dim]")
+    console.print(
+        f"[bold bright_magenta]Installed:[/bold bright_magenta] {item['name']} "
+        f"(+{item['bonus']} {item['stat']})"
+    )
+
+
+def _sell_cyberware(character: Character) -> None:
+    equipped_slots = [slot for slot in CYBERWARE_SLOTS if character.cyberware[slot]]
+    if not equipped_slots:
+        console.print("[dim]Nothing installed to sell.[/dim]")
+        return
+
+    table = Table(border_style="bright_cyan", show_header=False)
+    table.add_column("#", justify="right", style="bright_magenta")
+    table.add_column("Slot", style="bold white")
+    table.add_column("Installed", style="dim")
+    for i, slot in enumerate(equipped_slots, start=1):
+        item = get_item(character.cyberware[slot])
+        table.add_row(str(i), slot.capitalize(), f"{item['name']} (sells for {sell_back_value(item)})")
+    console.print(table)
+
+    choice = Prompt.ask(
+        "Sell which item? (0 to cancel)",
+        choices=[str(i) for i in range(len(equipped_slots) + 1)],
+        show_choices=False,
+    )
+    if choice == "0":
+        return
+
+    slot = equipped_slots[int(choice) - 1]
+    item = unequip(character, slot)
+    console.print(f"[bold yellow]{item['name']} sold for {sell_back_value(item)} credits.[/bold yellow]")
+
+
+def visit_chop_shop(character: Character) -> None:
+    print_arrival("Chop Shop")
+
+    npc = npc_at("Chop Shop")
+    console.print(f"[bold cyan]{npc['name']}[/bold cyan] [dim]— {npc['bio']}[/dim]")
+    console.print(f"  {random_line(npc)}")
+
+    print_loadout(character)
+
+    action = Prompt.ask("[1] Buy  [2] Sell  [0] Leave", choices=["0", "1", "2"], show_choices=False)
+    if action == "1":
+        _buy_cyberware(character)
+    elif action == "2":
+        _sell_cyberware(character)
+
+
 def enter_hub(character: Character) -> None:
     location_names = list(LOCATIONS.keys())
     while True:
@@ -206,5 +312,7 @@ def enter_hub(character: Character) -> None:
             visit_undercity(character)
         elif chosen == "Fixer Board":
             visit_fixer_board(character)
+        elif chosen == "Chop Shop":
+            visit_chop_shop(character)
         else:
             visit_location(character, chosen)
