@@ -1,0 +1,59 @@
+{
+  "encounters": [
+    {
+      "id": "street_ganger",
+      "type": "combat",
+      "weight": 30,
+      "intro": "A ganger steps out of the alley shadows, chrome knuckles gleaming under a busted neon sign.",
+      "enemy": {
+        "name": "Street Ganger",
+        "hp": 16,
+        "attack": 5,
+        "defense": 2,
+        "credits_reward": 25,
+        "xp_reward": 12
+      }
+    },
+    {
+      "id": "rogue_drone",
+      "type": "combat",
+      "weight": 20,
+      "intro": "A rogue delivery drone drops out of the smog, rotors screaming, sensors locked on you.",
+      "enemy": {
+        "name": "Rogue Drone",
+        "hp": 12,
+        "attack": 4,
+        "defense": 5,
+        "credits_reward": 30,
+        "xp_reward": 15
+      }
+    },
+    {
+      "id": "corp_patrol",
+      "type": "combat",
+      "weight": 12,
+      "intro": "A corp patrol trooper barks a challenge, stun baton crackling blue.",
+      "enemy": {
+        "name": "Corp Patrol Trooper",
+        "hp": 22,
+        "attack": 7,
+        "defense": 6,
+        "credits_reward": 45,
+        "xp_reward": 25
+      }
+    },
+    {
+      "id": "scavenger_stash",
+      "type": "loot",
+      "weight": 18,
+      "intro": "You spot a stash tucked behind a dead vending unit — someone's old cache.",
+      "credits": [10, 35]
+    },
+    {
+      "id": "nothing_static",
+      "type": "nothing",
+      "weight": 20,
+      "intro": "Rain hisses off warm concrete. Just static and neon tonight. Nothing bites."
+    }
+  ]
+}

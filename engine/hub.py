@@ -2,11 +2,15 @@
 
 from __future__ import annotations
 
+import random
+
 from rich.console import Console
 from rich.prompt import Prompt
 from rich.table import Table
 
 from engine.character import Character
+from engine.combat import run_combat
+from engine.encounters import roll_encounter
 
 console = Console()
 
@@ -47,6 +51,20 @@ def print_hub_menu(character: Character, location_names: list[str]) -> None:
     console.print(table)
 
 
+def visit_undercity(character: Character) -> None:
+    encounter = roll_encounter()
+    console.print(f"\n[bright_magenta]Undercity[/bright_magenta] — [dim]{encounter['intro']}[/dim]")
+
+    if encounter["type"] == "combat":
+        run_combat(character, encounter["enemy"])
+    elif encounter["type"] == "loot":
+        low, high = encounter["credits"]
+        amount = random.randint(low, high)
+        character.credits += amount
+        console.print(f"[bold yellow]+{amount} credits.[/bold yellow]")
+    # "nothing" encounters just print their flavor line above.
+
+
 def enter_hub(character: Character) -> None:
     location_names = list(LOCATIONS.keys())
     while True:
@@ -62,5 +80,10 @@ def enter_hub(character: Character) -> None:
             return
 
         chosen = location_names[int(choice) - 1]
+
+        if chosen == "Undercity":
+            visit_undercity(character)
+            continue
+
         console.print(f"\n[bright_magenta]{chosen}[/bright_magenta] — [dim]{LOCATIONS[chosen]}[/dim]")
         console.print("[dim](nothing to do here yet — coming in a later phase)[/dim]")
