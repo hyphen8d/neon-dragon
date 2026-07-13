@@ -1,0 +1,138 @@
+"""Neon Dragon — entry point and main menu loop."""
+
+from __future__ import annotations
+
+from rich.console import Console
+from rich.panel import Panel
+from rich.prompt import Confirm, IntPrompt, Prompt
+from rich.table import Table
+
+from engine.character import CLASSES, Character
+from engine.hub import enter_hub
+from engine.save import list_saves, load_character, save_character, save_exists
+
+console = Console()
+
+TITLE = """[bold bright_magenta]N E O N   D R A G O N[/bold bright_magenta]
+[cyan]// neo meridian, after dark //[/cyan]"""
+
+
+def print_title() -> None:
+    console.print(Panel.fit(TITLE, border_style="bright_cyan", padding=(1, 6)))
+
+
+def print_character_sheet(character: Character) -> None:
+    table = Table(title=f"{character.name} — {character.char_class}", border_style="bright_magenta")
+    table.add_column("Stat", style="cyan")
+    table.add_column("Value", style="bold white")
+    table.add_row("Level", str(character.level))
+    table.add_row("XP", str(character.xp))
+    table.add_row("HP", f"{character.hp}/{character.max_hp}")
+    table.add_row("Attack", str(character.attack))
+    table.add_row("Defense", str(character.defense))
+    table.add_row("Tech", str(character.tech))
+    table.add_row("Charisma", str(character.charisma))
+    table.add_row("Credits", str(character.credits))
+    console.print(table)
+
+
+def choose_class() -> str:
+    table = Table(border_style="bright_cyan")
+    table.add_column("Class", style="bold magenta")
+    table.add_column("Flavor")
+    table.add_column("HP", justify="right")
+    table.add_column("ATK", justify="right")
+    table.add_column("DEF", justify="right")
+    table.add_column("TECH", justify="right")
+    table.add_column("CHA", justify="right")
+    for name, stats in CLASSES.items():
+        table.add_row(
+            name,
+            stats["flavor"],
+            str(stats["hp"]),
+            str(stats["attack"]),
+            str(stats["defense"]),
+            str(stats["tech"]),
+            str(stats["charisma"]),
+        )
+    console.print(table)
+    return Prompt.ask("Choose your path", choices=list(CLASSES.keys()))
+
+
+def create_character() -> Character:
+    console.rule("[bright_magenta]New Runner[/bright_magenta]")
+    while True:
+        name = Prompt.ask("What do they call you on the street?").strip()
+        if not name:
+            console.print("[red]Need a name, choom.[/red]")
+            continue
+        if save_exists(name):
+            console.print(f"[red]A runner named '{name}' already exists.[/red]")
+            continue
+        break
+
+    char_class = choose_class()
+    character = Character.new(name=name, char_class=char_class)
+    save_character(character)
+    console.print(f"\n[bright_cyan]{character.name}[/bright_cyan] hits the streets of Neo Meridian.\n")
+    print_character_sheet(character)
+    return character
+
+
+def choose_existing_save() -> str | None:
+    slugs = list_saves()
+    if not slugs:
+        console.print("[dim]No runners found on file.[/dim]")
+        return None
+
+    table = Table(border_style="bright_cyan")
+    table.add_column("#", justify="right")
+    table.add_column("Name")
+    for i, slug in enumerate(slugs, start=1):
+        table.add_row(str(i), slug.replace("_", " "))
+    console.print(table)
+
+    choice = IntPrompt.ask(
+        "Load which runner? (0 to cancel)",
+        choices=[str(i) for i in range(len(slugs) + 1)],
+        show_choices=False,
+    )
+    if choice == 0:
+        return None
+    return slugs[choice - 1]
+
+
+def main() -> None:
+    print_title()
+    while True:
+        console.print()
+        choice = Prompt.ask(
+            "[bright_magenta]1[/bright_magenta]) New Runner   "
+            "[bright_magenta]2[/bright_magenta]) Load Runner   "
+            "[bright_magenta]3[/bright_magenta]) Quit\n",
+            choices=["1", "2", "3"],
+            show_choices=False,
+        )
+
+        if choice == "1":
+            character = create_character()
+        elif choice == "2":
+            slug = choose_existing_save()
+            if slug is None:
+                continue
+            character = load_character(slug)
+            console.print()
+            print_character_sheet(character)
+        else:
+            console.print("[dim]Stay chrome.[/dim]")
+            break
+
+        enter_hub(character)
+        save_character(character)
+
+
+if __name__ == "__main__":
+    try:
+        main()
+    except KeyboardInterrupt:
+        console.print("\n[dim]Connection terminated.[/dim]")
