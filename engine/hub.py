@@ -43,6 +43,24 @@ from engine.shop import (
     unequip,
 )
 from engine.status_effects import EFFECT_LABELS, apply_effect, cure_all
+from engine.theme import (
+    ACCENT,
+    ACCENT_SOFT,
+    BORDER,
+    BORDER_ACCENT,
+    BORDER_RARE,
+    CREDITS,
+    DANGER,
+    INFO,
+    LABEL,
+    NAME_BOLD,
+    NOTE,
+    RARE,
+    TEXT,
+    TEXT_DIM,
+    TEXT_PLAIN,
+    WARNING,
+)
 from engine.ui import hotkey_bracket, hotkey_prompt, read_choice
 
 console = Console(width=120, highlight=False)
@@ -146,53 +164,82 @@ LOCATION_DESCRIPTIONS: dict[str, str] = {
 }
 
 
-def print_status(character: Character) -> None:
-    style = hp_style(character.hp, character.max_hp)
-    console.print(
-        f"[bright_cyan]{character.name}[/bright_cyan] "
-        f"[dim](Lvl {character.level} {character.char_class} — Day {character.day})[/dim]   "
-        f"HP [{style}]{character.hp}/{character.max_hp}[/{style}]   "
-        f"Credits [bold yellow]{character.credits}[/bold yellow]   "
-        f"Banked [bold yellow]{character.banked_credits}[/bold yellow]"
+def print_status(character: Character) -> Table:
+    """The persistent HUD — merc identity, level, core combat stats, and
+    credits, as a single-row color-coded bar. Printed at the top of every
+    hub location view (via print_arrival) and the hub menu itself, so it
+    reads the same everywhere: a fixed instrument panel, not scrolling text."""
+    hp_color = hp_style(character.hp, character.max_hp)
+
+    hud = Table(border_style=BORDER_ACCENT, header_style=ACCENT, expand=True)
+    hud.add_column("Merc", style=NAME_BOLD)
+    hud.add_column("Class", style=TEXT_PLAIN)
+    hud.add_column("Lvl", justify="center", style=TEXT)
+    hud.add_column("Day", justify="center", style=TEXT_DIM)
+    hud.add_column("HP", justify="center")
+    hud.add_column("ATK", justify="center", style=INFO)
+    hud.add_column("DEF", justify="center", style=INFO)
+    hud.add_column("TECH", justify="center", style=INFO)
+    hud.add_column("CHA", justify="center", style=RARE)
+    hud.add_column("Credits", justify="right", style=CREDITS)
+    hud.add_column("Banked", justify="right", style=CREDITS)
+
+    hud.add_row(
+        character.name,
+        character.char_class,
+        str(character.level),
+        str(character.day),
+        f"[{hp_color}]{character.hp}/{character.max_hp}[/{hp_color}]",
+        str(character.attack),
+        str(character.defense),
+        str(character.tech),
+        str(character.charisma),
+        str(character.credits),
+        str(character.banked_credits),
     )
+
+    console.print(hud)
+    return hud
 
 
 def print_hub_menu(character: Character) -> None:
-    console.rule("[bright_magenta]Neo Meridian[/bright_magenta]")
+    console.rule(f"[{LABEL}]Neo Meridian[/{LABEL}]")
     print_status(character)
     console.print()
 
     locations = Table(
-        title="[bold bright_magenta]Locations[/bold bright_magenta]",
-        border_style="bright_cyan",
+        title=f"[{ACCENT}]Locations[/{ACCENT}]",
+        border_style=BORDER,
         show_header=False,
     )
-    locations.add_column("Location", style="bold white")
-    locations.add_column("Description", style="dim")
+    locations.add_column("Location", style=TEXT)
+    locations.add_column("Description", style=TEXT_DIM)
     for key, name in LOCATION_HOTKEYS.items():
         locations.add_row(hotkey_bracket(key, name), LOCATIONS[name])
     console.print(locations)
 
     actions = Table(
-        title="[bold bright_magenta]Actions[/bold bright_magenta]",
-        border_style="bright_cyan",
+        title=f"[{ACCENT}]Actions[/{ACCENT}]",
+        border_style=BORDER,
         show_header=False,
     )
-    actions.add_column("Action", style="bold white")
-    actions.add_column("Description", style="dim")
+    actions.add_column("Action", style=TEXT)
+    actions.add_column("Description", style=TEXT_DIM)
     actions.add_row(hotkey_bracket("I", "Character Info"), "View your full stats, gear, contracts, and kills.")
-    actions.add_row("[bold bright_magenta][?][/bold bright_magenta] Help", "Open the player guide.")
+    actions.add_row(f"[{ACCENT}][?][/{ACCENT}] Help", "Open the player guide.")
     actions.add_row(hotkey_bracket("L", "Leave"), "Head to the safehouse to sleep — advances the day, full heal.")
     console.print(actions)
 
 
-def print_arrival(location: str) -> None:
+def print_arrival(character: Character, location: str) -> None:
+    console.clear()
+    print_status(character)
     console.print()
     console.print(
         Panel(
             LOCATION_DESCRIPTIONS[location],
-            title=f"[bold bright_magenta]{location}[/bold bright_magenta]",
-            border_style="bright_cyan",
+            title=f"[{ACCENT}]{location}[/{ACCENT}]",
+            border_style=BORDER,
             padding=(0, 2),
         )
     )
@@ -202,7 +249,7 @@ def print_menu_divider(label: str) -> None:
     """Visually separate in-character scene/dialogue above from the
     out-of-character menu/mechanics below."""
     console.print()
-    console.rule(f"[dim]{label}[/dim]", style="dim")
+    console.rule(f"[{TEXT_DIM}]{label}[/{TEXT_DIM}]", style=TEXT_DIM)
 
 
 JACK_IN_BASE_CHANCE = 0.30
@@ -212,30 +259,30 @@ JACK_IN_CREDIT_RANGE = (15, 35)
 
 
 def _jack_in(character: Character) -> None:
-    console.print("[dim]You slot in, feel the local net grid light up around you.[/dim]")
+    console.print(f"[{TEXT_DIM}]You slot in, feel the local net grid light up around you.[/{TEXT_DIM}]")
     chance = min(JACK_IN_MAX_CHANCE, JACK_IN_BASE_CHANCE + character.tech * JACK_IN_TECH_SCALING)
     if random.random() < chance:
         low, high = JACK_IN_CREDIT_RANGE
         amount = random.randint(low, high) + character.tech // 2
         character.credits += amount
-        console.print(f"[bold bright_magenta]Clean in, clean out.[/bold bright_magenta] +{amount} credits.")
+        console.print(f"[{ACCENT}]Clean in, clean out.[/{ACCENT}] +{amount} credits.")
         if random.random() < QUANTUM_CORE_DROP_CHANCE:
             character.quantum_cores += 1
             console.print(
-                "[bold cyan]Buried in the data dump, something crystallizes — a Quantum Core.[/bold cyan] "
+                f"[{INFO}]Buried in the data dump, something crystallizes — a Quantum Core.[/{INFO}] "
                 "+1 Quantum Core."
             )
         return
 
-    console.print("[red]Something pings back. You've been traced.[/red]")
+    console.print(f"[{DANGER}]Something pings back. You've been traced.[/{DANGER}]")
     encounter = roll_combat_encounter(character.level, faction="Corp")
-    console.print(f"[dim]{encounter['intro']}[/dim]")
+    console.print(f"[{TEXT_DIM}]{encounter['intro']}[/{TEXT_DIM}]")
     run_combat(character, encounter["enemy"])
 
 
 def _find_a_fight(character: Character) -> None:
     encounter = roll_combat_encounter(character.level)
-    console.print(f"[dim]{encounter['intro']}[/dim]")
+    console.print(f"[{TEXT_DIM}]{encounter['intro']}[/{TEXT_DIM}]")
     run_combat(character, encounter["enemy"])
 
 
@@ -244,26 +291,26 @@ def _scavenge(character: Character) -> None:
     if hot and random.random() < AMBUSH_CHANCE:
         faction = random.choice(hot)
         console.print(
-            f"[red]Wrong alley, wrong time — {faction} muscle jumps you mid-scavenge, "
-            f"looking for payback.[/red]"
+            f"[{DANGER}]Wrong alley, wrong time — {faction} muscle jumps you mid-scavenge, "
+            f"looking for payback.[/{DANGER}]"
         )
         encounter = roll_combat_encounter(character.level, faction=faction)
-        console.print(f"[dim]{encounter['intro']}[/dim]")
+        console.print(f"[{TEXT_DIM}]{encounter['intro']}[/{TEXT_DIM}]")
         run_combat(character, encounter["enemy"])
         return
 
     encounter = roll_scavenge_encounter(character.level)
-    console.print(f"[dim]{encounter['intro']}[/dim]")
+    console.print(f"[{TEXT_DIM}]{encounter['intro']}[/{TEXT_DIM}]")
     if encounter["type"] == "loot":
         low, high = encounter["credits"]
         amount = random.randint(low, high)
         character.credits += amount
-        console.print(f"\n[bold bright_magenta]Score![/bold bright_magenta] +{amount} credits.")
+        console.print(f"\n[{ACCENT}]Score![/{ACCENT}] +{amount} credits.")
     # "nothing" encounters just print their flavor line above.
 
 
 def visit_undercity(character: Character) -> None:
-    print_arrival("Undercity")
+    print_arrival(character, "Undercity")
 
     print_menu_divider("The Streets")
     choice = hotkey_prompt(
@@ -285,39 +332,39 @@ def visit_undercity(character: Character) -> None:
 
 def _deposit(character: Character) -> None:
     if character.credits <= 0:
-        console.print("[dim]Nothing on hand to deposit.[/dim]")
+        console.print(f"[{TEXT_DIM}]Nothing on hand to deposit.[/{TEXT_DIM}]")
         return
     amount = IntPrompt.ask(f"Deposit how much? (0 to cancel, up to {character.credits})")
     if amount <= 0:
         return
     if amount > character.credits:
-        console.print("[red]You don't have that much on hand.[/red]")
+        console.print(f"[{DANGER}]You don't have that much on hand.[/{DANGER}]")
         return
     character.credits -= amount
     character.banked_credits += amount
-    console.print(f"[bold yellow]{amount} credits deposited.[/bold yellow] Banked: {character.banked_credits}")
+    console.print(f"[{CREDITS}]{amount} credits deposited.[/{CREDITS}] Banked: {character.banked_credits}")
 
 
 def _withdraw(character: Character) -> None:
     if character.banked_credits <= 0:
-        console.print("[dim]Nothing banked to withdraw.[/dim]")
+        console.print(f"[{TEXT_DIM}]Nothing banked to withdraw.[/{TEXT_DIM}]")
         return
     amount = IntPrompt.ask(f"Withdraw how much? (0 to cancel, up to {character.banked_credits})")
     if amount <= 0:
         return
     if amount > character.banked_credits:
-        console.print("[red]You don't have that much banked.[/red]")
+        console.print(f"[{DANGER}]You don't have that much banked.[/{DANGER}]")
         return
     character.banked_credits -= amount
     character.credits += amount
-    console.print(f"[bold yellow]{amount} credits withdrawn.[/bold yellow] On hand: {character.credits}")
+    console.print(f"[{CREDITS}]{amount} credits withdrawn.[/{CREDITS}] On hand: {character.credits}")
 
 
 def visit_netvault(character: Character) -> None:
-    print_arrival("NetVault")
+    print_arrival(character, "NetVault")
 
     npc = npc_at("NetVault")
-    console.print(f"[bold cyan]{npc['name']}[/bold cyan] [dim]— {npc['bio']}[/dim]")
+    console.print(f"[{INFO}]{npc['name']}[/{INFO}] [{TEXT_DIM}]— {npc['bio']}[/{TEXT_DIM}]")
     console.print(f"  {random_line(npc)}")
 
     print_menu_divider("Banking")
@@ -325,8 +372,8 @@ def visit_netvault(character: Character) -> None:
         print_quest_result(console, character, result)
 
     console.print(
-        f"On hand: [bold yellow]{character.credits}[/bold yellow]   "
-        f"Banked: [bold yellow]{character.banked_credits}[/bold yellow] [dim](safe from death-loss)[/dim]"
+        f"On hand: [{CREDITS}]{character.credits}[/{CREDITS}]   "
+        f"Banked: [{CREDITS}]{character.banked_credits}[/{CREDITS}] [{TEXT_DIM}](safe from death-loss)[/{TEXT_DIM}]"
     )
 
     action = hotkey_prompt(console, [("D", "Deposit"), ("W", "Withdraw"), ("L", "Leave")])
@@ -345,26 +392,26 @@ CURE_COST = 15
 def _heal(character: Character) -> None:
     missing = character.max_hp - character.hp
     if missing <= 0:
-        console.print("[dim]You're already at full health.[/dim]")
+        console.print(f"[{TEXT_DIM}]You're already at full health.[/{TEXT_DIM}]")
         return
 
     max_affordable = min(missing, character.credits // HEAL_COST_PER_HP)
     if max_affordable <= 0:
-        console.print("[red]You can't afford so much as a bandage right now.[/red]")
+        console.print(f"[{DANGER}]You can't afford so much as a bandage right now.[/{DANGER}]")
         return
 
     amount = IntPrompt.ask(f"Heal how much HP? (0 to cancel, up to {max_affordable})")
     if amount <= 0:
         return
     if amount > max_affordable:
-        console.print("[red]You can't afford that much healing.[/red]")
+        console.print(f"[{DANGER}]You can't afford that much healing.[/{DANGER}]")
         return
 
     cost = amount * HEAL_COST_PER_HP
     character.hp += amount
     character.credits -= cost
     console.print(
-        f"[bold bright_magenta]Patched up.[/bold bright_magenta] "
+        f"[{ACCENT}]Patched up.[/{ACCENT}] "
         f"HP {character.hp}/{character.max_hp}. -{cost} credits."
     )
 
@@ -372,12 +419,12 @@ def _heal(character: Character) -> None:
 def _buy_supplies(character: Character) -> None:
     catalog = load_usable_items()
 
-    table = Table(border_style="bright_cyan")
-    table.add_column("#", justify="right", style="bright_magenta")
-    table.add_column("Item", style="bold white")
+    table = Table(border_style=BORDER)
+    table.add_column("#", justify="right", style=LABEL)
+    table.add_column("Item", style=TEXT)
     table.add_column("Effect")
     table.add_column("Cost", justify="right")
-    table.add_column("Description", style="dim")
+    table.add_column("Description", style=TEXT_DIM)
     for i, item in enumerate(catalog, start=1):
         table.add_row(str(i), item["name"], describe_effect(item), str(item["cost"]), item["flavor"])
     console.print(table)
@@ -392,16 +439,16 @@ def _buy_supplies(character: Character) -> None:
 
     item = catalog[int(choice) - 1]
     if character.credits < item["cost"]:
-        console.print("[red]Not enough credits for that.[/red]")
+        console.print(f"[{DANGER}]Not enough credits for that.[/{DANGER}]")
         return
 
     buy_item(character, item["id"])
-    console.print(f"[bold bright_magenta]Bought:[/bold bright_magenta] {item['name']}. -{item['cost']} credits.")
+    console.print(f"[{ACCENT}]Bought:[/{ACCENT}] {item['name']}. -{item['cost']} credits.")
 
 
 def _cure(character: Character) -> None:
     if not character.status_effects:
-        console.print("[dim]No status effects to clear.[/dim]")
+        console.print(f"[{TEXT_DIM}]No status effects to clear.[/{TEXT_DIM}]")
         return
 
     action = hotkey_prompt(
@@ -410,19 +457,19 @@ def _cure(character: Character) -> None:
     if action != "Y":
         return
     if character.credits < CURE_COST:
-        console.print("[red]Not enough credits for that.[/red]")
+        console.print(f"[{DANGER}]Not enough credits for that.[/{DANGER}]")
         return
 
     character.credits -= CURE_COST
     cured = cure_all(character)
-    console.print(f"[bold bright_magenta]Cleared {cured} status effect(s).[/bold bright_magenta] -{CURE_COST} credits.")
+    console.print(f"[{ACCENT}]Cleared {cured} status effect(s).[/{ACCENT}] -{CURE_COST} credits.")
 
 
 def visit_doc_wires_clinic(character: Character) -> None:
-    print_arrival("Doc Wire's Clinic")
+    print_arrival(character, "Doc Wire's Clinic")
 
     npc = npc_at("Doc Wire's Clinic")
-    console.print(f"[bold cyan]{npc['name']}[/bold cyan] [dim]— {npc['bio']}[/dim]")
+    console.print(f"[{INFO}]{npc['name']}[/{INFO}] [{TEXT_DIM}]— {npc['bio']}[/{TEXT_DIM}]")
     console.print(f"  {random_line(npc)}")
 
     print_menu_divider("Clinic Menu")
@@ -436,12 +483,18 @@ def visit_doc_wires_clinic(character: Character) -> None:
     )
     if character.status_effects:
         labels = ", ".join(EFFECT_LABELS.get(e, e) for e in character.status_effects)
-        console.print(f"[yellow]Active effects:[/yellow] {labels}")
+        console.print(f"[{WARNING}]Active effects:[/{WARNING}] {labels}")
 
-    action = hotkey_prompt(
-        console,
-        [("H", "Heal"), ("C", "Cure Effects"), ("B", "Buy Supplies"), ("L", "Leave")],
-    )
+    can_afford_heal = character.credits >= HEAL_COST_PER_HP
+    can_afford_cure = character.credits >= CURE_COST
+    options = [
+        ("H", "Heal", can_afford_heal),
+        ("C", "Cure Effects", can_afford_cure),
+        ("B", "Buy Supplies", True),
+        ("L", "Leave", True),
+    ]
+    menu_text = "  ".join(hotkey_bracket(key, label, affordable) for key, label, affordable in options)
+    action = read_choice(console, [key for key, _, _ in options], prompt=menu_text)
     if action == "H":
         _heal(character)
     elif action == "C":
@@ -473,51 +526,55 @@ def _train_cost(current_value: int) -> int:
 
 
 def visit_robodojo(character: Character) -> None:
-    print_arrival("RoboDOJO")
-    console.print("[dim]A training drone powers up, servos whirring, waiting for you to pick a discipline.[/dim]")
+    print_arrival(character, "RoboDOJO")
+    console.print(f"[{TEXT_DIM}]A training drone powers up, servos whirring, waiting for you to pick a discipline.[/{TEXT_DIM}]")
 
     print_menu_divider("Training")
-    table = Table(border_style="bright_cyan", show_header=False)
-    table.add_column("Stat", style="bold white")
+    table = Table(border_style=BORDER, show_header=False)
+    table.add_column("Stat", style=TEXT)
     table.add_column("Current", justify="right")
     table.add_column("Next +1 costs", justify="right")
+    affordable_stats: dict[str, bool] = {}
     for key, (attr, label) in TRAINABLE_STATS.items():
         current = getattr(character, attr)
-        table.add_row(hotkey_bracket(key, label), str(current), str(_train_cost(current)))
+        cost = _train_cost(current)
+        affordable = character.credits >= cost
+        affordable_stats[key] = affordable
+        table.add_row(hotkey_bracket(key, label, affordable), str(current), str(cost))
     console.print(table)
 
-    choice = hotkey_prompt(
-        console,
-        [(k, label) for k, (_, label) in TRAINABLE_STATS.items()] + [("L", "Leave")],
-        prompt="Train which stat?",
-    )
+    options = [(k, label) for k, (_, label) in TRAINABLE_STATS.items()]
+    menu_text = "  ".join(
+        hotkey_bracket(key, label, affordable_stats[key]) for key, label in options
+    ) + "  " + hotkey_bracket("L", "Leave")
+    choice = read_choice(console, [k for k, _ in options] + ["L"], prompt=f"Train which stat?\n{menu_text}")
     if choice == "L":
         return
 
     attr, label = TRAINABLE_STATS[choice]
     cost = _train_cost(getattr(character, attr))
     if character.credits < cost:
-        console.print("[red]Not enough credits to train right now.[/red]")
+        console.print(f"[{DANGER}]Not enough credits to train right now.[/{DANGER}]")
         return
 
-    console.print(f"[dim]{SPARRING_FLAVOR[attr]}[/dim]")
+    console.print(f"[{TEXT_DIM}]{SPARRING_FLAVOR[attr]}[/{TEXT_DIM}]")
     character.credits -= cost
     setattr(character, attr, getattr(character, attr) + 1)
     console.print(
-        f"[bold bright_magenta]{label} increased to {getattr(character, attr)}.[/bold bright_magenta] "
+        f"[{ACCENT}]{label} increased to {getattr(character, attr)}.[/{ACCENT}] "
         f"-{cost} credits."
     )
 
 
 def visit_the_pit(character: Character) -> None:
-    print_arrival("The Pit")
-    console.print("[dim]The crowd wants blood. Pick your match.[/dim]")
+    print_arrival(character, "The Pit")
+    console.print(f"[{TEXT_DIM}]The crowd wants blood. Pick your match.[/{TEXT_DIM}]")
 
     print_menu_divider("The Ring")
     gladiators = load_gladiators()
-    table = Table(border_style="bright_cyan")
-    table.add_column("#", justify="right", style="bright_magenta")
-    table.add_column("Gladiator", style="bold white")
+    table = Table(border_style=BORDER)
+    table.add_column("#", justify="right", style=LABEL)
+    table.add_column("Gladiator", style=TEXT)
     table.add_column("HP", justify="right")
     table.add_column("Reward", justify="right")
     for i, g in enumerate(gladiators, start=1):
@@ -533,7 +590,7 @@ def visit_the_pit(character: Character) -> None:
         return
 
     gladiator = gladiators[int(choice) - 1]
-    console.print(f"\n[dim]{gladiator['intro']}[/dim]")
+    console.print(f"\n[{TEXT_DIM}]{gladiator['intro']}[/{TEXT_DIM}]")
     tier = gladiator.get("tier")
     enemy_data = {k: v for k, v in gladiator.items() if k not in ("id", "intro", "tier")}
     won = run_combat(character, enemy_data)
@@ -541,8 +598,8 @@ def visit_the_pit(character: Character) -> None:
     if won and tier == 3 and random.random() < QUANTUM_CORE_DROP_CHANCE:
         character.quantum_cores += 1
         console.print(
-            "\n[bold cyan]Tucked in the gladiator's rig, something that isn't scrap — "
-            "a Quantum Core, still warm.[/bold cyan] +1 Quantum Core."
+            f"\n[{INFO}]Tucked in the gladiator's rig, something that isn't scrap — "
+            f"a Quantum Core, still warm.[/{INFO}] +1 Quantum Core."
         )
 
 
@@ -550,10 +607,10 @@ REST_THRESHOLD = 0.5  # free rest tops you up to this fraction of max HP, no fur
 
 
 def visit_chrome_noodle_bar(character: Character) -> None:
-    print_arrival("Chrome Noodle Bar")
+    print_arrival(character, "Chrome Noodle Bar")
 
     npc = npc_at("Chrome Noodle Bar")
-    console.print(f"[bold cyan]{npc['name']}[/bold cyan] [dim]— {npc['bio']}[/dim]")
+    console.print(f"[{INFO}]{npc['name']}[/{INFO}] [{TEXT_DIM}]— {npc['bio']}[/{TEXT_DIM}]")
     console.print(f"  {random_line(npc)}")
 
     for result in notify_step(character, "talk", "Chrome Noodle Bar"):
@@ -561,12 +618,12 @@ def visit_chrome_noodle_bar(character: Character) -> None:
 
     rest_floor = int(character.max_hp * REST_THRESHOLD)
     if character.hp >= rest_floor:
-        console.print("\n[dim]You're rested enough already. No need to linger.[/dim]")
+        console.print(f"\n[{TEXT_DIM}]You're rested enough already. No need to linger.[/{TEXT_DIM}]")
     else:
         healed = rest_floor - character.hp
         character.hp = rest_floor
         console.print(
-            f"\n[bold bright_magenta]You crash in a booth for a while, noodles going cold.[/bold bright_magenta] "
+            f"\n[{ACCENT}]You crash in a booth for a while, noodles going cold.[/{ACCENT}] "
             f"+{healed} HP, on the house."
         )
 
@@ -586,39 +643,39 @@ BUY_ROUND_COST = 25
 
 def _buy_a_round(character: Character) -> None:
     if character.bought_round_today:
-        console.print("\n[dim]Rin cuts you off. \"One's your limit tonight, choom. Come back tomorrow.\"[/dim]")
+        console.print(f"\n[{TEXT_DIM}]Rin cuts you off. \"One's your limit tonight, choom. Come back tomorrow.\"[/{TEXT_DIM}]")
         return
     if character.credits < BUY_ROUND_COST:
-        console.print("\n[red]Can't even afford to buy yourself a drink right now.[/red]")
+        console.print(f"\n[{DANGER}]Can't even afford to buy yourself a drink right now.[/{DANGER}]")
         return
 
     character.bought_round_today = True
     character.credits -= BUY_ROUND_COST
-    console.print(f"\n[dim]You slap {BUY_ROUND_COST} credits on the bar. Rin pours.[/dim]")
+    console.print(f"\n[{TEXT_DIM}]You slap {BUY_ROUND_COST} credits on the bar. Rin pours.[/{TEXT_DIM}]")
 
     roll = random.random()
     if roll < 0.12:
         stat_key = random.choice(["attack", "defense", "tech"])
         setattr(character, stat_key, getattr(character, stat_key) + 1)
         console.print(
-            f"[bold bright_magenta]Rin tells a story that actually sticks with you.[/bold bright_magenta] "
+            f"[{ACCENT}]Rin tells a story that actually sticks with you.[/{ACCENT}] "
             f"+1 {stat_key.capitalize()}, permanently."
         )
     elif roll < 0.70:
         character.reputation += 2
-        console.print("[bold yellow]Decent gossip tonight.[/bold yellow] +2 reputation.")
+        console.print(f"[{CREDITS}]Decent gossip tonight.[/{CREDITS}] +2 reputation.")
     else:
         apply_effect(character, "drunk", 3)
         console.print(
-            "[red]You get loud, then sloppy, then horizontal. Rin has you tossed out "
-            "before you can order another.[/red]"
+            f"[{DANGER}]You get loud, then sloppy, then horizontal. Rin has you tossed out "
+            f"before you can order another.[/{DANGER}]"
         )
 
 
 def _visit_endr3am(character: Character) -> None:
     print_menu_divider("Contract Board")
     broker = get_npc("endr3am")
-    console.print(f"[bold cyan]{broker['name']}[/bold cyan] [dim]— {broker['bio']}[/dim]")
+    console.print(f"[{INFO}]{broker['name']}[/{INFO}] [{TEXT_DIM}]— {broker['bio']}[/{TEXT_DIM}]")
     console.print(f"  {random_line(broker)}")
     _browse_contract_board(character, "Chrome Noodle Bar")
 
@@ -628,7 +685,7 @@ def _browse_contract_board(character: Character, board: str) -> None:
         quest_id for quest_id in character.active_quests if get_quest(quest_id).get("board", "Fixer Board") == board
     ]
     if active_ids:
-        console.print("\n[bright_magenta]Active contracts:[/bright_magenta]")
+        console.print(f"\n[{LABEL}]Active contracts:[/{LABEL}]")
         for quest_id in active_ids:
             quest = get_quest(quest_id)
             step = current_step(character, quest_id)
@@ -636,7 +693,7 @@ def _browse_contract_board(character: Character, board: str) -> None:
 
     locked = locked_quests(character, board)
     if locked:
-        console.print("\n[dim]Locked contracts:[/dim]")
+        console.print(f"\n[{TEXT_DIM}]Locked contracts:[/{TEXT_DIM}]")
         for quest in locked:
             gaps = []
             min_rep = quest.get("min_reputation", 0)
@@ -648,18 +705,18 @@ def _browse_contract_board(character: Character, board: str) -> None:
             min_lvl = quest.get("min_level", 1)
             if character.level < min_lvl:
                 gaps.append(f"Level {min_lvl} (have {character.level})")
-            console.print(f"  [dim]{quest['title']} — needs {', '.join(gaps)}[/dim]")
+            console.print(f"  [{TEXT_DIM}]{quest['title']} — needs {', '.join(gaps)}[/{TEXT_DIM}]")
 
     open_quests = available_quests(character, board)
     if not open_quests:
-        console.print("\n[dim]No new contracts posted right now.[/dim]")
+        console.print(f"\n[{TEXT_DIM}]No new contracts posted right now.[/{TEXT_DIM}]")
         return
 
-    console.print("\n[bright_magenta]Open contracts:[/bright_magenta]")
-    table = Table(border_style="bright_cyan", show_header=False)
-    table.add_column("#", justify="right", style="bright_magenta")
-    table.add_column("Title", style="bold white")
-    table.add_column("Hook", style="dim")
+    console.print(f"\n[{LABEL}]Open contracts:[/{LABEL}]")
+    table = Table(border_style=BORDER, show_header=False)
+    table.add_column("#", justify="right", style=LABEL)
+    table.add_column("Title", style=TEXT)
+    table.add_column("Hook", style=TEXT_DIM)
     for i, quest in enumerate(open_quests, start=1):
         table.add_row(str(i), quest["title"], quest["hook"])
     console.print(table)
@@ -674,15 +731,15 @@ def _browse_contract_board(character: Character, board: str) -> None:
 
     chosen_quest = open_quests[int(choice) - 1]
     accept_quest(character, chosen_quest["id"])
-    console.print(f"\n[bold bright_magenta]Contract accepted:[/bold bright_magenta] {chosen_quest['title']}")
+    console.print(f"\n[{ACCENT}]Contract accepted:[/{ACCENT}] {chosen_quest['title']}")
     console.print(f"  {chosen_quest['steps'][0]['description']}")
 
 
 def visit_fixer_board(character: Character) -> None:
-    print_arrival("Fixer Board")
+    print_arrival(character, "Fixer Board")
 
     npc = npc_at("Fixer Board")
-    console.print(f"[bold cyan]{npc['name']}[/bold cyan] [dim]— {npc['bio']}[/dim]")
+    console.print(f"[{INFO}]{npc['name']}[/{INFO}] [{TEXT_DIM}]— {npc['bio']}[/{TEXT_DIM}]")
     console.print(f"  {random_line(npc)}")
 
     print_menu_divider("Contract Board")
@@ -692,10 +749,10 @@ def visit_fixer_board(character: Character) -> None:
 
 
 def build_loadout_table(character: Character, title: str | None = None) -> Table:
-    table = Table(title=title, border_style="bright_cyan", show_header=False)
-    table.add_column("Slot", style="cyan")
-    table.add_column("Installed", style="bold white")
-    table.add_column("Special", style="yellow")
+    table = Table(title=title, border_style=BORDER, show_header=False)
+    table.add_column("Slot", style=ACCENT_SOFT)
+    table.add_column("Installed", style=TEXT)
+    table.add_column("Special", style=WARNING)
     for slot in CYBERWARE_SLOTS:
         item_id = character.cyberware[slot]
         installed = "empty"
@@ -711,30 +768,35 @@ def build_loadout_table(character: Character, title: str | None = None) -> Table
 
 
 def print_loadout(character: Character) -> None:
-    console.print("\n[bright_magenta]Your chrome:[/bright_magenta]")
+    console.print(f"\n[{LABEL}]Your chrome:[/{LABEL}]")
     console.print(build_loadout_table(character))
 
 
 def print_catalog(catalog: list[dict], character: Character) -> None:
-    console.print("\n[bright_magenta]Today's stock:[/bright_magenta]")
-    table = Table(border_style="bright_cyan")
-    table.add_column("#", justify="right", style="bright_magenta")
-    table.add_column("Item", style="bold white")
+    console.print(f"\n[{LABEL}]Today's stock:[/{LABEL}]")
+    table = Table(border_style=BORDER)
+    table.add_column("#", justify="right", style=LABEL)
+    table.add_column("Item", style=TEXT)
     table.add_column("Slot")
     table.add_column("Bonus")
-    table.add_column("Special", style="yellow")
+    table.add_column("Special", style=WARNING)
     table.add_column("Cost", justify="right")
-    table.add_column("Description", style="dim")
+    table.add_column("Description", style=TEXT_DIM)
     for i, item in enumerate(catalog, start=1):
         special = ""
         if item.get("inflict_effect"):
             label = EFFECT_LABELS.get(item["inflict_effect"], item["inflict_effect"])
             special = f"Causes {label}"
         price = discounted_cost(character, item)
-        cost_text = str(price) if price == item["cost"] else f"[bold yellow]{price}[/bold yellow] [dim]({item['cost']})[/dim]"
+        affordable = character.credits >= price
+        cost_text = str(price) if price == item["cost"] else f"[{CREDITS}]{price}[/{CREDITS}] [{TEXT_DIM}]({item['cost']})[/{TEXT_DIM}]"
+        if not affordable:
+            cost_text = f"[{TEXT_DIM}]{cost_text}[/{TEXT_DIM}]\n[{NOTE}][Insufficient Funds][/{NOTE}]"
+        index_text = str(i) if affordable else f"[{TEXT_DIM}]{i}[/{TEXT_DIM}]"
+        name_text = item["name"] if affordable else f"[{TEXT_DIM}]{item['name']}[/{TEXT_DIM}]"
         table.add_row(
-            str(i),
-            item["name"],
+            index_text,
+            name_text,
             item["slot"].capitalize(),
             f"+{item['bonus']} {item['stat']}",
             special,
@@ -764,14 +826,14 @@ def _buy_cyberware(character: Character) -> None:
     trade_in = sell_back_value(old_item) if old_item and currency_of(old_item) == "credits" else 0
     price = discounted_cost(character, item)
     if character.credits + trade_in < price:
-        console.print("[red]Not enough credits for that, even with a trade-in.[/red]")
+        console.print(f"[{DANGER}]Not enough credits for that, even with a trade-in.[/{DANGER}]")
         return
 
     buy_and_equip(character, item["id"])
     if old_id:
-        console.print(f"[dim]{get_item(old_id)['name']} pulled and sold back for parts.[/dim]")
+        console.print(f"[{TEXT_DIM}]{get_item(old_id)['name']} pulled and sold back for parts.[/{TEXT_DIM}]")
     console.print(
-        f"[bold bright_magenta]Installed:[/bold bright_magenta] {item['name']} "
+        f"[{ACCENT}]Installed:[/{ACCENT}] {item['name']} "
         f"(+{item['bonus']} {item['stat']}) for {price} credits."
     )
 
@@ -779,13 +841,13 @@ def _buy_cyberware(character: Character) -> None:
 def _sell_cyberware(character: Character) -> None:
     equipped_slots = [slot for slot in CYBERWARE_SLOTS if character.cyberware[slot]]
     if not equipped_slots:
-        console.print("[dim]Nothing installed to sell.[/dim]")
+        console.print(f"[{TEXT_DIM}]Nothing installed to sell.[/{TEXT_DIM}]")
         return
 
-    table = Table(border_style="bright_cyan", show_header=False)
-    table.add_column("#", justify="right", style="bright_magenta")
-    table.add_column("Slot", style="bold white")
-    table.add_column("Installed", style="dim")
+    table = Table(border_style=BORDER, show_header=False)
+    table.add_column("#", justify="right", style=LABEL)
+    table.add_column("Slot", style=TEXT)
+    table.add_column("Installed", style=TEXT_DIM)
     for i, slot in enumerate(equipped_slots, start=1):
         item = get_item(character.cyberware[slot])
         table.add_row(str(i), slot.capitalize(), f"{item['name']} (sells for {format_price(item, sell_back_value(item))})")
@@ -801,27 +863,27 @@ def _sell_cyberware(character: Character) -> None:
 
     slot = equipped_slots[int(choice) - 1]
     item = unequip(character, slot)
-    console.print(f"[bold yellow]{item['name']} sold for {format_price(item, sell_back_value(item))}.[/bold yellow]")
+    console.print(f"[{CREDITS}]{item['name']} sold for {format_price(item, sell_back_value(item))}.[/{CREDITS}]")
 
 
 def _visit_black_market(character: Character) -> None:
     catalog = load_black_market()
 
-    console.rule("[bold magenta]Black Market[/bold magenta]")
+    console.rule(f"[{RARE}]Black Market[/{RARE}]")
     console.print(
-        "[dim]Hyphen8d pulls a panel out of the wall. \"Didn't think you had these on you. "
-        "This stuff doesn't officially exist, choom.\"[/dim]\n"
+        f"[{TEXT_DIM}]Hyphen8d pulls a panel out of the wall. \"Didn't think you had these on you. "
+        f"This stuff doesn't officially exist, choom.\"[/{TEXT_DIM}]\n"
     )
-    console.print(f"[bold cyan]Quantum Cores:[/bold cyan] {character.quantum_cores}\n")
+    console.print(f"[{INFO}]Quantum Cores:[/{INFO}] {character.quantum_cores}\n")
 
-    table = Table(border_style="magenta")
-    table.add_column("#", justify="right", style="bright_magenta")
-    table.add_column("Item", style="bold white")
+    table = Table(border_style=BORDER_RARE)
+    table.add_column("#", justify="right", style=LABEL)
+    table.add_column("Item", style=TEXT)
     table.add_column("Slot")
     table.add_column("Bonus")
-    table.add_column("Special", style="yellow")
+    table.add_column("Special", style=WARNING)
     table.add_column("Cost", justify="right")
-    table.add_column("Description", style="dim")
+    table.add_column("Description", style=TEXT_DIM)
     for i, item in enumerate(catalog, start=1):
         special = ""
         if item.get("inflict_effect"):
@@ -852,23 +914,23 @@ def _visit_black_market(character: Character) -> None:
     trade_in = sell_back_value(old_item) if old_item and currency_of(old_item) == "quantum_core" else 0
     if character.quantum_cores + trade_in < item["cost"]:
         console.print(
-            f"[red]Not enough Quantum Cores for that, even with a trade-in — "
-            f"you need {format_price(item, item['cost'])}.[/red]"
+            f"[{DANGER}]Not enough Quantum Cores for that, even with a trade-in — "
+            f"you need {format_price(item, item['cost'])}.[/{DANGER}]"
         )
         return
 
     buy_black_market_item(character, item["id"])
     console.print(
-        f"[bold magenta]Installed:[/bold magenta] {item['name']} "
+        f"[{RARE}]Installed:[/{RARE}] {item['name']} "
         f"(+{item['bonus']} {item['stat']}) for {format_price(item, item['cost'])}."
     )
 
 
 def visit_hyphen8ds_hut(character: Character) -> None:
-    print_arrival("Hyphen8d's Hut")
+    print_arrival(character, "Hyphen8d's Hut")
 
     npc = npc_at("Hyphen8d's Hut")
-    console.print(f"[bold cyan]{npc['name']}[/bold cyan] [dim]— {npc['bio']}[/dim]")
+    console.print(f"[{INFO}]{npc['name']}[/{INFO}] [{TEXT_DIM}]— {npc['bio']}[/{TEXT_DIM}]")
     console.print(f"  {random_line(npc)}")
 
     print_menu_divider("Shop Menu")
@@ -877,7 +939,7 @@ def visit_hyphen8ds_hut(character: Character) -> None:
 
     if not character.market_stock:
         roll_daily_market(character)
-    console.print(f"[dim]{describe_market_modifier(character)}[/dim]")
+    console.print(f"[{TEXT_DIM}]{describe_market_modifier(character)}[/{TEXT_DIM}]")
 
     print_loadout(character)
 
@@ -896,15 +958,15 @@ def visit_hyphen8ds_hut(character: Character) -> None:
 
 
 def _themed_table(title: str) -> Table:
-    table = Table(title=f"[bold bright_magenta]{title}[/bold bright_magenta]", border_style="bright_cyan", show_header=False)
-    table.add_column("Label", style="cyan")
-    table.add_column("Value", style="bold white")
+    table = Table(title=f"[{ACCENT}]{title}[/{ACCENT}]", border_style=BORDER, show_header=False)
+    table.add_column("Label", style=ACCENT_SOFT)
+    table.add_column("Value", style=TEXT)
     return table
 
 
 def show_character_info(character: Character) -> None:
     console.print()
-    console.rule(f"[bold bright_magenta]{character.name}[/bold bright_magenta] [dim]— {character.char_class}[/dim]")
+    console.rule(f"[{ACCENT}]{character.name}[/{ACCENT}] [{TEXT_DIM}]— {character.char_class}[/{TEXT_DIM}]")
     console.print()
 
     attributes = _themed_table("Attributes")
@@ -928,7 +990,7 @@ def show_character_info(character: Character) -> None:
     contracts.add_row("Contracts active", str(len(character.active_quests)))
     contracts.add_row("Contracts completed", str(len(character.completed_quests)))
 
-    loadout = build_loadout_table(character, title="[bold bright_magenta]Chrome[/bold bright_magenta]")
+    loadout = build_loadout_table(character, title=f"[{ACCENT}]Chrome[/{ACCENT}]")
 
     effects = _themed_table("Status Effects")
     if character.status_effects:
@@ -977,8 +1039,8 @@ def _sleep_and_advance_day(character: Character) -> None:
     advances the game day, fully heals, and clears any lingering status
     effects, then prints a summary panel of where things stand."""
     console.print(
-        "\n[dim]You head back to the safehouse, credits and gear safe... for now. "
-        "Sleep hits like a wall.[/dim]"
+        f"\n[{TEXT_DIM}]You head back to the safehouse, credits and gear safe... for now. "
+        f"Sleep hits like a wall.[/{TEXT_DIM}]"
     )
 
     character.day += 1
@@ -996,11 +1058,11 @@ def _sleep_and_advance_day(character: Character) -> None:
         ambushed = True
         faction = random.choice(hot)
         console.print(
-            f"\n[red]You're barely through the door when {faction} muscle kicks it back "
-            f"open — they tracked you home.[/red]"
+            f"\n[{DANGER}]You're barely through the door when {faction} muscle kicks it back "
+            f"open — they tracked you home.[/{DANGER}]"
         )
         encounter = roll_combat_encounter(character.level, faction=faction)
-        console.print(f"[dim]{encounter['intro']}[/dim]")
+        console.print(f"[{TEXT_DIM}]{encounter['intro']}[/{TEXT_DIM}]")
         run_combat(character, encounter["enemy"])
 
     faction_totals: dict[str, int] = {}
@@ -1014,11 +1076,11 @@ def _sleep_and_advance_day(character: Character) -> None:
 
     heat_text = ", ".join(hot) if hot else "None"
     if ambushed:
-        heat_text += " [dim](ambushed on waking)[/dim]"
+        heat_text += f" [{TEXT_DIM}](ambushed on waking)[/{TEXT_DIM}]"
 
     body = Table.grid(padding=(0, 2))
-    body.add_column(style="cyan")
-    body.add_column(style="bold white")
+    body.add_column(style=ACCENT_SOFT)
+    body.add_column(style=TEXT)
     body.add_row("Level", str(character.level))
     body.add_row("Credits", f"{character.credits} ({character.banked_credits} banked)")
     body.add_row("Reputation", str(character.reputation))
@@ -1033,9 +1095,9 @@ def _sleep_and_advance_day(character: Character) -> None:
     console.print(
         Panel(
             body,
-            title="[bold bright_magenta]Daily Data Feed[/bold bright_magenta]",
-            subtitle=f"[dim]{character.name} — Day {character.day}[/dim]",
-            border_style="bright_cyan",
+            title=f"[{ACCENT}]Daily Data Feed[/{ACCENT}]",
+            subtitle=f"[{TEXT_DIM}]{character.name} — Day {character.day}[/{TEXT_DIM}]",
+            border_style=BORDER,
             padding=(1, 2),
         )
     )

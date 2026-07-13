@@ -10,6 +10,7 @@ from rich.console import Console
 
 from engine.character import Character
 from engine.status_effects import apply_effect
+from engine.theme import ACCENT, INFO, TEXT_DIM
 
 CONTENT_PATH = Path(__file__).resolve().parent.parent / "content" / "usable_items.json"
 
@@ -55,25 +56,25 @@ def use_item(character: Character, item_id: str, console: Console, enemy: Any = 
         healed = min(missing, item["amount"])
         character.hp += healed
         if healed > 0:
-            console.print(f"[bold bright_magenta]{item['name']} used.[/bold bright_magenta] +{healed} HP.")
+            console.print(f"[{ACCENT}]{item['name']} used.[/{ACCENT}] +{healed} HP.")
         else:
-            console.print(f"[dim]{item['name']} used, but you're already at full health.[/dim]")
+            console.print(f"[{TEXT_DIM}]{item['name']} used, but you're already at full health.[/{TEXT_DIM}]")
         return
 
     if item["effect"] == "stun":
         if enemy is None:
-            console.print(f"[dim]Nothing to use {item['name']} on right now.[/dim]")
+            console.print(f"[{TEXT_DIM}]Nothing to use {item['name']} on right now.[/{TEXT_DIM}]")
             return
         target_faction = item.get("faction")
         if target_faction and enemy.faction != target_faction:
             console.print(
-                f"[dim]{item['name']} fizzles — {enemy.name} isn't running the systems "
-                f"it's built for.[/dim]"
+                f"[{TEXT_DIM}]{item['name']} fizzles — {enemy.name} isn't running the systems "
+                f"it's built for.[/{TEXT_DIM}]"
             )
             return
         apply_effect(enemy, "stunned", item["duration"])
         console.print(
-            f"[bold cyan]{item['name']}![/bold cyan] {enemy.name}'s systems lock up — "
+            f"[{INFO}]{item['name']}![/{INFO}] {enemy.name}'s systems lock up — "
             f"stunned for {item['duration']} round(s)."
         )
         return

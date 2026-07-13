@@ -13,6 +13,7 @@ from engine.help import show_help
 from engine.hub import enter_hub
 from engine.leveling import xp_for_next_level
 from engine.save import delete_save, list_saves, load_character, save_character, save_exists
+from engine.theme import ACCENT, ACCENT_SOFT, BORDER, BORDER_ACCENT, DANGER, ITALIC, LABEL, NAME, RARE, SUBTITLE, TEXT, TEXT_DIM
 from engine.ui import hotkey_bracket, hotkey_prompt, read_choice
 
 console = Console(width=120, highlight=False)
@@ -73,10 +74,10 @@ def _banner() -> Group:
 
 def print_title() -> None:
     banner = _banner()
-    version = Text(VERSION, style="dim cyan", justify="center")
-    lore = Text(LORE, style="italic", justify="left")
+    version = Text(VERSION, style=SUBTITLE, justify="center")
+    lore = Text(LORE, style=ITALIC, justify="left")
     body = Group(banner, Text(""), version, Text(""), lore)
-    console.print(Panel(body, border_style="bright_cyan", padding=(1, 4)))
+    console.print(Panel(body, border_style=BORDER, padding=(1, 4)))
 
 
 MAIN_MENU_OPTIONS: list[tuple[str, str]] = [
@@ -89,18 +90,18 @@ MAIN_MENU_OPTIONS: list[tuple[str, str]] = [
 
 
 def print_main_menu() -> None:
-    table = Table(border_style="bright_cyan", show_header=False)
-    table.add_column("Action", style="bold white")
+    table = Table(border_style=BORDER, show_header=False)
+    table.add_column("Action", style=TEXT)
     for key, label in MAIN_MENU_OPTIONS:
         table.add_row(hotkey_bracket(key, label))
     console.print(table)
 
 
 def print_character_sheet(character: Character) -> None:
-    console.rule(f"[bold bright_magenta]{character.name}[/bold bright_magenta] [dim]— {character.char_class}[/dim]")
-    table = Table(border_style="bright_magenta")
-    table.add_column("Stat", style="cyan")
-    table.add_column("Value", style="bold white")
+    console.rule(f"[{ACCENT}]{character.name}[/{ACCENT}] [{TEXT_DIM}]— {character.char_class}[/{TEXT_DIM}]")
+    table = Table(border_style=BORDER_ACCENT)
+    table.add_column("Stat", style=ACCENT_SOFT)
+    table.add_column("Value", style=TEXT)
     table.add_row("Level", str(character.level))
     table.add_row("Day", str(character.day))
     table.add_row("XP", f"{character.xp}/{xp_for_next_level(character)}")
@@ -122,8 +123,8 @@ def choose_class() -> str:
     # (Street Samurai / Netrunner); revisit if a future class collides.
     hotkeys = {name[0].upper(): name for name in class_names}
 
-    table = Table(border_style="bright_cyan")
-    table.add_column("Class", style="bold magenta")
+    table = Table(border_style=BORDER)
+    table.add_column("Class", style=RARE)
     table.add_column("Flavor")
     table.add_column("HP", justify="right")
     table.add_column("ATK", justify="right")
@@ -148,21 +149,21 @@ def choose_class() -> str:
 
 
 def create_character() -> Character:
-    console.rule("[bright_magenta]New Merc[/bright_magenta]")
+    console.rule(f"[{LABEL}]New Merc[/{LABEL}]")
     while True:
         name = Prompt.ask("What do they call you on the street?").strip()
         if not name:
-            console.print("[red]Need a name, choom.[/red]")
+            console.print(f"[{DANGER}]Need a name, choom.[/{DANGER}]")
             continue
         if save_exists(name):
-            console.print(f"[red]A merc named '{name}' already exists.[/red]")
+            console.print(f"[{DANGER}]A merc named '{name}' already exists.[/{DANGER}]")
             continue
         break
 
     char_class = choose_class()
     character = Character.new(name=name, char_class=char_class)
     save_character(character)
-    console.print(f"\n[bright_cyan]{character.name}[/bright_cyan] hits the streets of Neo Meridian.\n")
+    console.print(f"\n[{NAME}]{character.name}[/{NAME}] hits the streets of Neo Meridian.\n")
     print_character_sheet(character)
     return character
 
@@ -170,10 +171,10 @@ def create_character() -> Character:
 def choose_existing_save(verb: str = "Load") -> str | None:
     slugs = list_saves()
     if not slugs:
-        console.print("[dim]No mercs found on file.[/dim]")
+        console.print(f"[{TEXT_DIM}]No mercs found on file.[/{TEXT_DIM}]")
         return None
 
-    table = Table(border_style="bright_cyan")
+    table = Table(border_style=BORDER)
     table.add_column("#", justify="right")
     table.add_column("Name")
     for i, slug in enumerate(slugs, start=1):
@@ -203,7 +204,7 @@ def delete_character() -> None:
     )
     if confirm == "Y":
         delete_save(slug)
-        console.print(f"[red]{name} deleted.[/red]")
+        console.print(f"[{DANGER}]{name} deleted.[/{DANGER}]")
 
 
 def main() -> None:
@@ -229,7 +230,7 @@ def main() -> None:
             show_help(console)
             continue
         else:
-            console.print("[dim]Stay chrome.[/dim]")
+            console.print(f"[{TEXT_DIM}]Stay chrome.[/{TEXT_DIM}]")
             break
 
         enter_hub(character)
@@ -240,4 +241,4 @@ if __name__ == "__main__":
     try:
         main()
     except KeyboardInterrupt:
-        console.print("\n[dim]Connection terminated.[/dim]")
+        console.print(f"\n[{TEXT_DIM}]Connection terminated.[/{TEXT_DIM}]")

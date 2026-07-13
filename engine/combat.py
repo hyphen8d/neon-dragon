@@ -15,7 +15,8 @@ from engine.leveling import check_level_up
 from engine.quests import notify_step, print_quest_result
 from engine.shop import get_item
 from engine.status_effects import DRUNK_STAT_PENALTY, EFFECT_LABELS, apply_effect, has_effect, process_round_start
-from engine.ui import hotkey_prompt, read_choice
+from engine.theme import ACCENT, ALERT, BORDER, CREDITS, DANGER, INFO, LABEL, NAME, RARE, TEXT, TEXT_DIM, TEXT_PLAIN, WARNING
+from engine.ui import hotkey_prompt, press_any_key, read_choice
 
 console = Console(width=120, highlight=False)
 
@@ -78,25 +79,25 @@ def _samurai_slash(character: Character, enemy: Enemy, drunk_penalty: int, conso
     """Guaranteed 1.5x-damage strike that always leaves the enemy bleeding.
     A dodge still evades it entirely, same as a normal Attack."""
     if enemy.dodge_chance and random.random() < enemy.dodge_chance:
-        console.print(f"[dim]{enemy.name} slips the hit — you swing through empty air.[/dim]")
+        console.print(f"[{TEXT_DIM}]{enemy.name} slips the hit — you swing through empty air.[/{TEXT_DIM}]")
         return
 
     stat_value = max(0, character.attack - drunk_penalty)
     dmg, crit = roll_damage(stat_value, enemy.defense)
     dmg = max(1, int(dmg * SAMURAI_SLASH_MULTIPLIER))
     enemy.hp -= dmg
-    prefix = "[bold yellow]CRITICAL![/bold yellow] " if crit else ""
+    prefix = f"[{CREDITS}]CRITICAL![/{CREDITS}] " if crit else ""
 
     if not enemy.alive:
         line = random.choice(FINISHING_LINES).format(enemy=enemy.name, dmg=dmg)
-        console.print(f"{prefix}[bold bright_magenta]{line}[/bold bright_magenta]")
+        console.print(f"{prefix}[{ACCENT}]{line}[/{ACCENT}]")
         return
 
-    console.print(f"{prefix}[bold magenta]Samurai Slash![/bold magenta] You carve {enemy.name} for {dmg} damage.")
+    console.print(f"{prefix}[{RARE}]Samurai Slash![/{RARE}] You carve {enemy.name} for {dmg} damage.")
     if apply_effect(enemy, "bleed", SAMURAI_SLASH_BLEED_DURATION):
-        console.print(f"[yellow]{enemy.name} is left bleeding.[/yellow]")
+        console.print(f"[{WARNING}]{enemy.name} is left bleeding.[/{WARNING}]")
     else:
-        console.print(f"[dim]No blood to spill — {enemy.name}'s chassis shrugs it off.[/dim]")
+        console.print(f"[{TEXT_DIM}]No blood to spill — {enemy.name}'s chassis shrugs it off.[/{TEXT_DIM}]")
 
 
 def _override_system(enemy: Enemy, console: Console) -> None:
@@ -104,7 +105,7 @@ def _override_system(enemy: Enemy, console: Console) -> None:
     not a physical hit, so it isn't subject to dodge_chance."""
     apply_effect(enemy, "stunned", OVERRIDE_STUN_DURATION)
     console.print(
-        f"[bold cyan]Override System![/bold cyan] You lock {enemy.name}'s systems — "
+        f"[{INFO}]Override System![/{INFO}] You lock {enemy.name}'s systems — "
         f"stunned for {OVERRIDE_STUN_DURATION} rounds."
     )
 
@@ -119,11 +120,11 @@ def _choose_inventory_item(character: Character, console: Console) -> str | None
             order.append(item_id)
         counts[item_id] = counts.get(item_id, 0) + 1
 
-    table = Table(border_style="bright_cyan", show_header=False)
-    table.add_column("#", justify="right", style="bright_magenta")
-    table.add_column("Item", style="bold white")
+    table = Table(border_style=BORDER, show_header=False)
+    table.add_column("#", justify="right", style=LABEL)
+    table.add_column("Item", style=TEXT)
     table.add_column("Qty", justify="right")
-    table.add_column("Effect", style="dim")
+    table.add_column("Effect", style=TEXT_DIM)
     for i, item_id in enumerate(order, start=1):
         item = get_usable_item(item_id)
         table.add_row(str(i), item["name"], f"x{counts[item_id]}", describe_effect(item))
@@ -143,7 +144,7 @@ def _status_text(combatant) -> str:
     if not combatant.status_effects:
         return ""
     parts = [f"{EFFECT_LABELS.get(e, e)} ({r})" for e, r in combatant.status_effects.items()]
-    return f"   [yellow]{', '.join(parts)}[/yellow]"
+    return f"   [{WARNING}]{', '.join(parts)}[/{WARNING}]"
 
 
 def _gear_inflict(character: Character, enemy: Enemy, slot: str, console: Console) -> None:
@@ -158,25 +159,25 @@ def _gear_inflict(character: Character, enemy: Enemy, slot: str, console: Consol
     if not apply_effect(enemy, effect, item.get("inflict_duration", 1)):
         return
     label = EFFECT_LABELS.get(effect, effect)
-    console.print(f"[yellow]{item['name']} leaves {enemy.name} {label.lower()}![/yellow]")
+    console.print(f"[{WARNING}]{item['name']} leaves {enemy.name} {label.lower()}![/{WARNING}]")
 
 
 def _player_hit(enemy: Enemy, stat_value: int, verb: str, console: Console) -> bool:
     """Resolve one player attack against the enemy. Returns True if it connected
     (missed dodges don't trigger gear on-hit effects)."""
     if enemy.dodge_chance and random.random() < enemy.dodge_chance:
-        console.print(f"[dim]{enemy.name} slips the hit — you swing through empty air.[/dim]")
+        console.print(f"[{TEXT_DIM}]{enemy.name} slips the hit — you swing through empty air.[/{TEXT_DIM}]")
         return False
 
     dmg, crit = roll_damage(stat_value, enemy.defense)
     enemy.hp -= dmg
-    prefix = "[bold yellow]CRITICAL![/bold yellow] " if crit else ""
+    prefix = f"[{CREDITS}]CRITICAL![/{CREDITS}] " if crit else ""
 
     if not enemy.alive:
         line = random.choice(FINISHING_LINES).format(enemy=enemy.name, dmg=dmg)
-        console.print(f"{prefix}[bold bright_magenta]{line}[/bold bright_magenta]")
+        console.print(f"{prefix}[{ACCENT}]{line}[/{ACCENT}]")
     else:
-        console.print(f"{prefix}[white]You {verb} for {dmg} damage.[/white]")
+        console.print(f"{prefix}[{TEXT_PLAIN}]You {verb} for {dmg} damage.[/{TEXT_PLAIN}]")
     return True
 
 
@@ -184,7 +185,7 @@ def run_combat(character: Character, enemy_data: dict) -> bool:
     """Resolve a fight round by round. Mutates character HP/credits/XP in
     place. Returns True on a win, False on a loss or a successful flee."""
     enemy = Enemy(**enemy_data)
-    console.print(f"\n[bold red]{enemy.name}[/bold red] (HP {enemy.hp}) blocks your path.")
+    console.print(f"\n[{ALERT}]{enemy.name}[/{ALERT}] (HP {enemy.hp}) blocks your path.")
 
     special = CLASS_SPECIALS.get(character.char_class)
     special_cooldown = 0  # rounds left before the class special is usable again
@@ -198,13 +199,13 @@ def run_combat(character: Character, enemy_data: dict) -> bool:
 
         style = hp_style(character.hp, character.max_hp)
         console.print(
-            f"\n[bright_cyan]{character.name}[/bright_cyan] HP [{style}]{character.hp}/{character.max_hp}[/{style}]"
-            f"{_status_text(character)}   [red]{enemy.name}[/red] HP {max(enemy.hp, 0)}{_status_text(enemy)}"
+            f"\n[{NAME}]{character.name}[/{NAME}] HP [{style}]{character.hp}/{character.max_hp}[/{style}]"
+            f"{_status_text(character)}   [{DANGER}]{enemy.name}[/{DANGER}] HP {max(enemy.hp, 0)}{_status_text(enemy)}"
         )
 
         defending = False
         if stunned:
-            console.print("[yellow]You're stunned — you can't act this round![/yellow]")
+            console.print(f"[{WARNING}]You're stunned — you can't act this round![/{WARNING}]")
         else:
             options = [("A", "Attack"), ("T", "Tech/Hack"), ("D", "Defend"), ("F", "Flee")]
             if special:
@@ -217,7 +218,7 @@ def run_combat(character: Character, enemy_data: dict) -> bool:
             while True:
                 action = hotkey_prompt(console, options)
                 if special and action == special[0] and special_cooldown > 0:
-                    console.print(f"[dim]{special[1]} is still recharging ({special_cooldown} more round(s)).[/dim]")
+                    console.print(f"[{TEXT_DIM}]{special[1]} is still recharging ({special_cooldown} more round(s)).[/{TEXT_DIM}]")
                     continue
                 if action == "I":
                     item_id = _choose_inventory_item(character, console)
@@ -238,7 +239,7 @@ def run_combat(character: Character, enemy_data: dict) -> bool:
                     _gear_inflict(character, enemy, "eyes", console)
             elif action == "D":
                 defending = True
-                console.print("[dim]You brace for the hit.[/dim]")
+                console.print(f"[{TEXT_DIM}]You brace for the hit.[/{TEXT_DIM}]")
             elif special and action == special[0]:
                 if special[0] == "S":
                     _samurai_slash(character, enemy, drunk_penalty, console)
@@ -249,9 +250,9 @@ def run_combat(character: Character, enemy_data: dict) -> bool:
                 pass  # item effect already resolved in the selection loop above
             else:
                 if random.random() < 0.5:
-                    console.print("[dim]You slip into the shadows and get away.[/dim]")
+                    console.print(f"[{TEXT_DIM}]You slip into the shadows and get away.[/{TEXT_DIM}]")
                     return False
-                console.print("[dim]You can't shake them — they block your escape.[/dim]")
+                console.print(f"[{TEXT_DIM}]You can't shake them — they block your escape.[/{TEXT_DIM}]")
 
         if not enemy.alive:
             break
@@ -261,21 +262,21 @@ def run_combat(character: Character, enemy_data: dict) -> bool:
             break
 
         if enemy_stunned:
-            console.print(f"[yellow]{enemy.name} is stunned and can't act![/yellow]")
+            console.print(f"[{WARNING}]{enemy.name} is stunned and can't act![/{WARNING}]")
         else:
             dmg, crit = roll_damage(enemy.attack, character.defense)
             bypassed = defending and enemy.ignores_defend
             if defending and not enemy.ignores_defend:
                 dmg = max(0, dmg // 2)
             character.hp = max(0, character.hp - dmg)
-            prefix = "[bold yellow]CRITICAL![/bold yellow] " if crit else ""
+            prefix = f"[{CREDITS}]CRITICAL![/{CREDITS}] " if crit else ""
             suffix = " Your guard didn't matter." if bypassed else ""
-            console.print(f"{prefix}[red]{enemy.name} hits you for {dmg} damage.{suffix}[/red]")
+            console.print(f"{prefix}[{DANGER}]{enemy.name} hits you for {dmg} damage.{suffix}[/{DANGER}]")
 
             if enemy.inflict_effect and random.random() < enemy.inflict_chance:
                 apply_effect(character, enemy.inflict_effect, enemy.inflict_duration)
                 label = EFFECT_LABELS.get(enemy.inflict_effect, enemy.inflict_effect)
-                console.print(f"[yellow]The hit leaves you {label.lower()}![/yellow]")
+                console.print(f"[{WARNING}]The hit leaves you {label.lower()}![/{WARNING}]")
 
     if character.hp <= 0:
         _handle_defeat(character)
@@ -296,16 +297,18 @@ def _handle_victory(character: Character, enemy: Enemy) -> None:
     reward_text = f"+{enemy.credits_reward} credits, +{enemy.xp_reward} XP"
     if enemy.reputation_reward:
         reward_text += f", +{enemy.reputation_reward} reputation"
-    console.print(f"\n[bold bright_magenta]{enemy.name} goes down.[/bold bright_magenta] {reward_text}.")
+    console.print(f"\n[{ACCENT}]{enemy.name} goes down.[/{ACCENT}] {reward_text}.")
 
     if random.random() < BONUS_LOOT_CHANCE:
         bonus = max(1, int(enemy.credits_reward * random.uniform(0.2, 0.5)))
         character.credits += bonus
-        console.print(f"[bold yellow]Bonus salvage![/bold yellow] +{bonus} credits.")
+        console.print(f"[{CREDITS}]Bonus salvage![/{CREDITS}] +{bonus} credits.")
 
     check_level_up(character, console)
     for result in notify_step(character, "kill", enemy.name):
         print_quest_result(console, character, result)
+
+    press_any_key(console)
 
 
 TRAUMA_BILL_BASE = 40
@@ -330,8 +333,10 @@ def _handle_defeat(character: Character) -> None:
     character.credits -= bill
     character.hp = 1
     console.print(
-        f"\n[bold red]You go down hard.[/bold red] Doc Wire's trauma team scrapes you "
+        f"\n[{ALERT}]You go down hard.[/{ALERT}] Doc Wire's trauma team scrapes you "
         f"off the pavement and stabilizes you — {bill} credits, billed on the spot."
     )
     if character.credits < 0:
-        console.print(f"[red]You're {-character.credits} in the hole now.[/red]")
+        console.print(f"[{DANGER}]You're {-character.credits} in the hole now.[/{DANGER}]")
+
+    press_any_key(console)

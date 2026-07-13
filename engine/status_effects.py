@@ -10,6 +10,8 @@ from typing import Any
 
 from rich.console import Console
 
+from engine.theme import DANGER, TEXT_DIM
+
 BLEED_DAMAGE = 3
 
 EFFECT_LABELS: dict[str, str] = {
@@ -45,7 +47,7 @@ def process_round_start(combatant: Any, console: Console, is_player: bool = Fals
     if has_effect(combatant, "bleed"):
         combatant.hp = max(0, combatant.hp - BLEED_DAMAGE)
         verb = "bleed" if is_player else "bleeds"
-        console.print(f"[red]{subject} {verb} for {BLEED_DAMAGE} damage.[/red]")
+        console.print(f"[{DANGER}]{subject} {verb} for {BLEED_DAMAGE} damage.[/{DANGER}]")
 
     for effect in list(combatant.status_effects.keys()):
         combatant.status_effects[effect] -= 1
@@ -53,7 +55,7 @@ def process_round_start(combatant: Any, console: Console, is_player: bool = Fals
             del combatant.status_effects[effect]
             label = EFFECT_LABELS.get(effect, effect)
             possessive = "Your" if is_player else f"{combatant.name}'s"
-            console.print(f"[dim]{possessive} {label} wears off.[/dim]")
+            console.print(f"[{TEXT_DIM}]{possessive} {label} wears off.[/{TEXT_DIM}]")
 
     return stunned
 

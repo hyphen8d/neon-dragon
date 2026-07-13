@@ -10,6 +10,8 @@ from rich.console import Console
 
 from engine.character import Character
 from engine.leveling import check_level_up
+from engine.theme import ACCENT, LABEL
+from engine.ui import press_any_key
 
 CONTENT_PATH = Path(__file__).resolve().parent.parent / "content" / "quests.json"
 
@@ -108,14 +110,15 @@ def print_quest_result(console: Console, character: Character, result: dict[str,
     quest = result["quest"]
     if result["completed"]:
         reward = quest["reward"]
-        console.print(f"\n[bold bright_magenta]Contract complete:[/bold bright_magenta] {quest['title']}")
+        console.print(f"\n[{ACCENT}]Contract complete:[/{ACCENT}] {quest['title']}")
         console.print(f"  {quest['complete_text']}")
         console.print(
             f"  +{reward['credits']} credits, +{reward['xp']} XP, +{reward['reputation']} reputation."
         )
         check_level_up(character, console)
+        press_any_key(console)
     else:
         console.print(
-            f"\n[bright_magenta]Contract updated:[/bright_magenta] {quest['title']} — "
+            f"\n[{LABEL}]Contract updated:[/{LABEL}] {quest['title']} — "
             f"{result['next_step']['description']}"
         )

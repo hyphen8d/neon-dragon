@@ -7,11 +7,13 @@ from pathlib import Path
 from rich.console import Console
 from rich.markdown import Markdown
 
+from engine.theme import ACCENT, BORDER
+
 GUIDE_PATH = Path(__file__).resolve().parent.parent / "PLAYER_GUIDE.md"
 
 
 def show_help(console: Console) -> None:
     console.print()
-    console.rule("[bold bright_magenta]Player Guide[/bold bright_magenta]")
+    console.rule(f"[{ACCENT}]Player Guide[/{ACCENT}]")
     console.print(Markdown(GUIDE_PATH.read_text()))
-    console.rule(style="bright_cyan")
+    console.rule(style=BORDER)

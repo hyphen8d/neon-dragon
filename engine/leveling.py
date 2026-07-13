@@ -5,6 +5,7 @@ from __future__ import annotations
 from rich.console import Console
 
 from engine.character import Character
+from engine.theme import ACCENT
 
 XP_STEP = 50
 
@@ -42,7 +43,7 @@ def check_level_up(character: Character, console: Console) -> None:
         character.hp = character.max_hp
 
         console.print(
-            f"\n[bold bright_magenta]LEVEL UP![/bold bright_magenta] "
+            f"\n[{ACCENT}]LEVEL UP![/{ACCENT}] "
             f"{character.name} reaches level {character.level}. "
             f"+{STAT_GROWTH['max_hp']} Max HP, +{STAT_GROWTH['attack']} Attack, "
             f"+{STAT_GROWTH['defense']} Defense, +{STAT_GROWTH['tech']} Tech — "
