@@ -1,8 +1,8 @@
 # NEON DRAGON — Game Design Document
 
-A single-player, terminal-based RPG inspired by *Legend of the Red Dragon*,
-reskinned into a cyberpunk vaporwave world. Local save file, daily turn
-limit, hub-and-spoke structure, text-driven combat and dialogue.
+A single-player, terminal-based RPG set in a cyberpunk vaporwave world.
+Local save file, hub-and-spoke structure, text-driven combat and dialogue.
+No daily turn limit — see section 3.
 
 ## 1. Setting
 
@@ -12,21 +12,21 @@ Neon signage, synth pop bleeding out of noodle bars, chrome and static.
 Tone: equal parts Blade Runner grime and Miami-vaporwave color palette —
 magenta, cyan, deep purple, hot pink against black.
 
-## 2. The Hub (LORD's inn/forest/tavern loop)
+## 2. The Hub
 
-A menu of locations the player travels between each turn:
+A menu of locations the player travels between:
 
-| LORD equivalent      | Neon Dragon location   | Function                              |
+| Hub role               | Neon Dragon location   | Function                              |
 |-----------------------|-------------------------|----------------------------------------|
-| The Inn                | **The Chrome Noodle Bar** | Rest, heal, hear rumors/gossip, flavor NPCs |
-| The Forest              | **The Undercity**         | Random encounters, fights, loot        |
-| The Bank                | **NetVault**              | Deposit/withdraw credits (safe from death-loss) |
-| The Weapon/Armor Shop   | **Chop Shop**             | Buy/sell gear and cyberware             |
-| The Healer               | **Doc Wire's Clinic**     | Heal HP for credits, cure status effects |
-| The Master (training)  | **The Dojo / Ripper Doc** | Train stats, learn new abilities        |
-| Daily Battles/Arena     | **The Pit**               | PvE gladiator fights for reputation/credits |
+| Rest stop               | **The Chrome Noodle Bar** | Rest, heal, hear rumors/gossip, flavor NPCs |
+| Random encounters       | **The Undercity**         | Random encounters, fights, loot        |
+| Bank                     | **NetVault**              | Deposit/withdraw credits (safe from death-loss) |
+| Weapon/armor shop        | **Chop Shop**             | Buy/sell gear and cyberware             |
+| Healer                    | **Doc Wire's Clinic**     | Heal HP for credits, cure status effects |
+| Trainer                  | **The Dojo / Ripper Doc** | Train stats, learn new abilities        |
+| Arena                     | **The Pit**               | PvE gladiator fights for reputation/credits |
 | Romance NPC (Violet)    | **[NPC of your choosing]** | Flavor relationship subplot             |
-| Player list/rankings    | **Fixer Board**           | Leaderboard, contracts/quests posted    |
+| Leaderboard/contracts    | **Fixer Board**           | Leaderboard, contracts/quests posted    |
 
 ## 3. Core Loop
 
