@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import random
 
+from rich import box
 from rich.console import Console
 from rich.panel import Panel
 from rich.prompt import IntPrompt
@@ -61,7 +62,7 @@ from engine.theme import (
     TEXT_PLAIN,
     WARNING,
 )
-from engine.ui import hotkey_bracket, hotkey_prompt, read_choice
+from engine.ui import OPTION_SEPARATOR, hotkey_bracket, hotkey_prompt, make_hp_bar, press_any_key, read_choice
 
 console = Console(width=120, highlight=False)
 
@@ -163,6 +164,17 @@ LOCATION_DESCRIPTIONS: dict[str, str] = {
     ),
 }
 
+# Location -> Rich box style for the arrival Panel, so the frame itself
+# reflects the setting: sterile corp square edges, brutal heavy-line dives,
+# ornate double-line storefronts. Anywhere not listed gets the default
+# soft ROUNDED look.
+LOCATION_BOX_STYLES: dict[str, box.Box] = {
+    "NetVault": box.SQUARE,
+    "Undercity": box.HEAVY,
+    "The Pit": box.HEAVY,
+    "Hyphen8d's Hut": box.DOUBLE,
+}
+
 
 def print_status(character: Character) -> Table:
     """The persistent HUD — merc identity, level, core combat stats, and
@@ -189,7 +201,7 @@ def print_status(character: Character) -> Table:
         character.char_class,
         str(character.level),
         str(character.day),
-        f"[{hp_color}]{character.hp}/{character.max_hp}[/{hp_color}]",
+        f"[{hp_color}]{character.hp}/{character.max_hp}[/{hp_color}] {make_hp_bar(character.hp, character.max_hp)}",
         str(character.attack),
         str(character.defense),
         str(character.tech),
@@ -241,6 +253,7 @@ def print_arrival(character: Character, location: str) -> None:
             title=f"[{ACCENT}]{location}[/{ACCENT}]",
             border_style=BORDER,
             padding=(0, 2),
+            box=LOCATION_BOX_STYLES.get(location, box.ROUNDED),
         )
     )
 
@@ -419,6 +432,7 @@ def _heal(character: Character) -> None:
 def _buy_supplies(character: Character) -> None:
     catalog = load_usable_items()
 
+    console.print(f"\n[{INFO}]Credits on hand:[/{INFO}] [{CREDITS}]{character.credits}[/{CREDITS}]")
     table = Table(border_style=BORDER)
     table.add_column("#", justify="right", style=LABEL)
     table.add_column("Item", style=TEXT)
@@ -493,8 +507,9 @@ def visit_doc_wires_clinic(character: Character) -> None:
         ("B", "Buy Supplies", True),
         ("L", "Leave", True),
     ]
-    menu_text = "  ".join(hotkey_bracket(key, label, affordable) for key, label, affordable in options)
+    menu_text = OPTION_SEPARATOR.join(hotkey_bracket(key, label, affordable) for key, label, affordable in options)
     action = read_choice(console, [key for key, _, _ in options], prompt=menu_text)
+    console.rule(style=TEXT_DIM)
     if action == "H":
         _heal(character)
     elif action == "C":
@@ -544,10 +559,11 @@ def visit_robodojo(character: Character) -> None:
     console.print(table)
 
     options = [(k, label) for k, (_, label) in TRAINABLE_STATS.items()]
-    menu_text = "  ".join(
+    menu_text = OPTION_SEPARATOR.join(
         hotkey_bracket(key, label, affordable_stats[key]) for key, label in options
-    ) + "  " + hotkey_bracket("L", "Leave")
+    ) + OPTION_SEPARATOR + hotkey_bracket("L", "Leave")
     choice = read_choice(console, [k for k, _ in options] + ["L"], prompt=f"Train which stat?\n{menu_text}")
+    console.rule(style=TEXT_DIM)
     if choice == "L":
         return
 
@@ -767,49 +783,65 @@ def build_loadout_table(character: Character, title: str | None = None) -> Table
     return table
 
 
-def print_loadout(character: Character) -> None:
-    console.print(f"\n[{LABEL}]Your chrome:[/{LABEL}]")
-    console.print(build_loadout_table(character))
-
-
-def print_catalog(catalog: list[dict], character: Character) -> None:
-    console.print(f"\n[{LABEL}]Today's stock:[/{LABEL}]")
-    table = Table(border_style=BORDER)
+def build_catalog_table(catalog: list[dict], character: Character) -> Table:
+    table = Table(title=f"[{LABEL}]Today's Stock[/{LABEL}]", border_style=BORDER)
     table.add_column("#", justify="right", style=LABEL)
     table.add_column("Item", style=TEXT)
     table.add_column("Slot")
     table.add_column("Bonus")
     table.add_column("Special", style=WARNING)
-    table.add_column("Cost", justify="right")
-    table.add_column("Description", style=TEXT_DIM)
+    table.add_column("Cost", justify="right", no_wrap=True)
     for i, item in enumerate(catalog, start=1):
         special = ""
         if item.get("inflict_effect"):
-            label = EFFECT_LABELS.get(item["inflict_effect"], item["inflict_effect"])
-            special = f"Causes {label}"
+            special = EFFECT_LABELS.get(item["inflict_effect"], item["inflict_effect"])
         price = discounted_cost(character, item)
         affordable = character.credits >= price
         cost_text = str(price) if price == item["cost"] else f"[{CREDITS}]{price}[/{CREDITS}] [{TEXT_DIM}]({item['cost']})[/{TEXT_DIM}]"
         if not affordable:
-            cost_text = f"[{TEXT_DIM}]{cost_text}[/{TEXT_DIM}]\n[{NOTE}][Insufficient Funds][/{NOTE}]"
+            cost_text = f"[{TEXT_DIM}]{cost_text}[/{TEXT_DIM}] [{NOTE}]✗[/{NOTE}]"
         index_text = str(i) if affordable else f"[{TEXT_DIM}]{i}[/{TEXT_DIM}]"
         name_text = item["name"] if affordable else f"[{TEXT_DIM}]{item['name']}[/{TEXT_DIM}]"
+
+        bonus_text = f"+{item['bonus']} {item['stat']}"
+        equipped_id = character.cyberware.get(item["slot"])
+        if equipped_id:
+            equipped_item = get_item(equipped_id)
+            if equipped_item["stat"] == item["stat"]:
+                delta = item["bonus"] - equipped_item["bonus"]
+                if delta > 0:
+                    bonus_text += f"\n[{ACCENT}][Upgrade: +{delta}][/{ACCENT}]"
+                elif delta < 0:
+                    bonus_text += f"\n[{DANGER}][Downgrade: {delta}][/{DANGER}]"
+                else:
+                    bonus_text += f"\n[{TEXT_DIM}][Same: +0][/{TEXT_DIM}]"
+
         table.add_row(
             index_text,
             name_text,
             item["slot"].capitalize(),
-            f"+{item['bonus']} {item['stat']}",
+            bonus_text,
             special,
             cost_text,
-            item["flavor"],
         )
-    console.print(table)
+    return table
 
 
-def _buy_cyberware(character: Character) -> None:
-    catalog = get_daily_catalog(character)
-    print_catalog(catalog, character)
+def _print_shop_dashboard(character: Character, catalog: list[dict]) -> None:
+    """Side-by-side gear-deck view — what's equipped next to what's for
+    sale — so a player can compare without scrolling between two screens."""
+    console.print(f"\n[{INFO}]Credits on hand:[/{INFO}] [{CREDITS}]{character.credits}[/{CREDITS}]")
+    loadout_table = build_loadout_table(character, title=f"[{LABEL}]Your Chrome[/{LABEL}]")
+    catalog_table = build_catalog_table(catalog, character)
 
+    grid = Table.grid(padding=(0, 4))
+    grid.add_column()
+    grid.add_column()
+    grid.add_row(loadout_table, catalog_table)
+    console.print(grid)
+
+
+def _buy_cyberware(character: Character, catalog: list[dict]) -> None:
     choice = read_choice(
         console,
         [str(i) for i in range(len(catalog) + 1)],
@@ -876,7 +908,7 @@ def _visit_black_market(character: Character) -> None:
     )
     console.print(f"[{INFO}]Quantum Cores:[/{INFO}] {character.quantum_cores}\n")
 
-    table = Table(border_style=BORDER_RARE)
+    table = Table(border_style=BORDER_RARE, box=box.DOUBLE)
     table.add_column("#", justify="right", style=LABEL)
     table.add_column("Item", style=TEXT)
     table.add_column("Slot")
@@ -941,16 +973,18 @@ def visit_hyphen8ds_hut(character: Character) -> None:
         roll_daily_market(character)
     console.print(f"[{TEXT_DIM}]{describe_market_modifier(character)}[/{TEXT_DIM}]")
 
-    print_loadout(character)
+    catalog = get_daily_catalog(character)
+    _print_shop_dashboard(character, catalog)
 
     # The Black Market ([M]) is a hidden option — deliberately left off the
     # printed menu text. It's only worth anything once a player has found a
     # Quantum Core, so there's nothing to advertise for most of a playthrough.
     visible = [("B", "Buy"), ("S", "Sell"), ("L", "Leave")]
-    menu_text = "  ".join(hotkey_bracket(key, label) for key, label in visible)
+    menu_text = OPTION_SEPARATOR.join(hotkey_bracket(key, label) for key, label in visible)
     action = read_choice(console, [key for key, _ in visible] + ["M"], prompt=menu_text)
+    console.rule(style=TEXT_DIM)
     if action == "B":
-        _buy_cyberware(character)
+        _buy_cyberware(character, catalog)
     elif action == "S":
         _sell_cyberware(character)
     elif action == "M":
@@ -1105,6 +1139,7 @@ def _sleep_and_advance_day(character: Character) -> None:
 
 def enter_hub(character: Character) -> None:
     while True:
+        console.clear()
         console.print()
         print_hub_menu(character)
         choice = read_choice(console, [*LOCATION_HOTKEYS.keys(), "I", "L", "?"], prompt="Where to?")
@@ -1120,9 +1155,11 @@ def enter_hub(character: Character) -> None:
             return
         if choice == "?":
             show_help(console)
+            press_any_key(console)
             continue
         if choice == "I":
             show_character_info(character)
+            press_any_key(console)
             continue
 
         chosen = LOCATION_HOTKEYS[choice]
@@ -1145,3 +1182,5 @@ def enter_hub(character: Character) -> None:
             visit_the_pit(character)
         else:
             raise ValueError(f"No hub handler wired up for location: {chosen!r}")
+
+        press_any_key(console)

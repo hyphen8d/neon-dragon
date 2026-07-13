@@ -10,14 +10,17 @@ from typing import Any
 
 from rich.console import Console
 
-from engine.theme import DANGER, TEXT_DIM
+from engine.theme import DANGER, TEXT_DIM, WARNING
 
 BLEED_DAMAGE = 3
 
+# Glyph badges, pre-colored WARNING so any consumer (combat lines, HUD
+# panels, character-info tables) gets a striking, consistently-styled
+# status tag just by dropping the label in — no extra markup needed.
 EFFECT_LABELS: dict[str, str] = {
-    "bleed": "Bleeding",
-    "stunned": "Stunned",
-    "drunk": "Drunk",
+    "bleed": f"[{WARNING}][🩸 BLEED][/{WARNING}]",
+    "stunned": f"[{WARNING}][⚡ STUN][/{WARNING}]",
+    "drunk": f"[{WARNING}][☣ DRUNK][/{WARNING}]",
 }
 
 DRUNK_STAT_PENALTY = 3
@@ -45,9 +48,15 @@ def process_round_start(combatant: Any, console: Console, is_player: bool = Fals
     stunned = has_effect(combatant, "stunned")
 
     if has_effect(combatant, "bleed"):
+        old_hp = combatant.hp
         combatant.hp = max(0, combatant.hp - BLEED_DAMAGE)
+        new_hp = combatant.hp
         verb = "bleed" if is_player else "bleeds"
-        console.print(f"[{DANGER}]{subject} {verb} for {BLEED_DAMAGE} damage.[/{DANGER}]")
+        hp_label = "Your" if is_player else combatant.name
+        console.print(
+            f"[{DANGER}]{subject} {verb} for {BLEED_DAMAGE} damage.[/{DANGER}] "
+            f"[{TEXT_DIM}]({hp_label} HP: {old_hp} -> {new_hp})[/{TEXT_DIM}]"
+        )
 
     for effect in list(combatant.status_effects.keys()):
         combatant.status_effects[effect] -= 1

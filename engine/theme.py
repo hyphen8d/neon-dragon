@@ -47,6 +47,17 @@ NOTE = "dim italic"  # small inline notes, e.g. "[Insufficient Funds]"
 ITALIC = "italic"  # lore/flavor paragraphs
 SUBTITLE = "dim cyan"  # small subtitle text (e.g. version tag under the banner)
 
+# --- Combat telemetry ---
+# Directional prefixes on combat narrative lines, so a player-turn line vs
+# an enemy-turn line is distinguishable without reading the sentence.
+PLAYER_ARROW = "»»»"  # prefixes player-turn resolutions (attacks, hacks, items)
+ENEMY_ARROW = "«««"  # prefixes (indented) enemy-turn attacks and status hits
+TELEMETRY_PLAYER = "bold bright_cyan"  # color for the »»» tag
+TELEMETRY_ENEMY = "bold red"  # color for the indented ««« tag
+
+# --- Menu structure ---
+DIVIDER = "│"  # vertical partition between options in a hotkey menu row
+
 THEME: dict[str, str] = {
     "BORDER": BORDER,
     "BORDER_ACCENT": BORDER_ACCENT,
@@ -69,4 +80,9 @@ THEME: dict[str, str] = {
     "NOTE": NOTE,
     "ITALIC": ITALIC,
     "SUBTITLE": SUBTITLE,
+    "PLAYER_ARROW": PLAYER_ARROW,
+    "ENEMY_ARROW": ENEMY_ARROW,
+    "TELEMETRY_PLAYER": TELEMETRY_PLAYER,
+    "TELEMETRY_ENEMY": TELEMETRY_ENEMY,
+    "DIVIDER": DIVIDER,
 }

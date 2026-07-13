@@ -13,7 +13,25 @@ import sys
 
 from rich.console import Console
 
-from engine.theme import DANGER, HOTKEY, NOTE, TEXT_DIM
+from engine.character import hp_style
+from engine.theme import DANGER, DIVIDER, HOTKEY, NOTE, TEXT_DIM
+
+HP_BAR_WIDTH = 10
+
+# Vertical partition between options in a hotkey menu row, e.g.
+# "[A]ttack │ [D]efend │ [L]eave" instead of a plain double space.
+OPTION_SEPARATOR = f" [{TEXT_DIM}]{DIVIDER}[/{TEXT_DIM}] "
+
+
+def make_hp_bar(hp: int, max_hp: int) -> str:
+    """A 10-cell block-bar HP meter (█ filled, ░ empty), color-coded via
+    hp_style's danger thresholds (red/yellow/white) — a compact visual
+    companion to the numeric HP text."""
+    style = hp_style(hp, max_hp)
+    ratio = 0.0 if max_hp <= 0 else max(0.0, min(1.0, hp / max_hp))
+    filled = round(ratio * HP_BAR_WIDTH)
+    bar = "█" * filled + "░" * (HP_BAR_WIDTH - filled)
+    return f"[{style}]{bar}[/{style}]"
 
 
 def read_key() -> str:
@@ -85,11 +103,14 @@ def hotkey_bracket(key: str, label: str, affordable: bool = True) -> str:
 def hotkey_prompt(console: Console, options: list[tuple[str, str]], prompt: str = "") -> str:
     """Print bracket-hotkey-styled options inline and return the chosen key,
     uppercased. `options` is a list of (key, label) pairs. No Enter required
-    on a real terminal."""
-    text = "  ".join(hotkey_bracket(key, label) for key, label in options)
+    on a real terminal. The action deck is closed off with a dim bottom
+    bar once a choice is made, anchoring it to the bottom of the frame."""
+    text = OPTION_SEPARATOR.join(hotkey_bracket(key, label) for key, label in options)
     if prompt:
         text = f"{prompt}\n{text}"
-    return read_choice(console, [key for key, _ in options], prompt=text)
+    choice = read_choice(console, [key for key, _ in options], prompt=text)
+    console.rule(style=TEXT_DIM)
+    return choice
 
 
 def press_any_key(console: Console) -> None:

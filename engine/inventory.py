@@ -52,11 +52,15 @@ def use_item(character: Character, item_id: str, console: Console, enemy: Any = 
     character.inventory.remove(item_id)
 
     if item["effect"] == "heal":
+        old_hp = character.hp
         missing = character.max_hp - character.hp
         healed = min(missing, item["amount"])
         character.hp += healed
         if healed > 0:
-            console.print(f"[{ACCENT}]{item['name']} used.[/{ACCENT}] +{healed} HP.")
+            console.print(
+                f"[{ACCENT}]{item['name']} used.[/{ACCENT}] +{healed} HP. "
+                f"[{TEXT_DIM}](Your HP: {old_hp} -> {character.hp})[/{TEXT_DIM}]"
+            )
         else:
             console.print(f"[{TEXT_DIM}]{item['name']} used, but you're already at full health.[/{TEXT_DIM}]")
         return
