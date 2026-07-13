@@ -75,9 +75,11 @@ Starter NPC roster (flavor only — expand freely):
 Multi-step contract objects: talk/kill chains (fetch/deliver not yet built)
 with a credit + XP + reputation reward. Two contract boards: the **Fixer
 Board** (gated by Reputation, run by The Fixer) and **Endr3am's board** at
-the Chrome Noodle Bar (gated by Charisma). Some contracts unlock new hub
-locations or NPCs — not used yet, but the hook exists in the schema
-(`min_reputation`, `min_charisma`).
+the Chrome Noodle Bar (gated by Charisma). A third gate, **Level**, applies
+to contracts on either board and is tied to the same tiers that unlock
+Undercity's tougher enemies (`min_reputation`, `min_charisma`, `min_level`
+in the schema). 12 contracts total as of this pass. Some contracts unlock
+new hub locations or NPCs — not used yet, but the hook exists.
 
 ## 7. Combat
 
@@ -87,10 +89,14 @@ cyberware). Simple damage formulas (stat + roll vs. defense). Status
 effects are implemented: Stunned (skip your action) and Bleeding
 (damage over time), inflicted by specific enemies.
 
-## 8. Random Encounters (Undercity)
+## 8. The Undercity
 
-Weighted random table: street gang fights, scavenger loot finds, rogue
-drone ambushes, corp patrol shakedowns, nothing-happens flavor text.
+Not a single random roll — the player picks an approach: **Jack In**
+(steal credits, odds/payout scaled by Tech, failure forces a Corp-faction
+fight), **Find a Fight** (guaranteed combat, random enemy), or **Scavenge**
+(the old low-risk loot/nothing pool). Combat pool includes three
+level-gated tiers (Ronin Netrunner L3+, Corp Strike Team L5+, Chrome
+Beast L7+) so difficulty rises with the player instead of staying flat.
 
 ## 9. Aesthetic Rules
 

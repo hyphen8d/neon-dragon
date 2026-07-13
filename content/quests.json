@@ -12,7 +12,8 @@
       "reward": {"credits": 20, "xp": 10, "reputation": 5},
       "complete_text": "\"Good. Knowing things before everyone else — that's half the job.\"",
       "min_reputation": 0,
-      "min_charisma": 0
+      "min_charisma": 0,
+      "min_level": 1
     },
     {
       "id": "chrome_debt",
@@ -26,7 +27,8 @@
       "reward": {"credits": 40, "xp": 20, "reputation": 10},
       "complete_text": "\"One down. Credits are yours — spend 'em quiet.\"",
       "min_reputation": 0,
-      "min_charisma": 0
+      "min_charisma": 0,
+      "min_level": 1
     },
     {
       "id": "drone_bounty",
@@ -40,7 +42,8 @@
       "reward": {"credits": 45, "xp": 20, "reputation": 8},
       "complete_text": "\"Nice and quiet. That's how the corp likes it. Here's your cut.\"",
       "min_reputation": 10,
-      "min_charisma": 0
+      "min_charisma": 0,
+      "min_level": 1
     },
     {
       "id": "corp_trouble",
@@ -54,7 +57,53 @@
       "reward": {"credits": 60, "xp": 30, "reputation": 15},
       "complete_text": "\"That'll rattle them for a while. Nice work.\"",
       "min_reputation": 20,
-      "min_charisma": 0
+      "min_charisma": 0,
+      "min_level": 1
+    },
+    {
+      "id": "corporate_housecleaning",
+      "title": "Corporate Housecleaning",
+      "board": "Fixer Board",
+      "hook": "\"A corp strike team's leaning on my people. Level the playing field, then get back here.\"",
+      "steps": [
+        {"type": "kill", "target": "Corp Strike Team", "description": "Take down the Corp Strike Team in the Undercity."},
+        {"type": "talk", "target": "Fixer Board", "description": "Report back to The Fixer."}
+      ],
+      "reward": {"credits": 90, "xp": 40, "reputation": 18},
+      "complete_text": "\"That'll keep them looking over their shoulder for a while.\"",
+      "min_reputation": 0,
+      "min_charisma": 0,
+      "min_level": 5
+    },
+    {
+      "id": "ghost_protocol",
+      "title": "Ghost Protocol",
+      "board": "Fixer Board",
+      "hook": "\"Some masterless netrunner's been poaching my clients. Handle it quiet.\"",
+      "steps": [
+        {"type": "kill", "target": "Ronin Netrunner", "description": "Take down the Ronin Netrunner in the Undercity."},
+        {"type": "talk", "target": "Fixer Board", "description": "Report back to The Fixer."}
+      ],
+      "reward": {"credits": 70, "xp": 30, "reputation": 15},
+      "complete_text": "\"Quiet's exactly how I like it. Here's your cut.\"",
+      "min_reputation": 15,
+      "min_charisma": 0,
+      "min_level": 3
+    },
+    {
+      "id": "somethings_loose",
+      "title": "Something's Loose",
+      "board": "Fixer Board",
+      "hook": "\"Something's loose in the deep tunnels and it's bad for business. Put it down.\"",
+      "steps": [
+        {"type": "kill", "target": "Chrome Beast", "description": "Take down the Chrome Beast in the Undercity."},
+        {"type": "talk", "target": "Fixer Board", "description": "Report back to The Fixer."}
+      ],
+      "reward": {"credits": 150, "xp": 60, "reputation": 30},
+      "complete_text": "\"I didn't want to know what that was. Good work not telling me.\"",
+      "min_reputation": 30,
+      "min_charisma": 0,
+      "min_level": 7
     },
     {
       "id": "loose_ends",
@@ -63,12 +112,13 @@
       "hook": "\"Nothing fancy — just need someone reliable to rough up a ganger who's been skipping his tab. You in?\"",
       "steps": [
         {"type": "kill", "target": "Street Ganger", "description": "Handle the Street Ganger in the Undercity."},
-        {"type": "talk", "target": "Chrome Noodle Bar", "description": "Let Rin know it's done."}
+        {"type": "talk", "target": "Chrome Noodle Bar", "description": "Report back to Endr3am."}
       ],
       "reward": {"credits": 15, "xp": 8, "reputation": 3},
       "complete_text": "\"Appreciate it. Drinks are still not free, though.\"",
       "min_reputation": 0,
-      "min_charisma": 0
+      "min_charisma": 0,
+      "min_level": 1
     },
     {
       "id": "loose_lips",
@@ -77,12 +127,13 @@
       "hook": "\"You've got a way with people. Get Ms. Kessler talking over at NetVault — she knows things she shouldn't. Then come tell me.\"",
       "steps": [
         {"type": "talk", "target": "NetVault", "description": "Charm some gossip out of Ms. Kessler at NetVault."},
-        {"type": "talk", "target": "Chrome Noodle Bar", "description": "Bring what you heard back to Static Rin."}
+        {"type": "talk", "target": "Chrome Noodle Bar", "description": "Bring what you heard back to Endr3am."}
       ],
       "reward": {"credits": 25, "xp": 12, "reputation": 5},
       "complete_text": "\"Knew you had it in you. That's worth something.\"",
       "min_reputation": 0,
-      "min_charisma": 6
+      "min_charisma": 6,
+      "min_level": 1
     },
     {
       "id": "friends_in_high_places",
@@ -91,12 +142,43 @@
       "hook": "\"I know a guy who owes a corp patrol a black eye. You've got the smile to talk your way in close. Handle it, then come back.\"",
       "steps": [
         {"type": "kill", "target": "Corp Patrol Trooper", "description": "Deal with the Corp Patrol Trooper in the Undercity."},
-        {"type": "talk", "target": "Chrome Noodle Bar", "description": "Report back to Static Rin."}
+        {"type": "talk", "target": "Chrome Noodle Bar", "description": "Report back to Endr3am."}
       ],
       "reward": {"credits": 65, "xp": 30, "reputation": 12},
       "complete_text": "\"Told you I had friends. Drinks are on me tonight.\"",
       "min_reputation": 0,
-      "min_charisma": 9
+      "min_charisma": 9,
+      "min_level": 1
+    },
+    {
+      "id": "new_blood",
+      "title": "New Blood",
+      "board": "Chrome Noodle Bar",
+      "hook": "\"Got a new contact worth vetting. Go talk to her at NetVault, see if she's solid.\"",
+      "steps": [
+        {"type": "talk", "target": "NetVault", "description": "Vet the new contact at NetVault."},
+        {"type": "talk", "target": "Chrome Noodle Bar", "description": "Report back to Endr3am."}
+      ],
+      "reward": {"credits": 30, "xp": 15, "reputation": 6},
+      "complete_text": "\"Good instincts. I'll keep sending work your way.\"",
+      "min_reputation": 0,
+      "min_charisma": 0,
+      "min_level": 3
+    },
+    {
+      "id": "steady_hands",
+      "title": "Steady Hands",
+      "board": "Chrome Noodle Bar",
+      "hook": "\"A rogue drone's been circling this block too long. Ground it, then come tell me.\"",
+      "steps": [
+        {"type": "kill", "target": "Rogue Drone", "description": "Ground the Rogue Drone in the Undercity."},
+        {"type": "talk", "target": "Chrome Noodle Bar", "description": "Report back to Endr3am."}
+      ],
+      "reward": {"credits": 55, "xp": 25, "reputation": 10},
+      "complete_text": "\"Steady hands. I like that in a merc.\"",
+      "min_reputation": 0,
+      "min_charisma": 6,
+      "min_level": 5
     }
   ]
 }

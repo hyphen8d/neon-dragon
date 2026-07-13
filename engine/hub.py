@@ -12,7 +12,7 @@ from rich.table import Table
 from engine.bestiary import enemy_faction
 from engine.character import CYBERWARE_SLOTS, Character, hp_style
 from engine.combat import run_combat
-from engine.encounters import roll_encounter
+from engine.encounters import roll_combat_encounter, roll_scavenge_encounter
 from engine.help import show_help
 from engine.leveling import xp_for_next_level
 from engine.npcs import get_npc, npc_at, random_line
@@ -27,7 +27,7 @@ from engine.quests import (
     print_quest_result,
 )
 from engine.shop import buy_and_equip, get_item, load_cyberware, sell_back_value, unequip
-from engine.status_effects import EFFECT_LABELS, cure_all
+from engine.status_effects import EFFECT_LABELS, apply_effect, cure_all
 
 console = Console(highlight=False)
 
@@ -35,7 +35,7 @@ console = Console(highlight=False)
 # shop, combat, etc.) is wired up location by location in later phases.
 LOCATIONS: dict[str, str] = {
     "Chrome Noodle Bar": "Rest, heal, and hear rumors over synth-noodles and static pop.",
-    "Undercity": "Random encounters — gang fights, scavenger loot, drone ambushes.",
+    "Undercity": "Jack in, pick a fight, or scavenge — your call.",
     "NetVault": "Deposit and withdraw credits, safe from death-loss.",
     "Hyphen8d's Hut": "Buy and sell gear and cyberware.",
     "Doc Wire's Clinic": "Heal HP for credits, cure status effects.",
@@ -174,19 +174,63 @@ def print_menu_divider(label: str) -> None:
     console.rule(f"[dim]{label}[/dim]", style="dim")
 
 
-def visit_undercity(character: Character) -> None:
-    print_arrival("Undercity")
-    encounter = roll_encounter(character.level)
-    console.print(f"[dim]{encounter['intro']}[/dim]")
+JACK_IN_BASE_CHANCE = 0.30
+JACK_IN_TECH_SCALING = 0.04
+JACK_IN_MAX_CHANCE = 0.85
+JACK_IN_CREDIT_RANGE = (15, 35)
 
-    if encounter["type"] == "combat":
-        run_combat(character, encounter["enemy"])
-    elif encounter["type"] == "loot":
+
+def _jack_in(character: Character) -> None:
+    console.print("[dim]You slot in, feel the local net grid light up around you.[/dim]")
+    chance = min(JACK_IN_MAX_CHANCE, JACK_IN_BASE_CHANCE + character.tech * JACK_IN_TECH_SCALING)
+    if random.random() < chance:
+        low, high = JACK_IN_CREDIT_RANGE
+        amount = random.randint(low, high) + character.tech // 2
+        character.credits += amount
+        console.print(f"[bold bright_magenta]Clean in, clean out.[/bold bright_magenta] +{amount} credits.")
+        return
+
+    console.print("[red]Something pings back. You've been traced.[/red]")
+    encounter = roll_combat_encounter(character.level, faction="Corp")
+    console.print(f"[dim]{encounter['intro']}[/dim]")
+    run_combat(character, encounter["enemy"])
+
+
+def _find_a_fight(character: Character) -> None:
+    encounter = roll_combat_encounter(character.level)
+    console.print(f"[dim]{encounter['intro']}[/dim]")
+    run_combat(character, encounter["enemy"])
+
+
+def _scavenge(character: Character) -> None:
+    encounter = roll_scavenge_encounter(character.level)
+    console.print(f"[dim]{encounter['intro']}[/dim]")
+    if encounter["type"] == "loot":
         low, high = encounter["credits"]
         amount = random.randint(low, high)
         character.credits += amount
         console.print(f"\n[bold bright_magenta]Score![/bold bright_magenta] +{amount} credits.")
     # "nothing" encounters just print their flavor line above.
+
+
+def visit_undercity(character: Character) -> None:
+    print_arrival("Undercity")
+
+    print_menu_divider("The Streets")
+    choice = Prompt.ask(
+        "[bright_magenta]1[/bright_magenta] Jack in (steal credits, risk a trace)  "
+        "[bright_magenta]2[/bright_magenta] Find a fight  "
+        "[bright_magenta]3[/bright_magenta] Scavenge  "
+        "[bright_magenta]0[/bright_magenta] Leave",
+        choices=["0", "1", "2", "3"],
+        show_choices=False,
+    )
+    if choice == "1":
+        _jack_in(character)
+    elif choice == "2":
+        _find_a_fight(character)
+    elif choice == "3":
+        _scavenge(character)
 
 
 def _deposit(character: Character) -> None:
@@ -284,9 +328,6 @@ def _cure(character: Character) -> None:
     if not character.status_effects:
         console.print("[dim]No status effects to clear.[/dim]")
         return
-
-    labels = ", ".join(EFFECT_LABELS.get(e, e) for e in character.status_effects)
-    console.print(f"[yellow]Active effects:[/yellow] {labels}")
 
     action = Prompt.ask(
         f"Clear those for {CURE_COST} credits? [bright_magenta]1[/bright_magenta] Yes  "
@@ -451,14 +492,46 @@ def visit_chrome_noodle_bar(character: Character) -> None:
         )
 
     choice = Prompt.ask(
-        "\n[bright_magenta]1[/bright_magenta] Check the shady booth in the back  [bright_magenta]0[/bright_magenta] Leave",
-        choices=["0", "1"],
+        "\n[bright_magenta]1[/bright_magenta] Buy a round  "
+        "[bright_magenta]2[/bright_magenta] Check the shady booth in the back  "
+        "[bright_magenta]0[/bright_magenta] Leave",
+        choices=["0", "1", "2"],
         show_choices=False,
     )
-    if choice != "1":
+    if choice == "1":
+        _buy_a_round(character)
+    elif choice == "2":
+        _visit_endr3am(character)
+
+
+BUY_ROUND_COST = 25
+
+
+def _buy_a_round(character: Character) -> None:
+    if character.credits < BUY_ROUND_COST:
+        console.print("\n[red]Can't even afford to buy yourself a drink right now.[/red]")
         return
 
-    _visit_endr3am(character)
+    character.credits -= BUY_ROUND_COST
+    console.print(f"\n[dim]You slap {BUY_ROUND_COST} credits on the bar. Rin pours.[/dim]")
+
+    roll = random.random()
+    if roll < 0.12:
+        stat_key = random.choice(["attack", "defense", "tech"])
+        setattr(character, stat_key, getattr(character, stat_key) + 1)
+        console.print(
+            f"[bold bright_magenta]Rin tells a story that actually sticks with you.[/bold bright_magenta] "
+            f"+1 {stat_key.capitalize()}, permanently."
+        )
+    elif roll < 0.70:
+        character.reputation += 2
+        console.print("[bold yellow]Decent gossip tonight.[/bold yellow] +2 reputation.")
+    else:
+        apply_effect(character, "drunk", 3)
+        console.print(
+            "[red]You get loud, then sloppy, then horizontal. Rin has you tossed out "
+            "before you can order another.[/red]"
+        )
 
 
 def _visit_endr3am(character: Character) -> None:
@@ -491,6 +564,9 @@ def _browse_contract_board(character: Character, board: str) -> None:
             min_cha = quest.get("min_charisma", 0)
             if character.charisma < min_cha:
                 gaps.append(f"Charisma {min_cha} (have {character.charisma})")
+            min_lvl = quest.get("min_level", 1)
+            if character.level < min_lvl:
+                gaps.append(f"Level {min_lvl} (have {character.level})")
             console.print(f"  [dim]{quest['title']} — needs {', '.join(gaps)}[/dim]")
 
     open_quests = available_quests(character, board)

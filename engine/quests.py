@@ -34,6 +34,7 @@ def _meets_requirements(character: Character, quest: dict[str, Any]) -> bool:
     return (
         character.reputation >= quest.get("min_reputation", 0)
         and character.charisma >= quest.get("min_charisma", 0)
+        and character.level >= quest.get("min_level", 1)
     )
 
 

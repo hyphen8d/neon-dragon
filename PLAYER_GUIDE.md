@@ -52,29 +52,43 @@ Every session loops through this menu. Locations:
 
 ### Chrome Noodle Bar
 Static Rin, the bartender, has a pool of flavor lines, and it's a step
-in the "Word on the Street" contract. It's also a free rest stop: if
-you're below half HP, you're topped up to half for free — doesn't do
-anything once you're at or above that (Doc Wire's Clinic is still the
-only way to heal further or clear status effects).
+in several contracts. It's also a free rest stop: if you're below half
+HP, you're topped up to half for free — doesn't do anything once
+you're at or above that (Doc Wire's Clinic is still the only way to
+heal further or clear status effects).
 
-Endr3am, a tall merc working the back booth, runs his own contract
-board here, separate from the Fixer Board — gated by **Charisma**
-instead of Reputation. "Loose Ends" is open from the start (0
-Charisma); "Loose Lips" needs 6 Charisma, "Friends in High Places"
-needs 9. Charisma only comes from Hyphen8d's Hut skin-slot cyberware
-— Synth-Derm (+3) clears the first tier, Mirrorskin (+6) clears the
-second. RoboDOJO doesn't train Charisma; sparring drones don't teach
-persuasion.
+From there you pick one thing to do:
+
+- **Buy a round** (25 credits) — a gamble. Small chance (12%) of a
+  permanent +1 to Attack, Defense, or Tech. Most of the time (58%) just
+  a bit of gossip (+2 reputation). The rest of the time (30%) you get
+  thrown out **Drunk** — a status effect that weakens your next fight's
+  Attack/Tech rolls until it wears off or you pay Doc Wire to cure it.
+- **Check the shady booth in the back** — Endr3am, a tall merc, runs
+  his own contract board here, separate from the Fixer Board and
+  gated by **Charisma** instead of Reputation. Charisma only comes
+  from Hyphen8d's Hut skin-slot cyberware (Synth-Derm +3, Mirrorskin
+  +6) — RoboDOJO doesn't train it.
 
 ### Undercity
-Random encounters, weighted: gang fights, a rogue drone, a corp
-patrol, a scavenger stash (free credits, no fight), or nothing at all.
-Three tougher enemies only start showing up once you're leveled
-enough to meet them: a **Ronin Netrunner** (level 3+), a **Corp
-Strike Team** (level 5+), and a **Chrome Beast** (level 7+) — so the
-Undercity keeps getting more dangerous instead of staying exactly as
-easy as it was at level 1. Combat encounters use the same fight
-system as everywhere else.
+No longer a single random roll — you pick your approach:
+
+- **Jack in** — attempt to steal credits. Odds and payout scale with
+  your Tech stat. Fail and you're traced: it forces a fight against a
+  Corp-faction enemy (Rogue Drone, Corp Patrol Trooper, or Corp Strike
+  Team) right then. This is Tech's main use outside combat.
+- **Find a fight** — guarantees a combat encounter (still random which
+  enemy), for when you specifically want XP/credits without gambling
+  on nothing happening.
+- **Scavenge** — the old low-risk pool: a scavenger stash (free
+  credits) or nothing at all. No combat risk.
+
+Three tougher enemies only show up in the fight/jack-in pools once
+you're leveled enough to meet them: a **Ronin Netrunner** (level 3+,
+dodges some hits), a **Corp Strike Team** (level 5+, ignores your
+Defend), and a **Chrome Beast** (level 7+, heavy Bleed). The Undercity
+keeps getting more dangerous instead of staying exactly as easy as it
+was at level 1.
 
 ### NetVault
 Deposit or withdraw credits with Ms. Kessler. Banked credits are safe
@@ -174,6 +188,8 @@ Status effects go both ways:
   for the effect's duration.
 - **Stunned** — the affected side loses their action for that round
   entirely.
+- **Drunk** — player-only, from a bad night at the Chrome Noodle Bar.
+  Reduces your Attack/Tech roll for as long as it lasts.
 
 Enemies inflict effects on hit if they have the ability; you inflict
 them via certain cyberware when you Attack (arm slot) or Tech/Hack
@@ -195,12 +211,19 @@ Stunned.
 
 ## Contracts
 
-Contracts chain "talk" (visit a location) and "kill" (defeat a named
-enemy) steps. There are two contract boards — the Fixer Board
-(reputation-gated) and Endr3am's board at the Chrome Noodle Bar
-(charisma-gated). Each contract is accepted, tracked, and turned in at
-its own board, even if the steps in between happen elsewhere.
+12 contracts total across two boards — the Fixer Board and Endr3am's
+board at the Chrome Noodle Bar. Contracts chain "talk" (visit a
+location) and "kill" (defeat a named enemy) steps, accepted, tracked,
+and turned in at their own board even if the steps happen elsewhere.
 Completing one pays credits, XP, and reputation.
+
+Three gates control what's on offer: **Reputation** (Fixer Board),
+**Charisma** (Endr3am's board), and **Level** (both boards, tied to
+the same tiers that unlock tougher Undercity enemies — several
+higher-tier contracts specifically ask you to take down a Ronin
+Netrunner, Corp Strike Team, or Chrome Beast). Some contracts stack
+two gates at once for the harder jobs. A locked contract always shows
+exactly what you're short on.
 
 ## Checking your status
 

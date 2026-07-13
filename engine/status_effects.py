@@ -15,7 +15,10 @@ BLEED_DAMAGE = 3
 EFFECT_LABELS: dict[str, str] = {
     "bleed": "Bleeding",
     "stunned": "Stunned",
+    "drunk": "Drunk",
 }
+
+DRUNK_STAT_PENALTY = 3
 
 
 def apply_effect(combatant: Any, effect: str, duration: int) -> None:

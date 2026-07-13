@@ -12,7 +12,7 @@ from engine.character import Character, hp_style
 from engine.leveling import check_level_up
 from engine.quests import notify_step, print_quest_result
 from engine.shop import get_item
-from engine.status_effects import EFFECT_LABELS, apply_effect, process_round_start
+from engine.status_effects import DRUNK_STAT_PENALTY, EFFECT_LABELS, apply_effect, has_effect, process_round_start
 
 console = Console(highlight=False)
 
@@ -125,11 +125,15 @@ def run_combat(character: Character, enemy_data: dict) -> None:
                 show_choices=False,
             )
 
+            drunk_penalty = DRUNK_STAT_PENALTY if has_effect(character, "drunk") else 0
+
             if action == "1":
-                if _player_hit(enemy, character.attack, "strike", console) and enemy.alive:
+                stat_value = max(0, character.attack - drunk_penalty)
+                if _player_hit(enemy, stat_value, "strike", console) and enemy.alive:
                     _gear_inflict(character, enemy, "arm", console)
             elif action == "2":
-                if _player_hit(enemy, character.tech, "hack their systems", console) and enemy.alive:
+                stat_value = max(0, character.tech - drunk_penalty)
+                if _player_hit(enemy, stat_value, "hack their systems", console) and enemy.alive:
                     _gear_inflict(character, enemy, "eyes", console)
             elif action == "3":
                 defending = True
