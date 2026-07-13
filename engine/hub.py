@@ -15,7 +15,7 @@ from engine.combat import run_combat
 from engine.encounters import roll_encounter
 from engine.help import show_help
 from engine.leveling import xp_for_next_level
-from engine.npcs import npc_at, random_line
+from engine.npcs import get_npc, npc_at, random_line
 from engine.pit import load_gladiators
 from engine.quests import (
     accept_quest,
@@ -162,7 +162,7 @@ def visit_undercity(character: Character) -> None:
         low, high = encounter["credits"]
         amount = random.randint(low, high)
         character.credits += amount
-        console.print(f"[bold yellow]+{amount} credits.[/bold yellow]")
+        console.print(f"\n[bold bright_magenta]Score![/bold bright_magenta] +{amount} credits.")
     # "nothing" encounters just print their flavor line above.
 
 
@@ -347,7 +347,7 @@ def visit_robodojo(character: Character) -> None:
     console.print(f"[dim]{TRAIN_COST_PER_POINT} credits per +1.[/dim]")
 
     choice = Prompt.ask(
-        "Train which stat? (0 to leave)",
+        "Train which stat? (0 to cancel)",
         choices=["0", *TRAINABLE_STATS.keys()],
         show_choices=False,
     )
@@ -383,7 +383,7 @@ def visit_the_pit(character: Character) -> None:
     console.print(table)
 
     choice = Prompt.ask(
-        "Step into the ring? (0 to back out)",
+        "Step into the ring? (0 to cancel)",
         choices=[str(i) for i in range(len(gladiators) + 1)],
         show_choices=False,
     )
@@ -417,12 +417,11 @@ def visit_chrome_noodle_bar(character: Character) -> None:
             f"+{healed} HP, on the house."
         )
 
-    console.print(
-        "\n[dim]Rin leans in, voice low — she's got side work for the right kind of "
-        "smile, if you're charming enough to earn it.[/dim]"
-    )
-
     print_menu_divider("Contract Board")
+    broker = get_npc("endr3am")
+    console.print(f"[bold cyan]{broker['name']}[/bold cyan] [dim]— {broker['bio']}[/dim]")
+    console.print(f"  {random_line(broker)}")
+
     for result in notify_step(character, "talk", "Chrome Noodle Bar"):
         print_quest_result(console, character, result)
     _browse_contract_board(character, "Chrome Noodle Bar")
@@ -467,7 +466,7 @@ def _browse_contract_board(character: Character, board: str) -> None:
     console.print(table)
 
     choice = Prompt.ask(
-        "Take a contract? (0 to skip)",
+        "Take a contract? (0 to cancel)",
         choices=[str(i) for i in range(len(open_quests) + 1)],
         show_choices=False,
     )

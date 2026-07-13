@@ -65,18 +65,19 @@ Starter NPC roster (flavor only — expand freely):
 - **Doc Wire** — clinic owner, gruff, healer
 - **Ms. Kessler** — NetVault teller, deadpan corp-speak
 - **Jax** — Chop Shop dealer, sells cyberware, shady
-- **Static Rin** — bartender at the Chrome Noodle Bar, hears everything.
-  Also runs her own charisma-gated contract board (see section 6).
+- **Static Rin** — bartender at the Chrome Noodle Bar, hears everything
 - **The Fixer** — posts contracts on the Fixer Board
+- **Endr3am** — tall merc who works the Chrome Noodle Bar's back booth,
+  brokers merc-to-merc contracts there (charisma-gated, see section 6)
 
 ## 6. Contracts
 
 Multi-step contract objects: talk/kill chains (fetch/deliver not yet built)
 with a credit + XP + reputation reward. Two contract boards: the **Fixer
-Board** (gated by Reputation) and **Static Rin's board** at the Chrome
-Noodle Bar (gated by Charisma). Some contracts unlock new hub locations or
-NPCs — not used yet, but the hook exists in the schema (`min_reputation`,
-`min_charisma`).
+Board** (gated by Reputation, run by The Fixer) and **Endr3am's board** at
+the Chrome Noodle Bar (gated by Charisma). Some contracts unlock new hub
+locations or NPCs — not used yet, but the hook exists in the schema
+(`min_reputation`, `min_charisma`).
 
 ## 7. Combat
 

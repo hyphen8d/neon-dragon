@@ -29,11 +29,11 @@ Charisma has more mechanical weight behind it — see below.)
 - **Attack** — damage on the Attack combat action.
 - **Defense** — reduces incoming damage in combat.
 - **Tech** — damage on the Tech/Hack combat action.
-- **Charisma** — gates the two "side" contracts Static Rin offers at
+- **Charisma** — gates the two higher-tier contracts Endr3am offers at
   the Chrome Noodle Bar (see below). No effect on combat, dialogue, or
   shop prices yet.
 - **Credits** — cash on hand. Spent at the Chop Shop, the Clinic, and
-  the Dojo; lost (partially) if you go down in a fight.
+  RoboDOJO; lost (partially) if you go down in a fight.
 - **Banked Credits** — cash stored at NetVault. Never touched by
   combat defeat, no matter what.
 - **Reputation** — earned from Pit fights and completed contracts.
@@ -55,12 +55,12 @@ you're below half HP, you're topped up to half for free — doesn't do
 anything once you're at or above that (Doc Wire's Clinic is still the
 only way to heal further or clear status effects).
 
-Rin also runs her own contract board here, separate from the Fixer
-Board — gated by **Charisma** instead of Reputation. "Loose Ends" is
-open from the start (0 Charisma); "Loose Lips" needs 6 Charisma,
-"Friends in High Places" needs 10. Push Charisma up via the Dojo or
-Chop Shop cyberware (Synth-Derm, Mirrorskin) to unlock the higher
-tiers.
+Endr3am, a tall merc working the back booth, runs his own contract
+board here, separate from the Fixer Board — gated by **Charisma**
+instead of Reputation. "Loose Ends" is open from the start (0
+Charisma); "Loose Lips" needs 6 Charisma, "Friends in High Places"
+needs 10. Push Charisma up via RoboDOJO or Chop Shop cyberware
+(Synth-Derm, Mirrorskin) to unlock the higher tiers.
 
 ### Undercity
 Random encounters, weighted: gang fights, a rogue drone, a corp
@@ -160,7 +160,7 @@ Claws causes Bleeding and Target-Lock Eyes causes Stunned.
 
 Contracts chain "talk" (visit a location) and "kill" (defeat a named
 enemy) steps. There are two contract boards — the Fixer Board
-(reputation-gated) and Static Rin's board at the Chrome Noodle Bar
+(reputation-gated) and Endr3am's board at the Chrome Noodle Bar
 (charisma-gated). Each contract is accepted, tracked, and turned in at
 its own board, even if the steps in between happen elsewhere.
 Completing one pays credits, XP, and reputation.
@@ -190,5 +190,5 @@ A few things mentioned in the game's design notes but not implemented:
 
 - Charisma only gates two contracts — no effect on combat, dialogue,
   or shop prices.
-- No ability/skill system — the Dojo trains stats, not abilities.
+- No ability/skill system — RoboDOJO trains stats, not abilities.
 - No fetch/deliver contracts — only talk/kill steps exist so far.

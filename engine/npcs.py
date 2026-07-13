@@ -22,5 +22,12 @@ def npc_at(location: str) -> dict[str, Any] | None:
     return None
 
 
+def get_npc(npc_id: str) -> dict[str, Any]:
+    for npc in load_npcs():
+        if npc["id"] == npc_id:
+            return npc
+    raise KeyError(npc_id)
+
+
 def random_line(npc: dict[str, Any]) -> str:
     return random.choice(npc["lines"])
