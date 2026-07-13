@@ -89,11 +89,15 @@ def _handle_victory(character: Character, enemy: Enemy) -> None:
     )
 
 
+TRAUMA_BILL = 40
+
+
 def _handle_defeat(character: Character) -> None:
-    lost = character.credits // 4
-    character.credits -= lost
+    character.credits -= TRAUMA_BILL
     character.hp = 1
     console.print(
-        f"\n[bold red]You go down hard.[/bold red] A fixer patches you up and takes "
-        f"{lost} credits for the trouble. You limp back to the hub."
+        f"\n[bold red]You go down hard.[/bold red] Doc Wire's trauma team scrapes you "
+        f"off the pavement and stabilizes you — {TRAUMA_BILL} credits, billed on the spot."
     )
+    if character.credits < 0:
+        console.print(f"[red]You're {-character.credits} in the hole now.[/red]")
