@@ -4,66 +4,84 @@
       "id": "doc_wire",
       "name": "Doc Wire",
       "location": "Doc Wire's Clinic",
-      "bio": "Clinic owner. Gruff, chain-smokes synth-tobs, hands steadier than his bedside manner.",
+      "bio": "Clinic owner. Gruff, chain-smokes synth-tobs, hands steadier than his bedside manner. Patched up half the Undercity at one point or another, usually for less than it cost him in supplies.",
       "lines": [
         "\"Sit down before you bleed on my floor.\"",
         "\"Chrome doesn't fix everything. Sometimes you just need stitches and a night's sleep.\"",
-        "\"Heard the Ganger crews are running hot near the underpass. Watch yourself down there.\""
+        "\"Heard the Ganger crews are running hot near the underpass. Watch yourself down there.\"",
+        "\"Insurance doesn't cover chrome. Insurance doesn't cover you, either, way you're bleeding.\"",
+        "\"You keep coming back here, I'm gonna start charging rent on the gurney.\"",
+        "\"Half my patients lie about how they got hurt. I stopped asking years ago.\""
       ]
     },
     {
       "id": "ms_kessler",
       "name": "Ms. Kessler",
       "location": "NetVault",
-      "bio": "NetVault teller. Pressed uniform, dead eyes, corp-speak on autopilot.",
+      "bio": "NetVault teller. Pressed uniform, dead eyes, corp-speak on autopilot. Has recited the same disclosure script so many times it comes out even when nobody's listening.",
       "lines": [
         "\"Welcome to NetVault. Your assets are protected under Meridian Financial Code, subsection nine.\"",
         "\"Please refrain from touching the counter. It's biometric. It remembers.\"",
-        "\"Have a chrome-plated day.\""
+        "\"Have a chrome-plated day.\"",
+        "\"Your transaction has been logged, timestamped, and forgotten by everyone except the system.\"",
+        "\"I am required to remind you that NetVault is not liable for what you do with your own credits.\"",
+        "\"No, I don't know what's behind the vault door. I've stopped asking that too.\""
       ]
     },
     {
-      "id": "jax",
-      "name": "Jax",
-      "location": "Chop Shop",
-      "bio": "Cyberware dealer. Fingers full of rings that aren't rings, always looking past your shoulder.",
+      "id": "hyphen8d",
+      "name": "Hyphen8d",
+      "location": "Hyphen8d's Hut",
+      "bio": "Cyberware dealer. Fingers full of rings that aren't rings, always looking past your shoulder. Nobody's sure where the name comes from, and asking just gets you a longer wait on your order.",
       "lines": [
         "\"Everything in here fell off a truck. Don't ask which truck.\"",
         "\"You want it cheap or you want it to not glitch during a firefight? Pick one.\"",
-        "\"I don't sell to corp badges. You a corp badge? Didn't think so.\""
+        "\"I don't sell to corp badges. You a corp badge? Didn't think so.\"",
+        "\"Warranty's simple: it works when you buy it. After that, you're on your own.\"",
+        "\"I don't do refunds. I do favors, and favors cost more.\"",
+        "\"You didn't see the guy who left before you. He didn't see you either.\""
       ]
     },
     {
       "id": "static_rin",
       "name": "Static Rin",
       "location": "Chrome Noodle Bar",
-      "bio": "Bartender at the Noodle Bar. Hears everything, repeats half of it, embellishes the rest.",
+      "bio": "Bartender at the Noodle Bar. Hears everything, repeats half of it, embellishes the rest. Been pouring drinks here longer than the sign outside has worked, and she remembers every face that's ever walked in.",
       "lines": [
         "\"Noodles are on the house tonight. Don't ask why, just eat before I change my mind.\"",
         "\"Word is a fixer crew went dark in the Undercity last week. Nobody's found the bodies. Yet.\"",
-        "\"You look like you've had a night. Sit. Talk. Or don't — I'll talk enough for both of us.\""
+        "\"You look like you've had a night. Sit. Talk. Or don't — I'll talk enough for both of us.\"",
+        "\"Kitchen's closed but the noodles don't know that. Sit down.\"",
+        "\"You want gossip or you want the truth? Because I'm only selling one of those.\"",
+        "\"Somebody's always looking for somebody else in this city. Rarely good news either way.\""
       ]
     },
     {
       "id": "the_fixer",
       "name": "The Fixer",
       "location": "Fixer Board",
-      "bio": "Never gives a name. Posts jobs on a cracked terminal bolted to the wall, takes a cut of everything.",
+      "bio": "Never gives a name. Posts jobs on a cracked terminal bolted to the wall, takes a cut of everything. Nobody's ever seen a face behind the voice on the comm line, and after a while nobody bothers wondering anymore.",
       "lines": [
         "\"Board's quiet tonight. Check back — contracts move fast in this city.\"",
         "\"Everybody's a merc till the job goes sideways. Don't be everybody.\"",
-        "\"You didn't hear this from me, but the Pit's paying out big this week.\""
+        "\"You didn't hear this from me, but the Pit's paying out big this week.\"",
+        "\"Contracts don't negotiate. Neither do I.\"",
+        "\"Somebody's always hiring in this city. Question is whether you're the one getting paid or the one getting spent.\"",
+        "\"Reputation opens doors here. Charisma opens different ones. Figure out which ones you want.\""
       ]
     },
     {
       "id": "endr3am",
       "name": "Endr3am",
       "location": "Chrome Noodle Bar",
-      "bio": "Tall merc who works the back booth. Doesn't gossip — just brokers work merc-to-merc.",
+      "bio": "Tall merc who works the back booth. Doesn't gossip — just brokers work merc-to-merc. Never raises his voice, never needs to; people lean in close just to hear him at all.",
       "lines": [
         "\"Nothing glamorous on the board tonight. Pays are pays.\"",
         "\"You didn't hear the terms from me if it goes sideways.\"",
-        "\"Word gets around fast in this city. Mine gets around faster.\""
+        "\"Word gets around fast in this city. Mine gets around faster.\"",
+        "\"Every job I hand out, I've done myself once. That's the only guarantee you get.\"",
+        "\"Reputation's for the Fixer Board crowd. Down here, it's about who trusts you.\"",
+        "\"Charm only gets you in the door. What you do after is on you.\""
       ]
     }
   ]

@@ -37,7 +37,7 @@ LOCATIONS: dict[str, str] = {
     "Chrome Noodle Bar": "Rest, heal, and hear rumors over synth-noodles and static pop.",
     "Undercity": "Random encounters — gang fights, scavenger loot, drone ambushes.",
     "NetVault": "Deposit and withdraw credits, safe from death-loss.",
-    "Chop Shop": "Buy and sell gear and cyberware.",
+    "Hyphen8d's Hut": "Buy and sell gear and cyberware.",
     "Doc Wire's Clinic": "Heal HP for credits, cure status effects.",
     "RoboDOJO": "Spar with training drones to sharpen your stats.",
     "The Pit": "PvE gladiator fights for reputation and credits.",
@@ -78,17 +78,17 @@ LOCATION_DESCRIPTIONS: dict[str, str] = {
         "watched selectively. The vault door behind reception hasn't opened "
         "in front of a customer in years, and nobody's sure it needs to."
     ),
-    "Chop Shop": (
+    "Hyphen8d's Hut": (
         "Wires hang from the ceiling like vines that gave up trying to be "
         "anything else, tangled around fluorescent tubes that flicker on a "
-        "schedule only Jax understands. Half-built limbs sit in bins marked "
-        "in a shorthand only the shop understands, chrome fingers twitching "
-        "occasionally when a stray current finds them. Smells like solder and "
-        "ozone and something faintly organic underneath that nobody asks "
-        "about. A cracked monitor loops security footage of a break-in that "
-        "happened months ago, apparently for atmosphere, since nothing was "
-        "ever fixed or reported. Jax insists everything's legitimate. Jax is "
-        "lying."
+        "schedule only Hyphen8d understands. Half-built limbs sit in bins "
+        "marked in a shorthand only the shop understands, chrome fingers "
+        "twitching occasionally when a stray current finds them. Smells like "
+        "solder and ozone and something faintly organic underneath that "
+        "nobody asks about. A cracked monitor loops security footage of a "
+        "break-in that happened months ago, apparently for atmosphere, since "
+        "nothing was ever fixed or reported. Hyphen8d insists everything's "
+        "legitimate. Hyphen8d is lying."
     ),
     "Doc Wire's Clinic": (
         "A converted shipping container wired for surgery, welded shut on "
@@ -553,10 +553,18 @@ def build_loadout_table(character: Character, title: str | None = None) -> Table
     table = Table(title=title, border_style="bright_cyan", show_header=False)
     table.add_column("Slot", style="cyan")
     table.add_column("Installed", style="bold white")
+    table.add_column("Special", style="yellow")
     for slot in CYBERWARE_SLOTS:
         item_id = character.cyberware[slot]
-        installed = get_item(item_id)["name"] if item_id else "empty"
-        table.add_row(slot.capitalize(), installed)
+        installed = "empty"
+        special = ""
+        if item_id:
+            item = get_item(item_id)
+            installed = item["name"]
+            if item.get("inflict_effect"):
+                label = EFFECT_LABELS.get(item["inflict_effect"], item["inflict_effect"])
+                special = f"Causes {label}"
+        table.add_row(slot.capitalize(), installed, special)
     return table
 
 
@@ -572,14 +580,20 @@ def print_catalog(catalog: list[dict]) -> None:
     table.add_column("Item", style="bold white")
     table.add_column("Slot")
     table.add_column("Bonus")
+    table.add_column("Special", style="yellow")
     table.add_column("Cost", justify="right")
-    table.add_column("Flavor", style="dim")
+    table.add_column("Description", style="dim")
     for i, item in enumerate(catalog, start=1):
+        special = ""
+        if item.get("inflict_effect"):
+            label = EFFECT_LABELS.get(item["inflict_effect"], item["inflict_effect"])
+            special = f"Causes {label}"
         table.add_row(
             str(i),
             item["name"],
             item["slot"].capitalize(),
             f"+{item['bonus']} {item['stat']}",
+            special,
             str(item["cost"]),
             item["flavor"],
         )
@@ -642,15 +656,15 @@ def _sell_cyberware(character: Character) -> None:
     console.print(f"[bold yellow]{item['name']} sold for {sell_back_value(item)} credits.[/bold yellow]")
 
 
-def visit_chop_shop(character: Character) -> None:
-    print_arrival("Chop Shop")
+def visit_hyphen8ds_hut(character: Character) -> None:
+    print_arrival("Hyphen8d's Hut")
 
-    npc = npc_at("Chop Shop")
+    npc = npc_at("Hyphen8d's Hut")
     console.print(f"[bold cyan]{npc['name']}[/bold cyan] [dim]— {npc['bio']}[/dim]")
     console.print(f"  {random_line(npc)}")
 
-    print_menu_divider("Chop Shop Menu")
-    for result in notify_step(character, "talk", "Chop Shop"):
+    print_menu_divider("Shop Menu")
+    for result in notify_step(character, "talk", "Hyphen8d's Hut"):
         print_quest_result(console, character, result)
 
     print_loadout(character)
@@ -759,8 +773,8 @@ def enter_hub(character: Character) -> None:
             visit_chrome_noodle_bar(character)
         elif chosen == "Fixer Board":
             visit_fixer_board(character)
-        elif chosen == "Chop Shop":
-            visit_chop_shop(character)
+        elif chosen == "Hyphen8d's Hut":
+            visit_hyphen8ds_hut(character)
         elif chosen == "NetVault":
             visit_netvault(character)
         elif chosen == "Doc Wire's Clinic":

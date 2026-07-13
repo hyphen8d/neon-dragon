@@ -32,7 +32,7 @@ Charisma has more mechanical weight behind it — see below.)
 - **Charisma** — gates the two higher-tier contracts Endr3am offers at
   the Chrome Noodle Bar (see below). No effect on combat, dialogue, or
   shop prices yet.
-- **Credits** — cash on hand. Spent at the Chop Shop, the Clinic, and
+- **Credits** — cash on hand. Spent at Hyphen8d's Hut, the Clinic, and
   RoboDOJO; lost (partially) if you go down in a fight.
 - **Banked Credits** — cash stored at NetVault. Never touched by
   combat defeat, no matter what.
@@ -59,10 +59,10 @@ Endr3am, a tall merc working the back booth, runs his own contract
 board here, separate from the Fixer Board — gated by **Charisma**
 instead of Reputation. "Loose Ends" is open from the start (0
 Charisma); "Loose Lips" needs 8 Charisma, "Friends in High Places"
-needs 14. Push Charisma up via RoboDOJO or Chop Shop cyberware
+needs 14. Push Charisma up via RoboDOJO or Hyphen8d's Hut cyberware
 (Synth-Derm, Mirrorskin) to unlock the higher tiers — a single item
 purchase isn't enough on its own anymore, so it takes real investment
-rather than one lucky trip to the Chop Shop.
+rather than one lucky trip to the Hut.
 
 ### Undercity
 Random encounters, weighted: gang fights, a rogue drone, a corp
@@ -74,9 +74,9 @@ Deposit or withdraw credits with Ms. Kessler. Banked credits are safe
 from the trauma bill you take when a fight goes badly — on-hand
 credits aren't.
 
-### Chop Shop
-Buy cyberware from Jax across four slots: arm, eyes, spine, skin. Each
-item gives a flat bonus to one stat (Attack, Tech, Defense, or
+### Hyphen8d's Hut
+Buy cyberware from Hyphen8d across four slots: arm, eyes, spine, skin.
+Each item gives a flat bonus to one stat (Attack, Tech, Defense, or
 Charisma). Buying a second item for an occupied slot auto-sells the
 old one for half its cost as trade-in credit. You can also sell
 outright from the Sell menu.
@@ -86,7 +86,10 @@ on enemies, not just deal more damage: **Razor Claws** (arm) has a
 chance to cause Bleeding on Attack, **Target-Lock Eyes** (eyes) has a
 chance to cause Stunned on Tech/Hack. The cheaper tier of each slot
 (Chrome Arm Mk.I, Optic Scanner) doesn't — that capability is what the
-higher price actually buys.
+higher price actually buys. Both the shop catalog and your loadout
+screen (Character Info, and the Hut itself) show a "Special" column
+calling out exactly which effect an item causes, so it's not buried in
+this guide alone.
 
 ### Doc Wire's Clinic
 Always offers a menu: **Heal** (2 credits per HP, capped to whatever
@@ -148,7 +151,7 @@ Status effects go both ways:
 
 Enemies inflict effects on hit if they have the ability; you inflict
 them via certain cyberware when you Attack (arm slot) or Tech/Hack
-(eyes slot) — see Chop Shop above. Both sides' active effects show up
+(eyes slot) — see Hyphen8d's Hut above. Both sides' active effects show up
 in the combat status line.
 
 Effects tick down once per round and expire on their own, but they

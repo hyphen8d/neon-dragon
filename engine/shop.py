@@ -1,4 +1,4 @@
-"""Load the Chop Shop cyberware catalog and handle buying/selling/equipping."""
+"""Load Hyphen8d's Hut cyberware catalog and handle buying/selling/equipping."""
 
 from __future__ import annotations
 

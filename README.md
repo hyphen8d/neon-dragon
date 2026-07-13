@@ -31,7 +31,7 @@ python3 -m venv .venv
 - Character creation — 2 classes (Street Samurai, Netrunner), each a
   different balance of the same stats
 - A hub of 8 locations in Neo Meridian, each with real mechanics:
-  Undercity (random encounters), NetVault (banking), Chop Shop
+  Undercity (random encounters), NetVault (banking), Hyphen8d's Hut
   (cyberware), Doc Wire's Clinic (healing + curing), RoboDOJO (drone
   sparring / stat training), The Pit (gladiator fights), Fixer Board
   (reputation-gated contracts), Chrome Noodle Bar (free rest +

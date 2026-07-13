@@ -21,7 +21,7 @@ A menu of locations the player travels between:
 | Rest stop               | **The Chrome Noodle Bar** | Rest, heal, hear rumors/gossip, flavor NPCs |
 | Random encounters       | **The Undercity**         | Random encounters, fights, loot        |
 | Bank                     | **NetVault**              | Deposit/withdraw credits (safe from death-loss) |
-| Weapon/armor shop        | **Chop Shop**             | Buy/sell gear and cyberware             |
+| Weapon/armor shop        | **Hyphen8d's Hut**        | Buy/sell gear and cyberware             |
 | Healer                    | **Doc Wire's Clinic**     | Heal HP for credits, cure status effects |
 | Trainer                  | **RoboDOJO**              | Spar with training drones to train stats, learn new abilities |
 | Arena                     | **The Pit**               | PvE gladiator fights for reputation/credits |
@@ -52,7 +52,7 @@ The player is a cyber mercenary (**merc**) working Neo Meridian's edges.
   charisma-build class would still be a diluted hybrid of the other two
   until Charisma carries more weight.
 - Cyberware slots instead of traditional armor slots (arm, eyes, spine,
-  skin) — each grants a stat bonus, sourced from the Chop Shop.
+  skin) — each grants a stat bonus, sourced from Hyphen8d's Hut.
 
 ## 5. NPCs
 
@@ -64,7 +64,7 @@ Data-driven (see CLAUDE.md) — not hardcoded. Each NPC has:
 Starter NPC roster (flavor only — expand freely):
 - **Doc Wire** — clinic owner, gruff, healer
 - **Ms. Kessler** — NetVault teller, deadpan corp-speak
-- **Jax** — Chop Shop dealer, sells cyberware, shady
+- **Hyphen8d** — Hyphen8d's Hut dealer, sells cyberware, shady
 - **Static Rin** — bartender at the Chrome Noodle Bar, hears everything
 - **The Fixer** — posts contracts on the Fixer Board
 - **Endr3am** — tall merc who works the Chrome Noodle Bar's back booth,
@@ -107,7 +107,7 @@ drone ambushes, corp patrol shakedowns, nothing-happens flavor text.
 4. NPCs + dialogue system (data-driven)
 5. Contracts
 6. ~~Daily turn limit + day-end/reset cycle~~ — cut, see section 3
-7. Chop Shop economy + cyberware
+7. Hyphen8d's Hut economy + cyberware
 8. Polish: color palette, ASCII panels, flavor text pass
 
 ## Notes
