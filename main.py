@@ -37,7 +37,10 @@ def print_character_sheet(character: Character) -> None:
 
 
 def choose_class() -> str:
+    class_names = list(CLASSES.keys())
+
     table = Table(border_style="bright_cyan")
+    table.add_column("#", justify="right", style="bright_magenta")
     table.add_column("Class", style="bold magenta")
     table.add_column("Flavor")
     table.add_column("HP", justify="right")
@@ -45,8 +48,10 @@ def choose_class() -> str:
     table.add_column("DEF", justify="right")
     table.add_column("TECH", justify="right")
     table.add_column("CHA", justify="right")
-    for name, stats in CLASSES.items():
+    for i, name in enumerate(class_names, start=1):
+        stats = CLASSES[name]
         table.add_row(
+            str(i),
             name,
             stats["flavor"],
             str(stats["hp"]),
@@ -56,7 +61,9 @@ def choose_class() -> str:
             str(stats["charisma"]),
         )
     console.print(table)
-    return Prompt.ask("Choose your path", choices=list(CLASSES.keys()))
+
+    choice = IntPrompt.ask("Choose your path", choices=[str(i) for i in range(1, len(class_names) + 1)])
+    return class_names[choice - 1]
 
 
 def create_character() -> Character:
