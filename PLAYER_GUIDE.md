@@ -39,9 +39,11 @@ Charisma has more mechanical weight behind it — see below.)
 - **Reputation** — earned from Pit fights and completed contracts.
   Gates higher-tier Fixer Board contracts (see below).
 - **XP / Level** — XP comes from combat kills and completed contracts.
-  Every 50 XP is a level: +3 Max HP, +1 Attack, +1 Defense, +1 Tech,
-  and a full heal. A single big XP reward can trigger multiple
-  level-ups at once. Charisma doesn't grow on level-up since it has no
+  Each level costs more than the last (level 2 needs 50 total XP,
+  level 3 needs 150, level 4 needs 300 — 50 more per level than the
+  one before). Every level grants +3 Max HP, +1 Attack, +1 Defense,
+  +1 Tech, and a full heal. A single big XP reward can trigger
+  multiple level-ups at once. Charisma doesn't grow on level-up since it has no
   effect in combat.
 
 ## The Hub — Neo Meridian
@@ -67,7 +69,12 @@ persuasion.
 ### Undercity
 Random encounters, weighted: gang fights, a rogue drone, a corp
 patrol, a scavenger stash (free credits, no fight), or nothing at all.
-Combat encounters use the same fight system as everywhere else.
+Three tougher enemies only start showing up once you're leveled
+enough to meet them: a **Ronin Netrunner** (level 3+), a **Corp
+Strike Team** (level 5+), and a **Chrome Beast** (level 7+) — so the
+Undercity keeps getting more dangerous instead of staying exactly as
+easy as it was at level 1. Combat encounters use the same fight
+system as everywhere else.
 
 ### NetVault
 Deposit or withdraw credits with Ms. Kessler. Banked credits are safe
@@ -132,6 +139,24 @@ Turn-based. Each round you pick:
 - **Flee** — coin-flip chance to escape with no reward either way.
 
 Damage is roughly `stat + random(1-6) - enemy defense`, minimum 1.
+Every hit — yours or theirs — has a 20% chance to be a **critical hit**
+for 1.5x damage, called out with a CRITICAL! tag.
+
+Some enemies have a gimmick beyond raw stats:
+
+- **Dodge** — a chance to evade your attack entirely (Ronin Netrunner).
+  A miss deals no damage and can't trigger a gear effect.
+- **Ignores Defend** — some enemies punch through your guard regardless
+  of whether you Defend that round (Corp Strike Team). You'll see
+  "Your guard didn't matter" when it happens.
+
+Killing blows get their own flavor line instead of the normal hit
+text, so finishing a fight reads a little more dramatic than a
+regular round.
+
+Beating an enemy has a 25% chance of dropping bonus credits on top of
+the normal reward ("Bonus salvage!") — rewards aren't always the same
+amount even against the same enemy.
 
 If your HP hits zero, Doc Wire's trauma team patches you up to 1 HP
 and bills you from whatever's on hand — this can put you in debt
@@ -162,10 +187,11 @@ bleeding or stunned, you'll carry it into whatever you do next
 at Doc Wire's Clinic. Enemy status effects don't carry over — they
 reset with each new fight.
 
-Currently: Street Gangers and Scrap Dog Vex/The Widow (Pit) can inflict
-Bleeding; Rogue Drones and Corp Patrol Troopers can inflict Stunned.
-Ironclad Marta (Pit) doesn't inflict anything. On your side, Razor
-Claws causes Bleeding and Target-Lock Eyes causes Stunned.
+Currently: Street Gangers, Chrome Beasts, and Scrap Dog Vex/The Widow
+(Pit) can inflict Bleeding; Rogue Drones and Corp Patrol Troopers can
+inflict Stunned. Ironclad Marta (Pit) doesn't inflict anything. On
+your side, Razor Claws causes Bleeding and Target-Lock Eyes causes
+Stunned.
 
 ## Contracts
 
@@ -183,10 +209,11 @@ your full character info: attributes, credits/banked, reputation and
 contract counts, cyberware loadout, active status effects, and a kill
 tally grouped by faction. This doesn't cost a turn.
 
-Enemies belong to one of three factions: **Street Gang** (Street
-Gangers), **Corp** (Rogue Drones, Corp Patrol Troopers), and
-**Gladiator** (the Pit roster). The kill tally groups by faction first,
-then breaks down by individual enemy underneath.
+Enemies belong to a faction: **Street Gang** (Street Gangers), **Corp**
+(Rogue Drones, Corp Patrol Troopers, Corp Strike Teams), **Ronin**
+(Ronin Netrunners), **Feral** (Chrome Beasts), and **Gladiator** (the
+Pit roster). The kill tally groups by faction first, then breaks down
+by individual enemy underneath.
 
 Type **?** the same way to reopen this guide mid-session.
 

@@ -15,7 +15,9 @@ def load_encounters() -> list[dict[str, Any]]:
     return data["encounters"]
 
 
-def roll_encounter() -> dict[str, Any]:
-    encounters = load_encounters()
+def roll_encounter(character_level: int) -> dict[str, Any]:
+    """Roll among encounters the player's level qualifies for. Higher-tier
+    threats stay out of the pool until you're leveled enough to meet them."""
+    encounters = [e for e in load_encounters() if character_level >= e.get("min_level", 1)]
     weights = [e["weight"] for e in encounters]
     return random.choices(encounters, weights=weights, k=1)[0]

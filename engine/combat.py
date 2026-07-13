@@ -30,6 +30,8 @@ class Enemy:
     inflict_chance: float = 0.0
     inflict_duration: int = 0
     faction: str = "Unknown"
+    dodge_chance: float = 0.0
+    ignores_defend: bool = False
     status_effects: dict = field(default_factory=dict)
 
     @property
@@ -37,8 +39,23 @@ class Enemy:
         return self.hp > 0
 
 
-def roll_damage(attack: int, defense: int) -> int:
-    return max(1, attack + random.randint(1, 6) - defense)
+CRIT_CHANCE = 0.2
+CRIT_MULTIPLIER = 1.5
+
+
+def roll_damage(attack: int, defense: int) -> tuple[int, bool]:
+    """Returns (damage, was_critical)."""
+    base = max(1, attack + random.randint(1, 6) - defense)
+    if random.random() < CRIT_CHANCE:
+        return max(base, int(base * CRIT_MULTIPLIER)), True
+    return base, False
+
+
+FINISHING_LINES = [
+    "You finish it clean — {dmg} damage, lights out for {enemy}.",
+    "One last hit and {enemy} folds.",
+    "The killing blow lands hard. {enemy} doesn't get up.",
+]
 
 
 def _status_text(combatant) -> str:
@@ -60,6 +77,25 @@ def _gear_inflict(character: Character, enemy: Enemy, slot: str, console: Consol
     apply_effect(enemy, effect, item.get("inflict_duration", 1))
     label = EFFECT_LABELS.get(effect, effect)
     console.print(f"[yellow]{item['name']} leaves {enemy.name} {label.lower()}![/yellow]")
+
+
+def _player_hit(enemy: Enemy, stat_value: int, verb: str, console: Console) -> bool:
+    """Resolve one player attack against the enemy. Returns True if it connected
+    (missed dodges don't trigger gear on-hit effects)."""
+    if enemy.dodge_chance and random.random() < enemy.dodge_chance:
+        console.print(f"[dim]{enemy.name} slips the hit — you swing through empty air.[/dim]")
+        return False
+
+    dmg, crit = roll_damage(stat_value, enemy.defense)
+    enemy.hp -= dmg
+    prefix = "[bold yellow]CRITICAL![/bold yellow] " if crit else ""
+
+    if not enemy.alive:
+        line = random.choice(FINISHING_LINES).format(enemy=enemy.name, dmg=dmg)
+        console.print(f"{prefix}[bold bright_magenta]{line}[/bold bright_magenta]")
+    else:
+        console.print(f"{prefix}[white]You {verb} for {dmg} damage.[/white]")
+    return True
 
 
 def run_combat(character: Character, enemy_data: dict) -> None:
@@ -90,16 +126,10 @@ def run_combat(character: Character, enemy_data: dict) -> None:
             )
 
             if action == "1":
-                dmg = roll_damage(character.attack, enemy.defense)
-                enemy.hp -= dmg
-                console.print(f"[white]You strike for {dmg} damage.[/white]")
-                if enemy.alive:
+                if _player_hit(enemy, character.attack, "strike", console) and enemy.alive:
                     _gear_inflict(character, enemy, "arm", console)
             elif action == "2":
-                dmg = roll_damage(character.tech, enemy.defense)
-                enemy.hp -= dmg
-                console.print(f"[white]You hack their systems for {dmg} damage.[/white]")
-                if enemy.alive:
+                if _player_hit(enemy, character.tech, "hack their systems", console) and enemy.alive:
                     _gear_inflict(character, enemy, "eyes", console)
             elif action == "3":
                 defending = True
@@ -120,11 +150,14 @@ def run_combat(character: Character, enemy_data: dict) -> None:
         if enemy_stunned:
             console.print(f"[yellow]{enemy.name} is stunned and can't act![/yellow]")
         else:
-            dmg = roll_damage(enemy.attack, character.defense)
-            if defending:
+            dmg, crit = roll_damage(enemy.attack, character.defense)
+            bypassed = defending and enemy.ignores_defend
+            if defending and not enemy.ignores_defend:
                 dmg = max(0, dmg // 2)
             character.hp = max(0, character.hp - dmg)
-            console.print(f"[red]{enemy.name} hits you for {dmg} damage.[/red]")
+            prefix = "[bold yellow]CRITICAL![/bold yellow] " if crit else ""
+            suffix = " Your guard didn't matter." if bypassed else ""
+            console.print(f"{prefix}[red]{enemy.name} hits you for {dmg} damage.{suffix}[/red]")
 
             if enemy.inflict_effect and random.random() < enemy.inflict_chance:
                 apply_effect(character, enemy.inflict_effect, enemy.inflict_duration)
@@ -137,6 +170,9 @@ def run_combat(character: Character, enemy_data: dict) -> None:
         _handle_victory(character, enemy)
 
 
+BONUS_LOOT_CHANCE = 0.25
+
+
 def _handle_victory(character: Character, enemy: Enemy) -> None:
     character.credits += enemy.credits_reward
     character.xp += enemy.xp_reward
@@ -146,6 +182,12 @@ def _handle_victory(character: Character, enemy: Enemy) -> None:
     if enemy.reputation_reward:
         reward_text += f", +{enemy.reputation_reward} reputation"
     console.print(f"\n[bold bright_magenta]{enemy.name} goes down.[/bold bright_magenta] {reward_text}.")
+
+    if random.random() < BONUS_LOOT_CHANCE:
+        bonus = max(1, int(enemy.credits_reward * random.uniform(0.2, 0.5)))
+        character.credits += bonus
+        console.print(f"[bold yellow]Bonus salvage![/bold yellow] +{bonus} credits.")
+
     check_level_up(character, console)
     for result in notify_step(character, "kill", enemy.name):
         print_quest_result(console, character, result)

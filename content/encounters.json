@@ -4,6 +4,7 @@
       "id": "street_ganger",
       "type": "combat",
       "weight": 30,
+      "min_level": 1,
       "intro": "A ganger steps out of the alley shadows, chrome knuckles gleaming under a busted neon sign.",
       "enemy": {
         "name": "Street Ganger",
@@ -22,6 +23,7 @@
       "id": "rogue_drone",
       "type": "combat",
       "weight": 20,
+      "min_level": 1,
       "intro": "A rogue delivery drone drops out of the smog, rotors screaming, sensors locked on you.",
       "enemy": {
         "name": "Rogue Drone",
@@ -40,6 +42,7 @@
       "id": "corp_patrol",
       "type": "combat",
       "weight": 12,
+      "min_level": 1,
       "intro": "A corp patrol trooper barks a challenge, stun baton crackling blue.",
       "enemy": {
         "name": "Corp Patrol Trooper",
@@ -55,9 +58,63 @@
       }
     },
     {
+      "id": "ronin_netrunner",
+      "type": "combat",
+      "weight": 15,
+      "min_level": 3,
+      "intro": "A masterless netrunner peels off the crowd, chrome visor flickering, already sizing up your defenses.",
+      "enemy": {
+        "name": "Ronin Netrunner",
+        "faction": "Ronin",
+        "hp": 26,
+        "attack": 9,
+        "defense": 8,
+        "credits_reward": 60,
+        "xp_reward": 25,
+        "dodge_chance": 0.2
+      }
+    },
+    {
+      "id": "corp_strike_team",
+      "type": "combat",
+      "weight": 12,
+      "min_level": 5,
+      "intro": "A corp strike team fans out from an unmarked van, heavy ordnance already spinning up.",
+      "enemy": {
+        "name": "Corp Strike Team",
+        "faction": "Corp",
+        "hp": 35,
+        "attack": 13,
+        "defense": 8,
+        "credits_reward": 85,
+        "xp_reward": 35,
+        "ignores_defend": true
+      }
+    },
+    {
+      "id": "chrome_beast",
+      "type": "combat",
+      "weight": 8,
+      "min_level": 7,
+      "intro": "Something huge and half-chrome shoulders out of the dark, too many joints moving wrong.",
+      "enemy": {
+        "name": "Chrome Beast",
+        "faction": "Feral",
+        "hp": 50,
+        "attack": 12,
+        "defense": 10,
+        "credits_reward": 110,
+        "xp_reward": 45,
+        "inflict_effect": "bleed",
+        "inflict_chance": 0.35,
+        "inflict_duration": 3
+      }
+    },
+    {
       "id": "scavenger_stash",
       "type": "loot",
       "weight": 18,
+      "min_level": 1,
       "intro": "You spot a stash tucked behind a dead vending unit — someone's old cache.",
       "credits": [10, 35]
     },
@@ -65,6 +122,7 @@
       "id": "nothing_static",
       "type": "nothing",
       "weight": 20,
+      "min_level": 1,
       "intro": "Rain hisses off warm concrete. Just static and neon tonight. Nothing bites."
     }
   ]

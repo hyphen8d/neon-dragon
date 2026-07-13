@@ -176,7 +176,7 @@ def print_menu_divider(label: str) -> None:
 
 def visit_undercity(character: Character) -> None:
     print_arrival("Undercity")
-    encounter = roll_encounter()
+    encounter = roll_encounter(character.level)
     console.print(f"[dim]{encounter['intro']}[/dim]")
 
     if encounter["type"] == "combat":

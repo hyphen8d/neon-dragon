@@ -6,19 +6,29 @@ from rich.console import Console
 
 from engine.character import Character
 
-XP_PER_LEVEL = 50
+XP_STEP = 50
 
 # Flat stat growth applied per level gained. Charisma is left out —
 # it has no mechanical effect anywhere yet, so growing it would be noise.
 STAT_GROWTH = {"max_hp": 3, "attack": 1, "defense": 1, "tech": 1}
 
 
+def xp_for_level(level: int) -> int:
+    """Total cumulative XP required to reach this level. Each level costs
+    XP_STEP more than the last (level 2 costs 50, level 3 costs 100 more,
+    level 4 costs 150 more...), so the curve steepens instead of staying flat."""
+    return XP_STEP * level * (level - 1) // 2
+
+
 def level_for_xp(xp: int) -> int:
-    return 1 + xp // XP_PER_LEVEL
+    level = 1
+    while xp_for_level(level + 1) <= xp:
+        level += 1
+    return level
 
 
 def xp_for_next_level(character: Character) -> int:
-    return character.level * XP_PER_LEVEL
+    return xp_for_level(character.level + 1)
 
 
 def check_level_up(character: Character, console: Console) -> None:
