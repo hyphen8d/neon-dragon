@@ -38,8 +38,8 @@ def print_main_menu() -> None:
     table = Table(border_style="bright_cyan", show_header=False)
     table.add_column("#", justify="right", style="bright_magenta")
     table.add_column("Action", style="bold white")
-    table.add_row("1", "New Runner")
-    table.add_row("2", "Load Runner")
+    table.add_row("1", "New Merc")
+    table.add_row("2", "Load Merc")
     table.add_row("3", "Help")
     table.add_row("4", "Quit")
     console.print(table)
@@ -94,14 +94,14 @@ def choose_class() -> str:
 
 
 def create_character() -> Character:
-    console.rule("[bright_magenta]New Runner[/bright_magenta]")
+    console.rule("[bright_magenta]New Merc[/bright_magenta]")
     while True:
         name = Prompt.ask("What do they call you on the street?").strip()
         if not name:
             console.print("[red]Need a name, choom.[/red]")
             continue
         if save_exists(name):
-            console.print(f"[red]A runner named '{name}' already exists.[/red]")
+            console.print(f"[red]A merc named '{name}' already exists.[/red]")
             continue
         break
 
@@ -116,7 +116,7 @@ def create_character() -> Character:
 def choose_existing_save() -> str | None:
     slugs = list_saves()
     if not slugs:
-        console.print("[dim]No runners found on file.[/dim]")
+        console.print("[dim]No mercs found on file.[/dim]")
         return None
 
     table = Table(border_style="bright_cyan")
@@ -127,7 +127,7 @@ def choose_existing_save() -> str | None:
     console.print(table)
 
     choice = IntPrompt.ask(
-        "Load which runner? (0 to cancel)",
+        "Load which merc? (0 to cancel)",
         choices=[str(i) for i in range(len(slugs) + 1)],
         show_choices=False,
     )

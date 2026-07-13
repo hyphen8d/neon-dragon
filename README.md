@@ -34,7 +34,7 @@ python3 -m venv .venv
   Undercity (random encounters), NetVault (banking), Chop Shop
   (cyberware), Doc Wire's Clinic (healing + curing), The Dojo (stat
   training), The Pit (gladiator fights), Fixer Board (reputation-gated
-  quests), Chrome Noodle Bar (free rest + flavor)
+  contracts), Chrome Noodle Bar (free rest + charisma-gated contracts)
 - Turn-based combat with status effects (Bleeding, Stunned) and
   per-enemy factions (Street Gang, Corp, Gladiator)
 - In-game character info (`i`) and help (`?`) screens, accessible
@@ -56,7 +56,7 @@ python3 -m venv .venv
 
 ## Content is data, not code
 
-NPCs, quests, encounter tables, shop items, and the Pit's gladiator
+NPCs, contracts, encounter tables, shop items, and the Pit's gladiator
 roster all live under [`content/`](content/) as JSON. Adding or
 tuning content is a data edit, not a code change.
 

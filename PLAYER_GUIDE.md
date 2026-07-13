@@ -5,9 +5,10 @@ does in the game as it stands right now.
 
 ## Getting started
 
-From the main menu: **New Runner** creates a character (pick a name
-and a class), **Load Runner** resumes a saved one, **Quit** exits.
-There's no daily turn limit — play as long as you like in one sitting.
+You play as a cyber mercenary — a merc — scraping by in Neo Meridian.
+From the main menu: **New Merc** creates a character (pick a name and
+a class), **Load Merc** resumes a saved one, **Quit** exits. There's
+no daily turn limit — play as long as you like in one sitting.
 
 ## Classes
 
@@ -19,7 +20,7 @@ Two classes right now, each a different balance of the same stats:
   Tech/Hack combat action instead of Attack.
 
 (A third class, Fixer, built around Charisma, is on hold until
-Charisma actually does something mechanically — see below.)
+Charisma has more mechanical weight behind it — see below.)
 
 ## Stats
 
@@ -28,33 +29,37 @@ Charisma actually does something mechanically — see below.)
 - **Attack** — damage on the Attack combat action.
 - **Defense** — reduces incoming damage in combat.
 - **Tech** — damage on the Tech/Hack combat action.
-- **Charisma** — tracked on your sheet, but nothing in the game reads
-  it yet. No dialogue checks, no discounts, no gated content. Purely
-  cosmetic for now.
+- **Charisma** — gates the two "side" contracts Static Rin offers at
+  the Chrome Noodle Bar (see below). No effect on combat, dialogue, or
+  shop prices yet.
 - **Credits** — cash on hand. Spent at the Chop Shop, the Clinic, and
   the Dojo; lost (partially) if you go down in a fight.
 - **Banked Credits** — cash stored at NetVault. Never touched by
   combat defeat, no matter what.
-- **Reputation** — earned from Pit fights and completed Fixer Board
-  contracts. Gates higher-tier contracts (see Fixer Board below). Not
-  used anywhere else yet.
-- **XP / Level** — XP comes from combat kills and completed Fixer
-  Board contracts. Every 50 XP is a level: +3 Max HP, +1 Attack, +1
-  Defense, +1 Tech, and a full heal. A single big XP reward can trigger
-  multiple level-ups at once. Charisma doesn't grow on level-up since
-  it has no mechanical effect anywhere yet.
+- **Reputation** — earned from Pit fights and completed contracts.
+  Gates higher-tier Fixer Board contracts (see below).
+- **XP / Level** — XP comes from combat kills and completed contracts.
+  Every 50 XP is a level: +3 Max HP, +1 Attack, +1 Defense, +1 Tech,
+  and a full heal. A single big XP reward can trigger multiple
+  level-ups at once. Charisma doesn't grow on level-up since it has no
+  effect in combat.
 
 ## The Hub — Neo Meridian
 
 Every session loops through this menu. Locations:
 
 ### Chrome Noodle Bar
-Static Rin, the bartender, has a pool of flavor lines and occasional
-job rumors, and it's a step in the "Word on the Street" contract. It's
-also a free rest stop: if you're below half HP, you're topped up to
-half for free. Doesn't do anything once you're at or above that —
-Doc Wire's Clinic is still the only way to heal further or clear
-status effects.
+Static Rin, the bartender, has a pool of flavor lines, and it's a step
+in the "Word on the Street" contract. It's also a free rest stop: if
+you're below half HP, you're topped up to half for free — doesn't do
+anything once you're at or above that (Doc Wire's Clinic is still the
+only way to heal further or clear status effects).
+
+Rin also runs her own contract board here, separate from the Fixer
+Board — gated by **Charisma** instead of Reputation. "Loose Lips"
+needs 6 Charisma, "Friends in High Places" needs 10. Push Charisma up
+via the Dojo or Chop Shop cyberware (Synth-Derm, Mirrorskin) to unlock
+them.
 
 ### Undercity
 Random encounters, weighted: gang fights, a rogue drone, a corp
@@ -133,12 +138,14 @@ Currently: Street Gangers and Scrap Dog Vex/The Widow (Pit) can inflict
 Bleeding; Rogue Drones and Corp Patrol Troopers can inflict Stunned.
 Ironclad Marta (Pit) doesn't inflict anything.
 
-## Quests
+## Contracts
 
-Quests chain "talk" (visit a location) and "kill" (defeat a named
-enemy) steps. All contracts are managed at the Fixer Board — accepted,
-tracked, and turned in there, even if the steps in between happen
-elsewhere. Completing a contract pays credits, XP, and reputation.
+Contracts chain "talk" (visit a location) and "kill" (defeat a named
+enemy) steps. There are two contract boards — the Fixer Board
+(reputation-gated) and Static Rin's board at the Chrome Noodle Bar
+(charisma-gated). Each contract is accepted, tracked, and turned in at
+its own board, even if the steps in between happen elsewhere.
+Completing one pays credits, XP, and reputation.
 
 ## Checking your status
 
@@ -163,6 +170,7 @@ automatically whenever you leave the hub back to the main menu.
 
 A few things mentioned in the game's design notes but not implemented:
 
-- Charisma has no mechanical effect.
+- Charisma only gates two contracts — no effect on combat, dialogue,
+  or shop prices.
 - No ability/skill system — the Dojo trains stats, not abilities.
-- No fetch/deliver quests — only talk/kill steps exist so far.
+- No fetch/deliver contracts — only talk/kill steps exist so far.

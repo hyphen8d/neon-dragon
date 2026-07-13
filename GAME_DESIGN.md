@@ -26,13 +26,13 @@ A menu of locations the player travels between:
 | Trainer                  | **The Dojo / Ripper Doc** | Train stats, learn new abilities        |
 | Arena                     | **The Pit**               | PvE gladiator fights for reputation/credits |
 | Romance NPC (Violet)    | **[NPC of your choosing]** | Flavor relationship subplot             |
-| Leaderboard/contracts    | **Fixer Board**           | Leaderboard, contracts/quests posted    |
+| Leaderboard/contracts    | **Fixer Board**           | Leaderboard, contracts posted    |
 
 ## 3. Core Loop
 
 1. Player logs in (loads save).
 2. Player picks a hub location from the menu.
-3. Combat/dialogue/quest resolves, stats and credits update.
+3. Combat/dialogue/contract resolves, stats and credits update.
 4. Player keeps navigating the hub for as long as they want — no daily
    turn limit. (Decided during phase 5+6 review: cut for now to keep
    sessions unconstrained; revisit later if the game needs a pacing
@@ -41,14 +41,16 @@ A menu of locations the player travels between:
 
 ## 4. Character
 
+The player is a cyber mercenary (**merc**) working Neo Meridian's edges.
+
 - Core stats: HP, Attack (Chrome/Melee), Defense (Armor), Tech (hacking/
-  ranged), Charisma (dialogue/quest checks), Credits, XP/Level.
+  ranged), Charisma (contract-gating), Credits, XP/Level.
 - Class flavor at creation: **Street Samurai** (melee-focused), **Netrunner**
-  (tech/hacking-focused). A third class, **Fixer** (charisma/quest-focused),
-  is deferred — Charisma has no mechanical hooks yet (no dialogue checks,
-  shop discounts, or charisma-gated quest paths), so a charisma-build class
-  would just be a diluted hybrid of the other two. Reintroduce it once
-  Charisma does something.
+  (tech/hacking-focused). A third class, **Fixer** (charisma-focused), stays
+  deferred — Charisma currently only gates two Chrome Noodle Bar contracts
+  (see section 6), with no effect on combat, dialogue, or shop prices. A
+  charisma-build class would still be a diluted hybrid of the other two
+  until Charisma carries more weight.
 - Cyberware slots instead of traditional armor slots (arm, eyes, spine,
   skin) — each grants a stat bonus, sourced from the Chop Shop.
 
@@ -57,27 +59,32 @@ A menu of locations the player travels between:
 Data-driven (see CLAUDE.md) — not hardcoded. Each NPC has:
 - Name, location, a short bio/flavor text
 - A pool of dialogue lines (randomized on visit)
-- Optionally: a quest hook, a shop inventory, or a relationship-track flag
+- Optionally: a contract hook, a shop inventory, or a relationship-track flag
 
 Starter NPC roster (flavor only — expand freely):
 - **Doc Wire** — clinic owner, gruff, healer
 - **Ms. Kessler** — NetVault teller, deadpan corp-speak
 - **Jax** — Chop Shop dealer, sells cyberware, shady
-- **Static Rin** — bartender at the Chrome Noodle Bar, hears everything
-- **The Fixer** — posts contracts/quests on the Fixer Board
+- **Static Rin** — bartender at the Chrome Noodle Bar, hears everything.
+  Also runs her own charisma-gated contract board (see section 6).
+- **The Fixer** — posts contracts on the Fixer Board
 
-## 6. Quests
+## 6. Contracts
 
-Simple multi-step quest objects: fetch/kill/talk-to/deliver chains with a
-credit + XP + reputation reward. Some quests unlock new hub locations or
-NPCs. Start with 3-5 short quests before scaling up.
+Multi-step contract objects: talk/kill chains (fetch/deliver not yet built)
+with a credit + XP + reputation reward. Two contract boards: the **Fixer
+Board** (gated by Reputation) and **Static Rin's board** at the Chrome
+Noodle Bar (gated by Charisma). Some contracts unlock new hub locations or
+NPCs — not used yet, but the hook exists in the schema (`min_reputation`,
+`min_charisma`).
 
 ## 7. Combat
 
 Turn-based, text-narrated. Player picks an action each round (Attack,
-Tech/Hack, Defend, Use Item, Flee). Simple damage formulas to start
-(stat + weapon roll vs. defense), can add status effects (EMP-stun,
-bleed/"glitch") later.
+Tech/Hack, Defend, Flee — no item-use yet, no inventory beyond
+cyberware). Simple damage formulas (stat + roll vs. defense). Status
+effects are implemented: Stunned (skip your action) and Bleeding
+(damage over time), inflicted by specific enemies.
 
 ## 8. Random Encounters (Undercity)
 
@@ -97,7 +104,7 @@ drone ambushes, corp patrol shakedowns, nothing-happens flavor text.
 2. Hub navigation between locations (no content yet, just movement)
 3. Combat engine + Undercity random encounters
 4. NPCs + dialogue system (data-driven)
-5. Quests
+5. Contracts
 6. ~~Daily turn limit + day-end/reset cycle~~ — cut, see section 3
 7. Chop Shop economy + cyberware
 8. Polish: color palette, ASCII panels, flavor text pass

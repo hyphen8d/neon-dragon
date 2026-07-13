@@ -30,21 +30,30 @@ def _not_taken(character: Character, quest: dict[str, Any]) -> bool:
     return quest["id"] not in character.active_quests and quest["id"] not in character.completed_quests
 
 
-def available_quests(character: Character) -> list[dict[str, Any]]:
-    """Quests not yet taken/completed whose reputation requirement is met."""
+def _meets_requirements(character: Character, quest: dict[str, Any]) -> bool:
+    return (
+        character.reputation >= quest.get("min_reputation", 0)
+        and character.charisma >= quest.get("min_charisma", 0)
+    )
+
+
+def available_quests(character: Character, board: str = "Fixer Board") -> list[dict[str, Any]]:
+    """Contracts on this board not yet taken/completed whose requirements are met."""
     return [
         q
         for q in load_quests()
-        if _not_taken(character, q) and character.reputation >= q.get("min_reputation", 0)
+        if q.get("board", "Fixer Board") == board and _not_taken(character, q) and _meets_requirements(character, q)
     ]
 
 
-def locked_quests(character: Character) -> list[dict[str, Any]]:
-    """Quests not yet taken/completed but still below their reputation requirement."""
+def locked_quests(character: Character, board: str = "Fixer Board") -> list[dict[str, Any]]:
+    """Contracts on this board not yet taken/completed but still below requirements."""
     return [
         q
         for q in load_quests()
-        if _not_taken(character, q) and character.reputation < q.get("min_reputation", 0)
+        if q.get("board", "Fixer Board") == board
+        and _not_taken(character, q)
+        and not _meets_requirements(character, q)
     ]
 
 
@@ -106,6 +115,6 @@ def print_quest_result(console: Console, character: Character, result: dict[str,
         check_level_up(character, console)
     else:
         console.print(
-            f"\n[bright_magenta]Quest updated:[/bright_magenta] {quest['title']} — "
+            f"\n[bright_magenta]Contract updated:[/bright_magenta] {quest['title']} — "
             f"{result['next_step']['description']}"
         )

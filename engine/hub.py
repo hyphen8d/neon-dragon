@@ -41,7 +41,7 @@ LOCATIONS: dict[str, str] = {
     "Doc Wire's Clinic": "Heal HP for credits, cure status effects.",
     "The Dojo": "Train stats, learn new abilities.",
     "The Pit": "PvE gladiator fights for reputation and credits.",
-    "Fixer Board": "Leaderboard and posted contracts/quests.",
+    "Fixer Board": "Leaderboard and posted contracts.",
 }
 
 # Location -> longer arrival description, shown when you actually step
@@ -124,7 +124,7 @@ def print_hub_menu(character: Character, location_names: list[str]) -> None:
     actions.add_column("#", justify="right", style="bright_magenta")
     actions.add_column("Action", style="bold white")
     actions.add_column("Description", style="dim")
-    actions.add_row("i", "Character Info", "View your full stats, gear, quests, and kills.")
+    actions.add_row("i", "Character Info", "View your full stats, gear, contracts, and kills.")
     actions.add_row("?", "Help", "Open the player guide.")
     actions.add_row("0", "Leave", "Head home and save your progress.")
     console.print(actions)
@@ -190,6 +190,9 @@ def _withdraw(character: Character) -> None:
 def visit_netvault(character: Character) -> None:
     print_arrival("NetVault")
 
+    for result in notify_step(character, "talk", "NetVault"):
+        print_quest_result(console, character, result)
+
     npc = npc_at("NetVault")
     console.print(f"[bold cyan]{npc['name']}[/bold cyan] [dim]— {npc['bio']}[/dim]")
     console.print(f"  {random_line(npc)}")
@@ -243,6 +246,9 @@ def _offer_cure(character: Character) -> None:
 
 def visit_doc_wires_clinic(character: Character) -> None:
     print_arrival("Doc Wire's Clinic")
+
+    for result in notify_step(character, "talk", "Doc Wire's Clinic"):
+        print_quest_result(console, character, result)
 
     npc = npc_at("Doc Wire's Clinic")
     console.print(f"[bold cyan]{npc['name']}[/bold cyan] [dim]— {npc['bio']}[/dim]")
@@ -368,14 +374,19 @@ def visit_chrome_noodle_bar(character: Character) -> None:
     rest_floor = int(character.max_hp * REST_THRESHOLD)
     if character.hp >= rest_floor:
         console.print("\n[dim]You're rested enough already. No need to linger.[/dim]")
-        return
+    else:
+        healed = rest_floor - character.hp
+        character.hp = rest_floor
+        console.print(
+            f"\n[bold bright_magenta]You crash in a booth for a while, noodles going cold.[/bold bright_magenta] "
+            f"+{healed} HP, on the house."
+        )
 
-    healed = rest_floor - character.hp
-    character.hp = rest_floor
     console.print(
-        f"\n[bold bright_magenta]You crash in a booth for a while, noodles going cold.[/bold bright_magenta] "
-        f"+{healed} HP, on the house."
+        "\n[dim]Rin leans in, voice low — she's got side work for the right kind of "
+        "smile, if you're charming enough to earn it.[/dim]"
     )
+    _browse_contract_board(character, "Chrome Noodle Bar")
 
 
 def visit_location(character: Character, location: str) -> None:
@@ -393,17 +404,10 @@ def visit_location(character: Character, location: str) -> None:
     console.print(f"  {random_line(npc)}")
 
 
-def visit_fixer_board(character: Character) -> None:
-    print_arrival("Fixer Board")
-
-    for result in notify_step(character, "talk", "Fixer Board"):
-        print_quest_result(console, character, result)
-
-    npc = npc_at("Fixer Board")
-    console.print(f"[bold cyan]{npc['name']}[/bold cyan] [dim]— {npc['bio']}[/dim]")
-    console.print(f"  {random_line(npc)}")
-
-    active_ids = list(character.active_quests.keys())
+def _browse_contract_board(character: Character, board: str) -> None:
+    active_ids = [
+        quest_id for quest_id in character.active_quests if get_quest(quest_id).get("board", "Fixer Board") == board
+    ]
     if active_ids:
         console.print("\n[bright_magenta]Active contracts:[/bright_magenta]")
         for quest_id in active_ids:
@@ -411,14 +415,14 @@ def visit_fixer_board(character: Character) -> None:
             step = current_step(character, quest_id)
             console.print(f"  [bold]{quest['title']}[/bold] — {step['description']}")
 
-    locked = locked_quests(character)
+    locked = locked_quests(character, board)
     if locked:
         console.print(
-            f"\n[dim]{len(locked)} more contract(s) on the board need more reputation "
-            f"before The Fixer will hand them over.[/dim]"
+            f"\n[dim]{len(locked)} more contract(s) here need more reputation or charisma "
+            f"before they'll be offered.[/dim]"
         )
 
-    open_quests = available_quests(character)
+    open_quests = available_quests(character, board)
     if not open_quests:
         console.print("\n[dim]No new contracts posted right now.[/dim]")
         return
@@ -444,6 +448,19 @@ def visit_fixer_board(character: Character) -> None:
     accept_quest(character, chosen_quest["id"])
     console.print(f"\n[bold bright_magenta]Contract accepted:[/bold bright_magenta] {chosen_quest['title']}")
     console.print(f"  {chosen_quest['steps'][0]['description']}")
+
+
+def visit_fixer_board(character: Character) -> None:
+    print_arrival("Fixer Board")
+
+    for result in notify_step(character, "talk", "Fixer Board"):
+        print_quest_result(console, character, result)
+
+    npc = npc_at("Fixer Board")
+    console.print(f"[bold cyan]{npc['name']}[/bold cyan] [dim]— {npc['bio']}[/dim]")
+    console.print(f"  {random_line(npc)}")
+
+    _browse_contract_board(character, "Fixer Board")
 
 
 def build_loadout_table(character: Character, title: str | None = None) -> Table:
@@ -541,6 +558,9 @@ def _sell_cyberware(character: Character) -> None:
 
 def visit_chop_shop(character: Character) -> None:
     print_arrival("Chop Shop")
+
+    for result in notify_step(character, "talk", "Chop Shop"):
+        print_quest_result(console, character, result)
 
     npc = npc_at("Chop Shop")
     console.print(f"[bold cyan]{npc['name']}[/bold cyan] [dim]— {npc['bio']}[/dim]")

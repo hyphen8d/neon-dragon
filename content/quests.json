@@ -3,6 +3,7 @@
     {
       "id": "word_on_the_street",
       "title": "Word on the Street",
+      "board": "Fixer Board",
       "hook": "\"Go rattle Static Rin's cage at the Noodle Bar, see what she's picked up. Then come tell me.\"",
       "steps": [
         {"type": "talk", "target": "Chrome Noodle Bar", "description": "Talk to Static Rin at the Chrome Noodle Bar."},
@@ -10,11 +11,13 @@
       ],
       "reward": {"credits": 20, "xp": 10, "reputation": 5},
       "complete_text": "\"Good. Knowing things before everyone else — that's half the job.\"",
-      "min_reputation": 0
+      "min_reputation": 0,
+      "min_charisma": 0
     },
     {
       "id": "chrome_debt",
       "title": "Chrome Debt",
+      "board": "Fixer Board",
       "hook": "\"Ganger crew's been shaking down my clients. Handle one of them in the Undercity, then report back.\"",
       "steps": [
         {"type": "kill", "target": "Street Ganger", "description": "Take down a Street Ganger in the Undercity."},
@@ -22,11 +25,13 @@
       ],
       "reward": {"credits": 40, "xp": 20, "reputation": 10},
       "complete_text": "\"One down. Credits are yours — spend 'em quiet.\"",
-      "min_reputation": 0
+      "min_reputation": 0,
+      "min_charisma": 0
     },
     {
       "id": "drone_bounty",
       "title": "Drone Bounty",
+      "board": "Fixer Board",
       "hook": "\"Corp's lost control of a delivery drone. Scrap it in the Undercity before it wanders into the wrong feed. Report back after.\"",
       "steps": [
         {"type": "kill", "target": "Rogue Drone", "description": "Scrap the Rogue Drone in the Undercity."},
@@ -34,11 +39,13 @@
       ],
       "reward": {"credits": 45, "xp": 20, "reputation": 8},
       "complete_text": "\"Nice and quiet. That's how the corp likes it. Here's your cut.\"",
-      "min_reputation": 10
+      "min_reputation": 10,
+      "min_charisma": 0
     },
     {
       "id": "corp_trouble",
       "title": "Corp Trouble",
+      "board": "Fixer Board",
       "hook": "\"A corp patrol's been leaning on my Undercity contacts. Put one down, then get back here.\"",
       "steps": [
         {"type": "kill", "target": "Corp Patrol Trooper", "description": "Take down a Corp Patrol Trooper in the Undercity."},
@@ -46,7 +53,36 @@
       ],
       "reward": {"credits": 60, "xp": 30, "reputation": 15},
       "complete_text": "\"That'll rattle them for a while. Nice work.\"",
-      "min_reputation": 20
+      "min_reputation": 20,
+      "min_charisma": 0
+    },
+    {
+      "id": "loose_lips",
+      "title": "Loose Lips",
+      "board": "Chrome Noodle Bar",
+      "hook": "\"You've got a way with people. Get Ms. Kessler talking over at NetVault — she knows things she shouldn't. Then come tell me.\"",
+      "steps": [
+        {"type": "talk", "target": "NetVault", "description": "Charm some gossip out of Ms. Kessler at NetVault."},
+        {"type": "talk", "target": "Chrome Noodle Bar", "description": "Bring what you heard back to Static Rin."}
+      ],
+      "reward": {"credits": 25, "xp": 12, "reputation": 5},
+      "complete_text": "\"Knew you had it in you. That's worth something.\"",
+      "min_reputation": 0,
+      "min_charisma": 6
+    },
+    {
+      "id": "friends_in_high_places",
+      "title": "Friends in High Places",
+      "board": "Chrome Noodle Bar",
+      "hook": "\"I know a guy who owes a corp patrol a black eye. You've got the smile to talk your way in close. Handle it, then come back.\"",
+      "steps": [
+        {"type": "kill", "target": "Corp Patrol Trooper", "description": "Deal with the Corp Patrol Trooper in the Undercity."},
+        {"type": "talk", "target": "Chrome Noodle Bar", "description": "Report back to Static Rin."}
+      ],
+      "reward": {"credits": 65, "xp": 30, "reputation": 12},
+      "complete_text": "\"Told you I had friends. Drinks are on me tonight.\"",
+      "min_reputation": 0,
+      "min_charisma": 10
     }
   ]
 }
