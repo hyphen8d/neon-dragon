@@ -23,7 +23,7 @@ A menu of locations the player travels between:
 | Bank                     | **NetVault**              | Deposit/withdraw credits (safe from death-loss) |
 | Weapon/armor shop        | **Chop Shop**             | Buy/sell gear and cyberware             |
 | Healer                    | **Doc Wire's Clinic**     | Heal HP for credits, cure status effects |
-| Trainer                  | **The Dojo / Ripper Doc** | Train stats, learn new abilities        |
+| Trainer                  | **RoboDOJO**              | Spar with training drones to train stats, learn new abilities |
 | Arena                     | **The Pit**               | PvE gladiator fights for reputation/credits |
 | Romance NPC (Violet)    | **[NPC of your choosing]** | Flavor relationship subplot             |
 | Leaderboard/contracts    | **Fixer Board**           | Leaderboard, contracts posted    |

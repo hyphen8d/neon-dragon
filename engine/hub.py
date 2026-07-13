@@ -39,7 +39,7 @@ LOCATIONS: dict[str, str] = {
     "NetVault": "Deposit and withdraw credits, safe from death-loss.",
     "Chop Shop": "Buy and sell gear and cyberware.",
     "Doc Wire's Clinic": "Heal HP for credits, cure status effects.",
-    "The Dojo": "Train stats, learn new abilities.",
+    "RoboDOJO": "Spar with training drones to sharpen your stats.",
     "The Pit": "PvE gladiator fights for reputation and credits.",
     "Fixer Board": "Leaderboard and posted contracts.",
 }
@@ -71,10 +71,11 @@ LOCATION_DESCRIPTIONS: dict[str, str] = {
         "A converted shipping container wired for surgery. Trauma gurneys, "
         "mismatched monitors, and a fridge that's definitely not for food."
     ),
-    "The Dojo": (
-        "Bare concrete, scorch marks on the walls, a ring of cracked "
-        "mirrors. Somewhere a heavy bag swings on its own, still recovering "
-        "from the last session."
+    "RoboDOJO": (
+        "Servo-limbed training drones circle a scorched practice ring, "
+        "sparks catching the overhead floods. A diagnostic wall panel "
+        "hums beside a rack of practice blades. This is where you get "
+        "better, one bruise at a time."
     ),
     "The Pit": (
         "A sunken arena ringed by chain-link and floodlights, a chanting "
@@ -229,12 +230,40 @@ HEAL_COST_PER_HP = 2
 CURE_COST = 15
 
 
-def _offer_cure(character: Character) -> None:
+def _heal(character: Character) -> None:
+    missing = character.max_hp - character.hp
+    if missing <= 0:
+        console.print("[dim]You're already at full health.[/dim]")
+        return
+
+    max_affordable = min(missing, character.credits // HEAL_COST_PER_HP)
+    if max_affordable <= 0:
+        console.print("[red]You can't afford so much as a bandage right now.[/red]")
+        return
+
+    amount = IntPrompt.ask(f"Heal how much HP? (0 to cancel, up to {max_affordable})")
+    if amount <= 0:
+        return
+    if amount > max_affordable:
+        console.print("[red]You can't afford that much healing.[/red]")
+        return
+
+    cost = amount * HEAL_COST_PER_HP
+    character.hp += amount
+    character.credits -= cost
+    console.print(
+        f"[bold bright_magenta]Patched up.[/bold bright_magenta] "
+        f"HP {character.hp}/{character.max_hp}. -{cost} credits."
+    )
+
+
+def _cure(character: Character) -> None:
     if not character.status_effects:
+        console.print("[dim]No status effects to clear.[/dim]")
         return
 
     labels = ", ".join(EFFECT_LABELS.get(e, e) for e in character.status_effects)
-    console.print(f"\n[yellow]Active effects:[/yellow] {labels}")
+    console.print(f"[yellow]Active effects:[/yellow] {labels}")
 
     action = Prompt.ask(
         f"Clear those for {CURE_COST} credits? [bright_magenta]1[/bright_magenta] Yes  "
@@ -264,37 +293,25 @@ def visit_doc_wires_clinic(character: Character) -> None:
     for result in notify_step(character, "talk", "Doc Wire's Clinic"):
         print_quest_result(console, character, result)
 
-    _offer_cure(character)
-
-    missing = character.max_hp - character.hp
-    if missing <= 0:
-        console.print("\n[dim]You're already at full health. Doc Wire waves you off.[/dim]")
-        return
-
     console.print(
-        f"\nHP: [bold]{character.hp}/{character.max_hp}[/bold]   "
-        f"Patch-up rate: {HEAL_COST_PER_HP} credits/HP"
+        f"HP: [bold]{character.hp}/{character.max_hp}[/bold]   "
+        f"Patch-up rate: {HEAL_COST_PER_HP} credits/HP   "
+        f"Cure rate: {CURE_COST} credits flat"
     )
+    if character.status_effects:
+        labels = ", ".join(EFFECT_LABELS.get(e, e) for e in character.status_effects)
+        console.print(f"[yellow]Active effects:[/yellow] {labels}")
 
-    max_affordable = min(missing, character.credits // HEAL_COST_PER_HP)
-    if max_affordable <= 0:
-        console.print("[red]You can't afford so much as a bandage right now.[/red]")
-        return
-
-    amount = IntPrompt.ask(f"Heal how much HP? (0 to cancel, up to {max_affordable})")
-    if amount <= 0:
-        return
-    if amount > max_affordable:
-        console.print("[red]You can't afford that much healing.[/red]")
-        return
-
-    cost = amount * HEAL_COST_PER_HP
-    character.hp += amount
-    character.credits -= cost
-    console.print(
-        f"[bold bright_magenta]Patched up.[/bold bright_magenta] "
-        f"HP {character.hp}/{character.max_hp}. -{cost} credits."
+    action = Prompt.ask(
+        "[bright_magenta]1[/bright_magenta] Heal  [bright_magenta]2[/bright_magenta] Cure Effects  "
+        "[bright_magenta]0[/bright_magenta] Leave",
+        choices=["0", "1", "2"],
+        show_choices=False,
     )
+    if action == "1":
+        _heal(character)
+    elif action == "2":
+        _cure(character)
 
 
 TRAIN_COST_PER_POINT = 40
@@ -306,10 +323,18 @@ TRAINABLE_STATS: dict[str, tuple[str, str]] = {
     "4": ("charisma", "Charisma"),
 }
 
+SPARRING_FLAVOR: dict[str, str] = {
+    "attack": "The melee drone comes in fast. You trade blows until it flags a clean hit and powers down.",
+    "defense": "A heavy-frame drone leans into you again and again. You learn to read the wind-up.",
+    "tech": "You jack into a sparring ICE routine and duel it through three simulated firewalls.",
+    "charisma": "A negotiation simulacrum runs you through a dozen fake deals, needling you until "
+    "your poker face holds.",
+}
 
-def visit_the_dojo(character: Character) -> None:
-    print_arrival("The Dojo")
-    console.print("[dim]No trainer in sight — just a chalkboard bolted to the wall with a price list.[/dim]")
+
+def visit_robodojo(character: Character) -> None:
+    print_arrival("RoboDOJO")
+    console.print("[dim]A training drone powers up, servos whirring, waiting for you to pick a discipline.[/dim]")
 
     print_menu_divider("Training")
     table = Table(border_style="bright_cyan", show_header=False)
@@ -333,6 +358,7 @@ def visit_the_dojo(character: Character) -> None:
         return
 
     attr, label = TRAINABLE_STATS[choice]
+    console.print(f"[dim]{SPARRING_FLAVOR[attr]}[/dim]")
     character.credits -= TRAIN_COST_PER_POINT
     setattr(character, attr, getattr(character, attr) + 1)
     console.print(
@@ -683,8 +709,8 @@ def enter_hub(character: Character) -> None:
             visit_netvault(character)
         elif chosen == "Doc Wire's Clinic":
             visit_doc_wires_clinic(character)
-        elif chosen == "The Dojo":
-            visit_the_dojo(character)
+        elif chosen == "RoboDOJO":
+            visit_robodojo(character)
         elif chosen == "The Pit":
             visit_the_pit(character)
         else:

@@ -87,14 +87,18 @@ chance to cause Stunned on Tech/Hack. The cheaper tier of each slot
 higher price actually buys.
 
 ### Doc Wire's Clinic
-Heals HP for credits at a flat rate (2 credits per HP), capped to
-whatever you can afford. No-op if you're already at full health. Also
-where you clear status effects — a flat 15 credits cures everything
-you're carrying, regardless of how many effects or how severe.
+Always offers a menu: **Heal** (2 credits per HP, capped to whatever
+you can afford — a no-op if you're already at full health) or **Cure
+Effects** (a flat 15 credits clears everything you're carrying,
+regardless of how many effects or how severe — a no-op if you're not
+carrying any).
 
-### The Dojo
+### RoboDOJO
 Permanently trains a stat (Attack, Defense, Tech, or Charisma) up by
 1 for a flat 40 credits per point. No cap on how high you can train.
+Framed as sparring against a training drone rather than a flat
+purchase — each stat has its own short sparring flavor line, but the
+mechanic itself is unchanged.
 
 ### The Pit
 Choose a fight from a fixed roster of three gladiators, toughest

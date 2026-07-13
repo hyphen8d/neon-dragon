@@ -32,9 +32,10 @@ python3 -m venv .venv
   different balance of the same stats
 - A hub of 8 locations in Neo Meridian, each with real mechanics:
   Undercity (random encounters), NetVault (banking), Chop Shop
-  (cyberware), Doc Wire's Clinic (healing + curing), The Dojo (stat
-  training), The Pit (gladiator fights), Fixer Board (reputation-gated
-  contracts), Chrome Noodle Bar (free rest + charisma-gated contracts)
+  (cyberware), Doc Wire's Clinic (healing + curing), RoboDOJO (drone
+  sparring / stat training), The Pit (gladiator fights), Fixer Board
+  (reputation-gated contracts), Chrome Noodle Bar (free rest +
+  charisma-gated contracts)
 - Turn-based combat with status effects (Bleeding, Stunned) and
   per-enemy factions (Street Gang, Corp, Gladiator)
 - In-game character info (`i`) and help (`?`) screens, accessible
