@@ -15,7 +15,7 @@ from engine.leveling import xp_for_next_level
 from engine.save import delete_save, list_saves, load_character, save_character, save_exists
 from engine.ui import hotkey_bracket, hotkey_prompt, read_choice
 
-console = Console(highlight=False)
+console = Console(width=120, highlight=False)
 
 VERSION = "Alpha 1.5"
 
@@ -76,7 +76,7 @@ def print_title() -> None:
     version = Text(VERSION, style="dim cyan", justify="center")
     lore = Text(LORE, style="italic", justify="left")
     body = Group(banner, Text(""), version, Text(""), lore)
-    console.print(Panel(body, border_style="bright_cyan", padding=(1, 4), width=64))
+    console.print(Panel(body, border_style="bright_cyan", padding=(1, 4)))
 
 
 MAIN_MENU_OPTIONS: list[tuple[str, str]] = [
@@ -102,6 +102,7 @@ def print_character_sheet(character: Character) -> None:
     table.add_column("Stat", style="cyan")
     table.add_column("Value", style="bold white")
     table.add_row("Level", str(character.level))
+    table.add_row("Day", str(character.day))
     table.add_row("XP", f"{character.xp}/{xp_for_next_level(character)}")
     style = hp_style(character.hp, character.max_hp)
     table.add_row("HP", f"[{style}]{character.hp}/{character.max_hp}[/{style}]")

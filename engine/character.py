@@ -44,6 +44,7 @@ class Character:
     name: str
     char_class: str
     level: int = 1
+    day: int = 1
     xp: int = 0
     max_hp: int = 20
     hp: int = 20
@@ -54,12 +55,17 @@ class Character:
     credits: int = 50
     banked_credits: int = 0
     reputation: int = 0
+    quantum_cores: int = 0  # rare secondary currency — see engine/shop.py's Black Market
     cyberware: dict = field(default_factory=lambda: {slot: None for slot in CYBERWARE_SLOTS})
     active_quests: dict = field(default_factory=dict)  # quest_id -> current step index
     completed_quests: list = field(default_factory=list)
     status_effects: dict = field(default_factory=dict)  # effect name -> rounds remaining
     kills: dict = field(default_factory=dict)  # enemy name -> times defeated
     inventory: list = field(default_factory=list)  # usable_item ids, one entry per copy carried
+    daily_kills: dict = field(default_factory=dict)  # faction -> kills today, resets on sleep (see engine/heat.py)
+    market_modifier: dict = field(default_factory=dict)  # today's price event, see engine/shop.py
+    market_stock: list = field(default_factory=list)  # item ids Hyphen8d's Hut carries today
+    bought_round_today: bool = False  # Chrome Noodle Bar's Buy a round, once per day, resets on sleep
 
     @classmethod
     def new(cls, name: str, char_class: str) -> "Character":

@@ -9,6 +9,7 @@ from rich.console import Console
 from rich.table import Table
 
 from engine.character import Character, hp_style
+from engine.heat import record_kill
 from engine.inventory import describe_effect, get_usable_item, use_item
 from engine.leveling import check_level_up
 from engine.quests import notify_step, print_quest_result
@@ -16,7 +17,7 @@ from engine.shop import get_item
 from engine.status_effects import DRUNK_STAT_PENALTY, EFFECT_LABELS, apply_effect, has_effect, process_round_start
 from engine.ui import hotkey_prompt, read_choice
 
-console = Console(highlight=False)
+console = Console(width=120, highlight=False)
 
 
 @dataclass
@@ -34,6 +35,7 @@ class Enemy:
     faction: str = "Unknown"
     dodge_chance: float = 0.0
     ignores_defend: bool = False
+    is_droid: bool = False  # no blood to bleed — immune to the Bleed effect
     status_effects: dict = field(default_factory=dict)
 
     @property
@@ -91,8 +93,10 @@ def _samurai_slash(character: Character, enemy: Enemy, drunk_penalty: int, conso
         return
 
     console.print(f"{prefix}[bold magenta]Samurai Slash![/bold magenta] You carve {enemy.name} for {dmg} damage.")
-    apply_effect(enemy, "bleed", SAMURAI_SLASH_BLEED_DURATION)
-    console.print(f"[yellow]{enemy.name} is left bleeding.[/yellow]")
+    if apply_effect(enemy, "bleed", SAMURAI_SLASH_BLEED_DURATION):
+        console.print(f"[yellow]{enemy.name} is left bleeding.[/yellow]")
+    else:
+        console.print(f"[dim]No blood to spill — {enemy.name}'s chassis shrugs it off.[/dim]")
 
 
 def _override_system(enemy: Enemy, console: Console) -> None:
@@ -151,7 +155,8 @@ def _gear_inflict(character: Character, enemy: Enemy, slot: str, console: Consol
     effect = item.get("inflict_effect")
     if not effect or random.random() >= item.get("inflict_chance", 0):
         return
-    apply_effect(enemy, effect, item.get("inflict_duration", 1))
+    if not apply_effect(enemy, effect, item.get("inflict_duration", 1)):
+        return
     label = EFFECT_LABELS.get(effect, effect)
     console.print(f"[yellow]{item['name']} leaves {enemy.name} {label.lower()}![/yellow]")
 
@@ -175,8 +180,9 @@ def _player_hit(enemy: Enemy, stat_value: int, verb: str, console: Console) -> b
     return True
 
 
-def run_combat(character: Character, enemy_data: dict) -> None:
-    """Resolve a fight round by round. Mutates character HP/credits/XP in place."""
+def run_combat(character: Character, enemy_data: dict) -> bool:
+    """Resolve a fight round by round. Mutates character HP/credits/XP in
+    place. Returns True on a win, False on a loss or a successful flee."""
     enemy = Enemy(**enemy_data)
     console.print(f"\n[bold red]{enemy.name}[/bold red] (HP {enemy.hp}) blocks your path.")
 
@@ -244,7 +250,7 @@ def run_combat(character: Character, enemy_data: dict) -> None:
             else:
                 if random.random() < 0.5:
                     console.print("[dim]You slip into the shadows and get away.[/dim]")
-                    return
+                    return False
                 console.print("[dim]You can't shake them — they block your escape.[/dim]")
 
         if not enemy.alive:
@@ -273,8 +279,9 @@ def run_combat(character: Character, enemy_data: dict) -> None:
 
     if character.hp <= 0:
         _handle_defeat(character)
-    else:
-        _handle_victory(character, enemy)
+        return False
+    _handle_victory(character, enemy)
+    return True
 
 
 BONUS_LOOT_CHANCE = 0.25
@@ -285,6 +292,7 @@ def _handle_victory(character: Character, enemy: Enemy) -> None:
     character.xp += enemy.xp_reward
     character.reputation += enemy.reputation_reward
     character.kills[enemy.name] = character.kills.get(enemy.name, 0) + 1
+    record_kill(character, enemy.faction)
     reward_text = f"+{enemy.credits_reward} credits, +{enemy.xp_reward} XP"
     if enemy.reputation_reward:
         reward_text += f", +{enemy.reputation_reward} reputation"

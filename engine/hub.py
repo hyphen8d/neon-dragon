@@ -13,6 +13,7 @@ from engine.bestiary import enemy_faction
 from engine.character import CYBERWARE_SLOTS, Character, hp_style
 from engine.combat import run_combat
 from engine.encounters import roll_combat_encounter, roll_scavenge_encounter
+from engine.heat import AMBUSH_CHANCE, hot_factions, reset_daily_kills
 from engine.help import show_help
 from engine.inventory import buy_item, describe_effect, get_usable_item, load_usable_items
 from engine.leveling import xp_for_next_level
@@ -27,11 +28,27 @@ from engine.quests import (
     notify_step,
     print_quest_result,
 )
-from engine.shop import buy_and_equip, discounted_cost, get_item, load_cyberware, sell_back_value, unequip
+from engine.shop import (
+    buy_and_equip,
+    buy_black_market_item,
+    currency_of,
+    describe_market_modifier,
+    discounted_cost,
+    format_price,
+    get_daily_catalog,
+    get_item,
+    load_black_market,
+    roll_daily_market,
+    sell_back_value,
+    unequip,
+)
 from engine.status_effects import EFFECT_LABELS, apply_effect, cure_all
 from engine.ui import hotkey_bracket, hotkey_prompt, read_choice
 
-console = Console(highlight=False)
+console = Console(width=120, highlight=False)
+
+# Rare secondary currency drop — Jack In runs and Tier 3 Pit wins only.
+QUANTUM_CORE_DROP_CHANCE = 0.04
 
 # Location -> hub hotkey letter. Kept as an explicit dict (rather than
 # deriving from LOCATIONS' first letters) so the mapping is easy to scan
@@ -133,7 +150,7 @@ def print_status(character: Character) -> None:
     style = hp_style(character.hp, character.max_hp)
     console.print(
         f"[bright_cyan]{character.name}[/bright_cyan] "
-        f"[dim](Lvl {character.level} {character.char_class})[/dim]   "
+        f"[dim](Lvl {character.level} {character.char_class} — Day {character.day})[/dim]   "
         f"HP [{style}]{character.hp}/{character.max_hp}[/{style}]   "
         f"Credits [bold yellow]{character.credits}[/bold yellow]   "
         f"Banked [bold yellow]{character.banked_credits}[/bold yellow]"
@@ -165,7 +182,7 @@ def print_hub_menu(character: Character) -> None:
     actions.add_column("Description", style="dim")
     actions.add_row(hotkey_bracket("I", "Character Info"), "View your full stats, gear, contracts, and kills.")
     actions.add_row("[bold bright_magenta][?][/bold bright_magenta] Help", "Open the player guide.")
-    actions.add_row(hotkey_bracket("L", "Leave"), "Head home and save your progress.")
+    actions.add_row(hotkey_bracket("L", "Leave"), "Head to the safehouse to sleep — advances the day, full heal.")
     console.print(actions)
 
 
@@ -202,6 +219,12 @@ def _jack_in(character: Character) -> None:
         amount = random.randint(low, high) + character.tech // 2
         character.credits += amount
         console.print(f"[bold bright_magenta]Clean in, clean out.[/bold bright_magenta] +{amount} credits.")
+        if random.random() < QUANTUM_CORE_DROP_CHANCE:
+            character.quantum_cores += 1
+            console.print(
+                "[bold cyan]Buried in the data dump, something crystallizes — a Quantum Core.[/bold cyan] "
+                "+1 Quantum Core."
+            )
         return
 
     console.print("[red]Something pings back. You've been traced.[/red]")
@@ -217,6 +240,18 @@ def _find_a_fight(character: Character) -> None:
 
 
 def _scavenge(character: Character) -> None:
+    hot = hot_factions(character)
+    if hot and random.random() < AMBUSH_CHANCE:
+        faction = random.choice(hot)
+        console.print(
+            f"[red]Wrong alley, wrong time — {faction} muscle jumps you mid-scavenge, "
+            f"looking for payback.[/red]"
+        )
+        encounter = roll_combat_encounter(character.level, faction=faction)
+        console.print(f"[dim]{encounter['intro']}[/dim]")
+        run_combat(character, encounter["enemy"])
+        return
+
     encounter = roll_scavenge_encounter(character.level)
     console.print(f"[dim]{encounter['intro']}[/dim]")
     if encounter["type"] == "loot":
@@ -499,8 +534,16 @@ def visit_the_pit(character: Character) -> None:
 
     gladiator = gladiators[int(choice) - 1]
     console.print(f"\n[dim]{gladiator['intro']}[/dim]")
-    enemy_data = {k: v for k, v in gladiator.items() if k not in ("id", "intro")}
-    run_combat(character, enemy_data)
+    tier = gladiator.get("tier")
+    enemy_data = {k: v for k, v in gladiator.items() if k not in ("id", "intro", "tier")}
+    won = run_combat(character, enemy_data)
+
+    if won and tier == 3 and random.random() < QUANTUM_CORE_DROP_CHANCE:
+        character.quantum_cores += 1
+        console.print(
+            "\n[bold cyan]Tucked in the gladiator's rig, something that isn't scrap — "
+            "a Quantum Core, still warm.[/bold cyan] +1 Quantum Core."
+        )
 
 
 REST_THRESHOLD = 0.5  # free rest tops you up to this fraction of max HP, no further
@@ -542,10 +585,14 @@ BUY_ROUND_COST = 25
 
 
 def _buy_a_round(character: Character) -> None:
+    if character.bought_round_today:
+        console.print("\n[dim]Rin cuts you off. \"One's your limit tonight, choom. Come back tomorrow.\"[/dim]")
+        return
     if character.credits < BUY_ROUND_COST:
         console.print("\n[red]Can't even afford to buy yourself a drink right now.[/red]")
         return
 
+    character.bought_round_today = True
     character.credits -= BUY_ROUND_COST
     console.print(f"\n[dim]You slap {BUY_ROUND_COST} credits on the bar. Rin pours.[/dim]")
 
@@ -669,7 +716,7 @@ def print_loadout(character: Character) -> None:
 
 
 def print_catalog(catalog: list[dict], character: Character) -> None:
-    console.print("\n[bright_magenta]For sale:[/bright_magenta]")
+    console.print("\n[bright_magenta]Today's stock:[/bright_magenta]")
     table = Table(border_style="bright_cyan")
     table.add_column("#", justify="right", style="bright_magenta")
     table.add_column("Item", style="bold white")
@@ -698,7 +745,7 @@ def print_catalog(catalog: list[dict], character: Character) -> None:
 
 
 def _buy_cyberware(character: Character) -> None:
-    catalog = load_cyberware()
+    catalog = get_daily_catalog(character)
     print_catalog(catalog, character)
 
     choice = read_choice(
@@ -711,7 +758,10 @@ def _buy_cyberware(character: Character) -> None:
 
     item = catalog[int(choice) - 1]
     old_id = character.cyberware[item["slot"]]
-    trade_in = sell_back_value(get_item(old_id)) if old_id else 0
+    old_item = get_item(old_id) if old_id else None
+    # Only count the trade-in toward affordability if it refunds credits —
+    # a Black Market prototype in that slot refunds Quantum Cores instead.
+    trade_in = sell_back_value(old_item) if old_item and currency_of(old_item) == "credits" else 0
     price = discounted_cost(character, item)
     if character.credits + trade_in < price:
         console.print("[red]Not enough credits for that, even with a trade-in.[/red]")
@@ -738,7 +788,7 @@ def _sell_cyberware(character: Character) -> None:
     table.add_column("Installed", style="dim")
     for i, slot in enumerate(equipped_slots, start=1):
         item = get_item(character.cyberware[slot])
-        table.add_row(str(i), slot.capitalize(), f"{item['name']} (sells for {sell_back_value(item)})")
+        table.add_row(str(i), slot.capitalize(), f"{item['name']} (sells for {format_price(item, sell_back_value(item))})")
     console.print(table)
 
     choice = read_choice(
@@ -751,7 +801,67 @@ def _sell_cyberware(character: Character) -> None:
 
     slot = equipped_slots[int(choice) - 1]
     item = unequip(character, slot)
-    console.print(f"[bold yellow]{item['name']} sold for {sell_back_value(item)} credits.[/bold yellow]")
+    console.print(f"[bold yellow]{item['name']} sold for {format_price(item, sell_back_value(item))}.[/bold yellow]")
+
+
+def _visit_black_market(character: Character) -> None:
+    catalog = load_black_market()
+
+    console.rule("[bold magenta]Black Market[/bold magenta]")
+    console.print(
+        "[dim]Hyphen8d pulls a panel out of the wall. \"Didn't think you had these on you. "
+        "This stuff doesn't officially exist, choom.\"[/dim]\n"
+    )
+    console.print(f"[bold cyan]Quantum Cores:[/bold cyan] {character.quantum_cores}\n")
+
+    table = Table(border_style="magenta")
+    table.add_column("#", justify="right", style="bright_magenta")
+    table.add_column("Item", style="bold white")
+    table.add_column("Slot")
+    table.add_column("Bonus")
+    table.add_column("Special", style="yellow")
+    table.add_column("Cost", justify="right")
+    table.add_column("Description", style="dim")
+    for i, item in enumerate(catalog, start=1):
+        special = ""
+        if item.get("inflict_effect"):
+            label = EFFECT_LABELS.get(item["inflict_effect"], item["inflict_effect"])
+            special = f"Causes {label}"
+        table.add_row(
+            str(i),
+            item["name"],
+            item["slot"].capitalize(),
+            f"+{item['bonus']} {item['stat']}",
+            special,
+            format_price(item, item["cost"]),
+            item["flavor"],
+        )
+    console.print(table)
+
+    choice = read_choice(
+        console,
+        [str(i) for i in range(len(catalog) + 1)],
+        prompt="Buy which prototype? (0 to cancel)",
+    )
+    if choice == "0":
+        return
+
+    item = catalog[int(choice) - 1]
+    old_id = character.cyberware[item["slot"]]
+    old_item = get_item(old_id) if old_id else None
+    trade_in = sell_back_value(old_item) if old_item and currency_of(old_item) == "quantum_core" else 0
+    if character.quantum_cores + trade_in < item["cost"]:
+        console.print(
+            f"[red]Not enough Quantum Cores for that, even with a trade-in — "
+            f"you need {format_price(item, item['cost'])}.[/red]"
+        )
+        return
+
+    buy_black_market_item(character, item["id"])
+    console.print(
+        f"[bold magenta]Installed:[/bold magenta] {item['name']} "
+        f"(+{item['bonus']} {item['stat']}) for {format_price(item, item['cost'])}."
+    )
 
 
 def visit_hyphen8ds_hut(character: Character) -> None:
@@ -765,13 +875,24 @@ def visit_hyphen8ds_hut(character: Character) -> None:
     for result in notify_step(character, "talk", "Hyphen8d's Hut"):
         print_quest_result(console, character, result)
 
+    if not character.market_stock:
+        roll_daily_market(character)
+    console.print(f"[dim]{describe_market_modifier(character)}[/dim]")
+
     print_loadout(character)
 
-    action = hotkey_prompt(console, [("B", "Buy"), ("S", "Sell"), ("L", "Leave")])
+    # The Black Market ([M]) is a hidden option — deliberately left off the
+    # printed menu text. It's only worth anything once a player has found a
+    # Quantum Core, so there's nothing to advertise for most of a playthrough.
+    visible = [("B", "Buy"), ("S", "Sell"), ("L", "Leave")]
+    menu_text = "  ".join(hotkey_bracket(key, label) for key, label in visible)
+    action = read_choice(console, [key for key, _ in visible] + ["M"], prompt=menu_text)
     if action == "B":
         _buy_cyberware(character)
     elif action == "S":
         _sell_cyberware(character)
+    elif action == "M":
+        _visit_black_market(character)
 
 
 def _themed_table(title: str) -> Table:
@@ -788,6 +909,7 @@ def show_character_info(character: Character) -> None:
 
     attributes = _themed_table("Attributes")
     attributes.add_row("Level", str(character.level))
+    attributes.add_row("Day", str(character.day))
     attributes.add_row("XP", f"{character.xp}/{xp_for_next_level(character)}")
     hp_row_style = hp_style(character.hp, character.max_hp)
     attributes.add_row("HP", f"[{hp_row_style}]{character.hp}/{character.max_hp}[/{hp_row_style}]")
@@ -799,6 +921,7 @@ def show_character_info(character: Character) -> None:
     economy = _themed_table("Economy")
     economy.add_row("Credits", str(character.credits))
     economy.add_row("Banked", str(character.banked_credits))
+    economy.add_row("Quantum Cores", str(character.quantum_cores))
 
     contracts = _themed_table("Reputation & Contracts")
     contracts.add_row("Reputation", str(character.reputation))
@@ -849,13 +972,89 @@ def show_character_info(character: Character) -> None:
     console.print(kills)
 
 
+def _sleep_and_advance_day(character: Character) -> None:
+    """Leaving the hub means heading back to the safehouse to sleep it off —
+    advances the game day, fully heals, and clears any lingering status
+    effects, then prints a summary panel of where things stand."""
+    console.print(
+        "\n[dim]You head back to the safehouse, credits and gear safe... for now. "
+        "Sleep hits like a wall.[/dim]"
+    )
+
+    character.day += 1
+    hot = hot_factions(character)
+    reset_daily_kills(character)
+    roll_daily_market(character)
+    character.bought_round_today = False
+
+    healed = character.max_hp - character.hp
+    character.hp = character.max_hp
+    cured = cure_all(character)
+
+    ambushed = False
+    if hot and random.random() < AMBUSH_CHANCE:
+        ambushed = True
+        faction = random.choice(hot)
+        console.print(
+            f"\n[red]You're barely through the door when {faction} muscle kicks it back "
+            f"open — they tracked you home.[/red]"
+        )
+        encounter = roll_combat_encounter(character.level, faction=faction)
+        console.print(f"[dim]{encounter['intro']}[/dim]")
+        run_combat(character, encounter["enemy"])
+
+    faction_totals: dict[str, int] = {}
+    for name, count in character.kills.items():
+        kill_faction = enemy_faction(name)
+        faction_totals[kill_faction] = faction_totals.get(kill_faction, 0) + count
+    if faction_totals:
+        kills_text = ", ".join(f"{faction}: {count}" for faction, count in sorted(faction_totals.items()))
+    else:
+        kills_text = "No kills yet"
+
+    heat_text = ", ".join(hot) if hot else "None"
+    if ambushed:
+        heat_text += " [dim](ambushed on waking)[/dim]"
+
+    body = Table.grid(padding=(0, 2))
+    body.add_column(style="cyan")
+    body.add_column(style="bold white")
+    body.add_row("Level", str(character.level))
+    body.add_row("Credits", f"{character.credits} ({character.banked_credits} banked)")
+    body.add_row("Reputation", str(character.reputation))
+    body.add_row("HP", f"Fully restored (+{healed})" if healed > 0 else "Already full")
+    if ambushed:
+        body.add_row("HP now", f"{character.hp}/{character.max_hp}")
+    body.add_row("Status effects cleared", str(cured))
+    body.add_row("Heat yesterday", heat_text)
+    body.add_row("Kills by faction", kills_text)
+    body.add_row("Hyphen8d's Hut", describe_market_modifier(character))
+
+    console.print(
+        Panel(
+            body,
+            title="[bold bright_magenta]Daily Data Feed[/bold bright_magenta]",
+            subtitle=f"[dim]{character.name} — Day {character.day}[/dim]",
+            border_style="bright_cyan",
+            padding=(1, 2),
+        )
+    )
+
+
 def enter_hub(character: Character) -> None:
     while True:
         console.print()
         print_hub_menu(character)
         choice = read_choice(console, [*LOCATION_HOTKEYS.keys(), "I", "L", "?"], prompt="Where to?")
         if choice == "L":
-            console.print("[dim]You head back, credits and gear safe... for now.[/dim]")
+            confirm = hotkey_prompt(
+                console,
+                [("Y", "Yes"), ("N", "No")],
+                prompt="Head back to the safehouse and call it a day?",
+            )
+            if confirm != "Y":
+                continue
+            _sleep_and_advance_day(character)
             return
         if choice == "?":
             show_help(console)

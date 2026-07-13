@@ -21,8 +21,14 @@ EFFECT_LABELS: dict[str, str] = {
 DRUNK_STAT_PENALTY = 3
 
 
-def apply_effect(combatant: Any, effect: str, duration: int) -> None:
+def apply_effect(combatant: Any, effect: str, duration: int) -> bool:
+    """Apply a status effect. Returns False (and does nothing) if the
+    combatant is immune — currently just droids, who have no blood to
+    bleed, so Bleed never lands on them regardless of source."""
+    if effect == "bleed" and getattr(combatant, "is_droid", False):
+        return False
     combatant.status_effects[effect] = max(combatant.status_effects.get(effect, 0), duration)
+    return True
 
 
 def has_effect(combatant: Any, effect: str) -> bool:

@@ -33,6 +33,7 @@
         "defense": 5,
         "credits_reward": 30,
         "xp_reward": 15,
+        "is_droid": true,
         "inflict_effect": "stunned",
         "inflict_chance": 0.25,
         "inflict_duration": 1

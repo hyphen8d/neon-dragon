@@ -1,0 +1,50 @@
+{
+  "black_market": [
+    {
+      "id": "singularity_fist",
+      "name": "Singularity Fist",
+      "slot": "arm",
+      "currency": "quantum_core",
+      "cost": 3,
+      "stat": "attack",
+      "bonus": 12,
+      "flavor": "A knuckle-mounted graviton emitter. Prototype. Not FDA approved. Not anyone-approved.",
+      "inflict_effect": "bleed",
+      "inflict_chance": 0.4,
+      "inflict_duration": 3
+    },
+    {
+      "id": "oracle_retinas",
+      "name": "Oracle Retinas",
+      "slot": "eyes",
+      "currency": "quantum_core",
+      "cost": 3,
+      "stat": "tech",
+      "bonus": 13,
+      "flavor": "Sees three seconds into the local net's future. Migraines are the price of prophecy.",
+      "inflict_effect": "stunned",
+      "inflict_chance": 0.35,
+      "inflict_duration": 2
+    },
+    {
+      "id": "monolith_spine",
+      "name": "Monolith Spine",
+      "slot": "spine",
+      "currency": "quantum_core",
+      "cost": 4,
+      "stat": "defense",
+      "bonus": 13,
+      "flavor": "Salvaged alien-grade lattice. Nobody knows where Hyphen8d actually got this one."
+    },
+    {
+      "id": "ghost_protocol_derm",
+      "name": "Ghost Protocol Derm",
+      "slot": "skin",
+      "currency": "quantum_core",
+      "cost": 4,
+      "stat": "charisma",
+      "bonus": 12,
+      "flavor": "Adaptive camo-weave that reads a room before you walk into it. Illegal in every district that knows it exists."
+    }
+  ]
+}

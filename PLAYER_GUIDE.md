@@ -68,6 +68,7 @@ From there you pick one thing to do:
   a bit of gossip (+2 reputation). The rest of the time (30%) you get
   thrown out **Drunk** — a status effect that weakens your next fight's
   Attack/Tech rolls until it wears off or you pay Doc Wire to cure it.
+  Rin only pours you one round a day — the option resets when you sleep.
 - **Check the shady booth in the back** — Endr3am, a tall merc, runs
   his own contract board here, separate from the Fixer Board and
   gated by **Charisma** instead of Reputation. Charisma only comes
@@ -80,12 +81,16 @@ No longer a single random roll — you pick your approach:
 - **Jack in** — attempt to steal credits. Odds and payout scale with
   your Tech stat. Fail and you're traced: it forces a fight against a
   Corp-faction enemy (Rogue Drone, Corp Patrol Trooper, or Corp Strike
-  Team) right then. This is Tech's main use outside combat.
+  Team) right then. This is Tech's main use outside combat. Rarely,
+  a clean run turns up a **Quantum Core** — check your Character Info
+  screen for a running count. What they're for isn't posted anywhere.
 - **Find a fight** — guarantees a combat encounter (still random which
   enemy), for when you specifically want XP/credits without gambling
   on nothing happening.
 - **Scavenge** — the old low-risk pool: a scavenger stash (free
-  credits) or nothing at all. No combat risk.
+  credits) or nothing at all. No combat risk — unless you're running
+  hot (see Faction Heat below), in which case there's a 15% chance an
+  ambush interrupts it instead.
 
 Three tougher enemies only show up in the fight/jack-in pools once
 you're leveled enough to meet them: a **Ronin Netrunner** (level 3+,
@@ -111,6 +116,14 @@ capped at 40% off. The catalog shows your actual price next to the
 listed one whenever you're getting a discount, and the affordability
 check (including trade-in credit) always uses your discounted price,
 not the sticker price.
+
+Hyphen8d only stocks **4 items at a time**, re-rolled from the full
+catalog whenever you sleep — so what's on the shelf changes daily,
+and there's no guarantee the item you want is in stock today. Each
+day also brings one random market event affecting a single slot
+(arm/eyes/spine/skin): either a price break or a price surge, shown
+both at the Hut and on your Daily Data Feed (see Sleeping below). It
+stacks with your Charisma discount rather than replacing it.
 
 The higher-cost arm and eyes items also let you inflict status effects
 on enemies, not just deal more damage: **Razor Claws** (arm) has a
@@ -143,7 +156,8 @@ line, but the underlying training mechanic is unchanged.
 Choose a fight from a fixed roster of three gladiators, toughest
 paying out the most. Wins grant credits, XP, and reputation — this is
 one of the two ways to earn reputation (the other is Fixer Board
-contracts).
+contracts). Beating the toughest of the three has the same rare shot
+at a Quantum Core as a clean Jack In does.
 
 ### Fixer Board
 Accept, track, and turn in contracts from The Fixer. Each contract is
@@ -210,7 +224,9 @@ level scaling. Banked credits at NetVault are never touched by this.
 Status effects go both ways:
 
 - **Bleeding** — 3 damage at the start of the affected side's turn,
-  for the effect's duration.
+  for the effect's duration. Droids (Rogue Drone) have no blood to
+  spill — Bleed never lands on them, whether from an enemy ability,
+  Razor Claws, or Samurai Slash's guaranteed proc.
 - **Stunned** — the affected side loses their action for that round
   entirely.
 - **Drunk** — player-only, from a bad night at the Chrome Noodle Bar.
@@ -264,6 +280,33 @@ Pit roster). The kill tally groups by faction first, then breaks down
 by individual enemy underneath.
 
 Press **[?]** the same way to reopen this guide mid-session.
+
+## Faction Heat
+
+Kill more than 3 enemies of the same faction in a single day and you
+build heat with them — currently only **Corp** and **Street Gang**
+track heat, since they're the two factions organized enough to send
+someone looking for you. While hot with a faction, there's a 15%
+chance of a high-risk ambush from that faction: either interrupting a
+Scavenge run in the Undercity, or catching you the moment you wake up
+at the safehouse the next day. Heat resets every time you sleep (see
+below), so it's a same-day consequence of a killing spree, not a
+permanent grudge.
+
+## Sleeping (Leaving the hub)
+
+Pressing **[L]eave** at the hub asks you to confirm — it's a bigger
+deal than a normal menu back-out, since it costs your daily Buy a
+round and resets Faction Heat, Hyphen8d's stock, and today's market.
+Confirm and your merc heads home to sleep, not straight back to the
+main menu. That advances the day counter, fully
+heals you, clears every status effect you're carrying, resolves
+Faction Heat (above), rolls a new day at Hyphen8d's Hut (fresh stock
+and market event), and prints a "Daily Data Feed" panel summarizing
+where you stand — level, credits, reputation, kills by faction, and
+today's Hyphen8d's Hut pricing. Your day only advances when you
+choose to leave; there's still no limit on how much you do at the hub
+before then.
 
 ## Saving
 

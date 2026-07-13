@@ -21,7 +21,7 @@ A menu of locations the player travels between:
 | Rest stop               | **The Chrome Noodle Bar** | Rest, heal, hear rumors/gossip, flavor NPCs |
 | Random encounters       | **The Undercity**         | Random encounters, fights, loot        |
 | Bank                     | **NetVault**              | Deposit/withdraw credits (safe from death-loss) |
-| Weapon/armor shop        | **Hyphen8d's Hut**        | Buy/sell gear and cyberware (Charisma haggles the price down) |
+| Weapon/armor shop        | **Hyphen8d's Hut**        | Buy/sell gear and cyberware — 4-item daily rotating stock, Charisma haggles the price down, one slot has a daily price event |
 | Healer                    | **Doc Wire's Clinic**     | Heal HP for credits, cure status effects |
 | Trainer                  | **RoboDOJO**              | Spar with training drones to train stats, learn new abilities |
 | Arena                     | **The Pit**               | PvE gladiator fights for reputation/credits |
@@ -33,11 +33,18 @@ A menu of locations the player travels between:
 1. Player logs in (loads save).
 2. Player picks a hub location from the menu.
 3. Combat/dialogue/contract resolves, stats and credits update.
-4. Player keeps navigating the hub for as long as they want — no daily
-   turn limit. (Decided during phase 5+6 review: cut for now to keep
-   sessions unconstrained; revisit later if the game needs a pacing
-   mechanism.)
-5. Save file persists between sessions.
+4. Player keeps navigating the hub for as long as they want within a
+   day — no limit on how many locations/actions they visit before
+   leaving. (Decided during phase 5+6 review: cut a hard turn limit to
+   keep sessions unconstrained.)
+5. Choosing Leave asks for a Yes/No confirmation first — it's a
+   consequential action (resets Faction Heat, the daily drink limit,
+   and Hyphen8d's stock/market), not a plain menu back-out. Confirming
+   sends the merc home to sleep: the day counter increments, HP fully
+   restores, status effects clear, and a "Daily Data Feed" panel
+   summarizes standing. This is also when Faction Heat (section 8)
+   resolves and daily kill counts reset.
+6. Save file persists between sessions.
 
 ## 4. Character
 
@@ -85,13 +92,40 @@ off per point, capped at 40%) — the Grifter's build strength shows up
 there rather than in raw combat stats. Some contracts unlock
 new hub locations or NPCs — not used yet, but the hook exists.
 
+**Dynamic economy** (`engine/shop.py`, rolled by `roll_daily_market` in
+`_sleep_and_advance_day`): each day, Hyphen8d's Hut restocks to a
+random 4 items out of the full catalog, and one cyberware slot gets a
+random price event — a 10-30% discount or surge — that stacks with the
+Charisma discount rather than replacing it. Both are stored on
+`Character` (`market_stock`, `market_modifier`) and re-roll on sleep;
+`get_daily_catalog`/`discounted_cost` are the read paths the shop UI
+uses, so nothing else needs to know the roll happened.
+
+**Quantum Cores** (`Character.quantum_cores`): a rare secondary
+currency, LORD-gem-style. 4% drop chance (`QUANTUM_CORE_DROP_CHANCE`
+in `hub.py`) on a successful Jack In and on a Tier 3 Pit win only
+(gladiators now carry a `tier` field in `content/pit.json`; Tiers 1-2
+never drop). Spent at a hidden **Black Market** inside Hyphen8d's Hut
+— reachable via an `[M]` hotkey deliberately left off the visible
+Buy/Sell/Leave menu text, so it's undiscoverable without either
+digging through the code or trying keys — selling four elite
+prototype cyberware pieces (`content/black_market.json`, one per
+slot, roughly double the top normal-tier bonus) priced only in Cores,
+no Charisma discount or market event. `engine/shop.py`'s `get_item`
+resolves ids across both catalogs so equipped Black Market gear works
+everywhere normal gear does (loadout, sell menu); `unequip` refunds
+whichever currency the item was actually priced in.
+
 ## 7. Combat
 
 Turn-based, text-narrated. Player picks an action each round (Attack,
-Tech/Hack, Defend, Flee — no item-use yet, no inventory beyond
-cyberware). Simple damage formulas (stat + roll vs. defense). Status
-effects are implemented: Stunned (skip your action) and Bleeding
-(damage over time), inflicted by specific enemies.
+Tech/Hack, Defend, Flee, plus Items whenever inventory is non-empty —
+see `content/usable_items.json`). Simple damage formulas (stat + roll
+vs. defense). Status effects are implemented: Stunned (skip your
+action) and Bleeding (damage over time), inflicted by specific
+enemies. Droid enemies (`is_droid: true` in encounter data — currently
+just Rogue Drone) are immune to Bleed from any source, enforced
+centrally in `status_effects.apply_effect`.
 
 Each class also has a signature special move on a 3-round cooldown:
 Street Samurai's **Samurai Slash** (1.5x damage, guaranteed Bleed,
@@ -113,6 +147,15 @@ fight), **Find a Fight** (guaranteed combat, random enemy), or **Scavenge**
 (the old low-risk loot/nothing pool). Combat pool includes three
 level-gated tiers (Ronin Netrunner L3+, Corp Strike Team L5+, Chrome
 Beast L7+) so difficulty rises with the player instead of staying flat.
+
+**Faction Heat** (`engine/heat.py`): killing more than 3 enemies of the
+same faction in a single day builds heat with that faction — currently
+Corp and Street Gang only, the two with organized street presence to
+retaliate. While hot, there's a 15% chance per Scavenge roll of an
+ambush interrupting it instead of the normal loot/nothing outcome, and
+the same 15% roll happens once on waking at the safehouse. Heat is
+tracked on `Character.daily_kills` and wiped every time the player
+sleeps (leaves the hub) — see section 3 on the day cycle.
 
 ## 9. Aesthetic Rules
 
