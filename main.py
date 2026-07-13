@@ -2,10 +2,11 @@
 
 from __future__ import annotations
 
-from rich.console import Console
+from rich.console import Console, Group
 from rich.panel import Panel
 from rich.prompt import IntPrompt, Prompt
 from rich.table import Table
+from rich.text import Text
 
 from engine.character import CLASSES, Character
 from engine.help import show_help
@@ -14,13 +15,22 @@ from engine.save import list_saves, load_character, save_character, save_exists
 
 console = Console()
 
-TITLE = """[bold bright_magenta]N E O N   D R A G O N[/bold bright_magenta]
-[cyan]// neo meridian, after dark //[/cyan]
-[dim purple]rain on chrome, neon on wet asphalt[/dim purple]"""
+VERSION = "Alpha 1.0"
+
+LORE = (
+    "Neo Meridian never sleeps and never forgives.\n"
+    "Corp towers own the sky. Fixers and gangs own the streets underneath.\n"
+    "Rain never stops — it just changes color under the neon.\n"
+    "Chrome is cheap. Everything else costs more than you think."
+)
 
 
 def print_title() -> None:
-    console.print(Panel.fit(TITLE, border_style="bright_cyan", padding=(1, 6)))
+    header = Text("N E O N   D R A G O N", style="bold bright_magenta", justify="center")
+    version = Text(VERSION, style="dim cyan", justify="center")
+    lore = Text(LORE, style="italic", justify="center")
+    body = Group(header, version, Text(""), lore)
+    console.print(Panel(body, border_style="bright_cyan", padding=(1, 4), width=64))
 
 
 def print_main_menu() -> None:
