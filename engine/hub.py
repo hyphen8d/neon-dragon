@@ -107,10 +107,10 @@ LOCATION_DESCRIPTIONS: dict[str, str] = {
         "diagnostic wall panel hums beside a rack of practice blades worn "
         "smooth from years of grips, and the mats underneath are patched more "
         "than they're original. This is where you get better, one bruise at "
-        "a time, whether the discipline is fists, ranged tech, footwork, or "
-        "the quieter art of talking someone into trusting you. The drones "
-        "don't hold back, don't get tired, and don't care how much it costs "
-        "— that part's between you and the front desk."
+        "a time, whether the discipline is fists, ranged tech, or absorbing "
+        "one more hit than you thought you could before your guard finally "
+        "gives. The drones don't hold back, don't get tired, and don't care "
+        "how much it costs — that part's between you and the front desk."
     ),
     "The Pit": (
         "A sunken arena ringed by chain-link and floodlights, a chanting "
@@ -368,15 +368,12 @@ TRAINABLE_STATS: dict[str, tuple[str, str]] = {
     "1": ("attack", "Attack"),
     "2": ("defense", "Defense"),
     "3": ("tech", "Tech"),
-    "4": ("charisma", "Charisma"),
 }
 
 SPARRING_FLAVOR: dict[str, str] = {
     "attack": "The melee drone comes in fast. You trade blows until it flags a clean hit and powers down.",
     "defense": "A heavy-frame drone leans into you again and again. You learn to read the wind-up.",
     "tech": "You jack into a sparring ICE routine and duel it through three simulated firewalls.",
-    "charisma": "A negotiation simulacrum runs you through a dozen fake deals, needling you until "
-    "your poker face holds.",
 }
 
 

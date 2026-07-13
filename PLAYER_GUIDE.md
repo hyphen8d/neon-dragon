@@ -58,11 +58,11 @@ only way to heal further or clear status effects).
 Endr3am, a tall merc working the back booth, runs his own contract
 board here, separate from the Fixer Board — gated by **Charisma**
 instead of Reputation. "Loose Ends" is open from the start (0
-Charisma); "Loose Lips" needs 8 Charisma, "Friends in High Places"
-needs 14. Push Charisma up via RoboDOJO or Hyphen8d's Hut cyberware
-(Synth-Derm, Mirrorskin) to unlock the higher tiers — a single item
-purchase isn't enough on its own anymore, so it takes real investment
-rather than one lucky trip to the Hut.
+Charisma); "Loose Lips" needs 6 Charisma, "Friends in High Places"
+needs 9. Charisma only comes from Hyphen8d's Hut skin-slot cyberware
+— Synth-Derm (+3) clears the first tier, Mirrorskin (+6) clears the
+second. RoboDOJO doesn't train Charisma; sparring drones don't teach
+persuasion.
 
 ### Undercity
 Random encounters, weighted: gang fights, a rogue drone, a corp
@@ -99,8 +99,9 @@ regardless of how many effects or how severe — a no-op if you're not
 carrying any).
 
 ### RoboDOJO
-Permanently trains a stat (Attack, Defense, Tech, or Charisma) up by
-1. Cost scales with the stat's current value — 40 credits base, +5
+Permanently trains a stat (Attack, Defense, or Tech — not Charisma,
+which comes from cyberware instead) up by 1. Cost scales with the
+stat's current value — 40 credits base, +5
 credits for every point you already have (so Attack 8 costs 80 for
 the next point, Attack 20 costs 140). No hard cap, but grinding one
 stat sky-high gets progressively more expensive rather than staying
