@@ -56,10 +56,11 @@ anything once you're at or above that (Doc Wire's Clinic is still the
 only way to heal further or clear status effects).
 
 Rin also runs her own contract board here, separate from the Fixer
-Board — gated by **Charisma** instead of Reputation. "Loose Lips"
-needs 6 Charisma, "Friends in High Places" needs 10. Push Charisma up
-via the Dojo or Chop Shop cyberware (Synth-Derm, Mirrorskin) to unlock
-them.
+Board — gated by **Charisma** instead of Reputation. "Loose Ends" is
+open from the start (0 Charisma); "Loose Lips" needs 6 Charisma,
+"Friends in High Places" needs 10. Push Charisma up via the Dojo or
+Chop Shop cyberware (Synth-Derm, Mirrorskin) to unlock the higher
+tiers.
 
 ### Undercity
 Random encounters, weighted: gang fights, a rogue drone, a corp

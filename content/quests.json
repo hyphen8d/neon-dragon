@@ -57,6 +57,20 @@
       "min_charisma": 0
     },
     {
+      "id": "loose_ends",
+      "title": "Loose Ends",
+      "board": "Chrome Noodle Bar",
+      "hook": "\"Nothing fancy — just need someone reliable to rough up a ganger who's been skipping his tab. You in?\"",
+      "steps": [
+        {"type": "kill", "target": "Street Ganger", "description": "Handle the Street Ganger in the Undercity."},
+        {"type": "talk", "target": "Chrome Noodle Bar", "description": "Let Rin know it's done."}
+      ],
+      "reward": {"credits": 15, "xp": 8, "reputation": 3},
+      "complete_text": "\"Appreciate it. Drinks are still not free, though.\"",
+      "min_reputation": 0,
+      "min_charisma": 0
+    },
+    {
       "id": "loose_lips",
       "title": "Loose Lips",
       "board": "Chrome Noodle Bar",
