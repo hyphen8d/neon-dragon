@@ -25,12 +25,56 @@ LORE = (
     "costs more than you think."
 )
 
+# Hand-built 5-row block font. Every letter is 5 rows tall; row widths within
+# a word are kept equal so per-line Rich coloring/centering stays aligned.
+_BLOCK_FONT: dict[str, list[str]] = {
+    "N": ["█   █", "██  █", "█ █ █", "█  ██", "█   █"],
+    "E": ["█████", "█    ", "████ ", "█    ", "█████"],
+    "O": [" ███ ", "█   █", "█   █", "█   █", " ███ "],
+    "D": ["████ ", "█   █", "█   █", "█   █", "████ "],
+    "R": ["████ ", "█   █", "████ ", "█  █ ", "█   █"],
+    "A": [" ███ ", "█   █", "█████", "█   █", "█   █"],
+    "G": [" ████", "█    ", "█  ██", "█   █", " ████"],
+}
+
+# Magenta -> cyan gradient, one shade per banner row (NEON's 5 rows, then
+# DRAGON's 5 rows), for a vaporwave sunset feel down the block-letter title.
+_BANNER_GRADIENT = [
+    "#ff00c8", "#e31ace", "#c633d4", "#aa4dda", "#8e66e0",
+    "#7180e7", "#5599ed", "#39b3f3", "#1cccf9", "#00e6ff",
+]
+
+
+def _block_word(word: str) -> list[str]:
+    rows = ["" for _ in range(5)]
+    for i, letter in enumerate(word):
+        glyph = _BLOCK_FONT[letter]
+        for r in range(5):
+            rows[r] += glyph[r]
+            if i != len(word) - 1:
+                rows[r] += " "
+    return rows
+
+
+def _banner() -> Group:
+    neon_rows = _block_word("NEON")
+    dragon_rows = _block_word("DRAGON")
+    pad = (len(dragon_rows[0]) - len(neon_rows[0])) // 2
+    neon_rows = [" " * pad + row for row in neon_rows]
+
+    lines = [*neon_rows, *dragon_rows]
+    renderables = [
+        Text(line, style=f"bold {color}", justify="center")
+        for line, color in zip(lines, _BANNER_GRADIENT)
+    ]
+    return Group(*renderables)
+
 
 def print_title() -> None:
-    header = Text("N E O N   D R A G O N", style="bold bright_magenta", justify="center")
+    banner = _banner()
     version = Text(VERSION, style="dim cyan", justify="center")
     lore = Text(LORE, style="italic", justify="left")
-    body = Group(header, version, Text(""), lore)
+    body = Group(banner, Text(""), version, Text(""), lore)
     console.print(Panel(body, border_style="bright_cyan", padding=(1, 4), width=64))
 
 
