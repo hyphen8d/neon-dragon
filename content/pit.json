@@ -1,0 +1,37 @@
+{
+  "gladiators": [
+    {
+      "id": "scrap_dog_vex",
+      "name": "Scrap Dog Vex",
+      "intro": "A wiry brawler with scrap-metal knuckledusters grins with too many teeth.",
+      "hp": 20,
+      "attack": 6,
+      "defense": 3,
+      "credits_reward": 35,
+      "xp_reward": 10,
+      "reputation_reward": 10
+    },
+    {
+      "id": "ironclad_marta",
+      "name": "Ironclad Marta",
+      "intro": "Plated in salvaged riot armor, she doesn't so much fight as advance.",
+      "hp": 30,
+      "attack": 8,
+      "defense": 7,
+      "credits_reward": 55,
+      "xp_reward": 18,
+      "reputation_reward": 18
+    },
+    {
+      "id": "the_widow",
+      "name": "The Widow",
+      "intro": "Fast, quiet, and covered in scars that aren't all hers.",
+      "hp": 26,
+      "attack": 11,
+      "defense": 5,
+      "credits_reward": 80,
+      "xp_reward": 28,
+      "reputation_reward": 28
+    }
+  ]
+}

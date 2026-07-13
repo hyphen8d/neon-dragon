@@ -13,6 +13,7 @@ from engine.character import CYBERWARE_SLOTS, Character
 from engine.combat import run_combat
 from engine.encounters import roll_encounter
 from engine.npcs import npc_at, random_line
+from engine.pit import load_gladiators
 from engine.quests import accept_quest, available_quests, current_step, get_quest, notify_step, print_quest_result
 from engine.shop import buy_and_equip, get_item, load_cyberware, sell_back_value, unequip
 
@@ -222,6 +223,77 @@ def visit_doc_wires_clinic(character: Character) -> None:
     )
 
 
+TRAIN_COST_PER_POINT = 40
+
+TRAINABLE_STATS: dict[str, tuple[str, str]] = {
+    "1": ("attack", "Attack"),
+    "2": ("defense", "Defense"),
+    "3": ("tech", "Tech"),
+    "4": ("charisma", "Charisma"),
+}
+
+
+def visit_the_dojo(character: Character) -> None:
+    print_arrival("The Dojo")
+    console.print("[dim]No trainer in sight — just a chalkboard bolted to the wall with a price list.[/dim]")
+
+    table = Table(border_style="bright_cyan", show_header=False)
+    table.add_column("#", justify="right", style="bright_magenta")
+    table.add_column("Stat", style="bold white")
+    table.add_column("Current", justify="right")
+    for key, (attr, label) in TRAINABLE_STATS.items():
+        table.add_row(key, label, str(getattr(character, attr)))
+    console.print(table)
+    console.print(f"[dim]{TRAIN_COST_PER_POINT} credits per +1.[/dim]")
+
+    choice = Prompt.ask(
+        "Train which stat? (0 to leave)",
+        choices=["0", *TRAINABLE_STATS.keys()],
+        show_choices=False,
+    )
+    if choice == "0":
+        return
+    if character.credits < TRAIN_COST_PER_POINT:
+        console.print("[red]Not enough credits to train right now.[/red]")
+        return
+
+    attr, label = TRAINABLE_STATS[choice]
+    character.credits -= TRAIN_COST_PER_POINT
+    setattr(character, attr, getattr(character, attr) + 1)
+    console.print(
+        f"[bold bright_magenta]{label} increased to {getattr(character, attr)}.[/bold bright_magenta] "
+        f"-{TRAIN_COST_PER_POINT} credits."
+    )
+
+
+def visit_the_pit(character: Character) -> None:
+    print_arrival("The Pit")
+    console.print("[dim]The crowd wants blood. Pick your match.[/dim]")
+
+    gladiators = load_gladiators()
+    table = Table(border_style="bright_cyan")
+    table.add_column("#", justify="right", style="bright_magenta")
+    table.add_column("Gladiator", style="bold white")
+    table.add_column("HP", justify="right")
+    table.add_column("Reward", justify="right")
+    for i, g in enumerate(gladiators, start=1):
+        table.add_row(str(i), g["name"], str(g["hp"]), f"{g['credits_reward']}cr / {g['reputation_reward']}rep")
+    console.print(table)
+
+    choice = Prompt.ask(
+        "Step into the ring? (0 to back out)",
+        choices=[str(i) for i in range(len(gladiators) + 1)],
+        show_choices=False,
+    )
+    if choice == "0":
+        return
+
+    gladiator = gladiators[int(choice) - 1]
+    console.print(f"\n[dim]{gladiator['intro']}[/dim]")
+    enemy_data = {k: v for k, v in gladiator.items() if k not in ("id", "intro")}
+    run_combat(character, enemy_data)
+
+
 def visit_location(character: Character, location: str) -> None:
     print_arrival(location)
 
@@ -419,5 +491,9 @@ def enter_hub(character: Character) -> None:
             visit_netvault(character)
         elif chosen == "Doc Wire's Clinic":
             visit_doc_wires_clinic(character)
+        elif chosen == "The Dojo":
+            visit_the_dojo(character)
+        elif chosen == "The Pit":
+            visit_the_pit(character)
         else:
             visit_location(character, chosen)

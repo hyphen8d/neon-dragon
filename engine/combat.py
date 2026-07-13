@@ -22,6 +22,7 @@ class Enemy:
     defense: int
     credits_reward: int
     xp_reward: int
+    reputation_reward: int = 0
 
     @property
     def alive(self) -> bool:
@@ -85,10 +86,11 @@ def run_combat(character: Character, enemy_data: dict) -> None:
 def _handle_victory(character: Character, enemy: Enemy) -> None:
     character.credits += enemy.credits_reward
     character.xp += enemy.xp_reward
-    console.print(
-        f"\n[bold bright_magenta]{enemy.name} goes down.[/bold bright_magenta] "
-        f"+{enemy.credits_reward} credits, +{enemy.xp_reward} XP."
-    )
+    character.reputation += enemy.reputation_reward
+    reward_text = f"+{enemy.credits_reward} credits, +{enemy.xp_reward} XP"
+    if enemy.reputation_reward:
+        reward_text += f", +{enemy.reputation_reward} reputation"
+    console.print(f"\n[bold bright_magenta]{enemy.name} goes down.[/bold bright_magenta] {reward_text}.")
     for result in notify_step(character, "kill", enemy.name):
         print_quest_result(console, result)
 
