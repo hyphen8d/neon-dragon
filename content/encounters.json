@@ -7,6 +7,7 @@
       "intro": "A ganger steps out of the alley shadows, chrome knuckles gleaming under a busted neon sign.",
       "enemy": {
         "name": "Street Ganger",
+        "faction": "Street Gang",
         "hp": 16,
         "attack": 5,
         "defense": 2,
@@ -24,6 +25,7 @@
       "intro": "A rogue delivery drone drops out of the smog, rotors screaming, sensors locked on you.",
       "enemy": {
         "name": "Rogue Drone",
+        "faction": "Corp",
         "hp": 12,
         "attack": 4,
         "defense": 5,
@@ -41,6 +43,7 @@
       "intro": "A corp patrol trooper barks a challenge, stun baton crackling blue.",
       "enemy": {
         "name": "Corp Patrol Trooper",
+        "faction": "Corp",
         "hp": 22,
         "attack": 7,
         "defense": 6,

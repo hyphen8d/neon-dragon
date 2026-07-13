@@ -13,7 +13,7 @@ from engine.help import show_help
 from engine.hub import enter_hub
 from engine.save import list_saves, load_character, save_character, save_exists
 
-console = Console()
+console = Console(highlight=False)
 
 VERSION = "Alpha 1.0"
 

@@ -3,6 +3,7 @@
     {
       "id": "scrap_dog_vex",
       "name": "Scrap Dog Vex",
+      "faction": "Gladiator",
       "intro": "A wiry brawler with scrap-metal knuckledusters grins with too many teeth.",
       "hp": 20,
       "attack": 6,
@@ -17,6 +18,7 @@
     {
       "id": "ironclad_marta",
       "name": "Ironclad Marta",
+      "faction": "Gladiator",
       "intro": "Plated in salvaged riot armor, she doesn't so much fight as advance.",
       "hp": 30,
       "attack": 8,
@@ -28,6 +30,7 @@
     {
       "id": "the_widow",
       "name": "The Widow",
+      "faction": "Gladiator",
       "intro": "Fast, quiet, and covered in scars that aren't all hers.",
       "hp": 26,
       "attack": 11,

@@ -138,9 +138,14 @@ elsewhere. Completing a contract pays credits, XP, and reputation.
 ## Checking your status
 
 From inside the hub, type **i** at the "Where to?" prompt to pull up
-your full character info: core stats, cyberware loadout, active
-status effects, quest counts (active/completed), and a running kill
-tally by enemy type. This doesn't cost a turn.
+your full character info: attributes, credits/banked, reputation and
+contract counts, cyberware loadout, active status effects, and a kill
+tally grouped by faction. This doesn't cost a turn.
+
+Enemies belong to one of three factions: **Street Gang** (Street
+Gangers), **Corp** (Rogue Drones, Corp Patrol Troopers), and
+**Gladiator** (the Pit roster). The kill tally groups by faction first,
+then breaks down by individual enemy underneath.
 
 Type **?** the same way to reopen this guide mid-session.
 

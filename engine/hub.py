@@ -9,6 +9,7 @@ from rich.panel import Panel
 from rich.prompt import IntPrompt, Prompt
 from rich.table import Table
 
+from engine.bestiary import enemy_faction
 from engine.character import CYBERWARE_SLOTS, Character
 from engine.combat import run_combat
 from engine.encounters import roll_encounter
@@ -27,7 +28,7 @@ from engine.quests import (
 from engine.shop import buy_and_equip, get_item, load_cyberware, sell_back_value, unequip
 from engine.status_effects import EFFECT_LABELS, cure_all
 
-console = Console()
+console = Console(highlight=False)
 
 # Location -> one-line flavor for the hub menu table. Real content (rest,
 # shop, combat, etc.) is wired up location by location in later phases.
@@ -403,16 +404,20 @@ def visit_fixer_board(character: Character) -> None:
     console.print(f"  {chosen_quest['steps'][0]['description']}")
 
 
-def print_loadout(character: Character) -> None:
-    console.print("\n[bright_magenta]Your chrome:[/bright_magenta]")
-    table = Table(border_style="bright_cyan", show_header=False)
-    table.add_column("Slot", style="bold white")
-    table.add_column("Installed", style="dim")
+def build_loadout_table(character: Character, title: str | None = None) -> Table:
+    table = Table(title=title, border_style="bright_cyan", show_header=False)
+    table.add_column("Slot", style="cyan")
+    table.add_column("Installed", style="bold white")
     for slot in CYBERWARE_SLOTS:
         item_id = character.cyberware[slot]
-        installed = get_item(item_id)["name"] if item_id else "-- empty --"
+        installed = get_item(item_id)["name"] if item_id else "empty"
         table.add_row(slot.capitalize(), installed)
-    console.print(table)
+    return table
+
+
+def print_loadout(character: Character) -> None:
+    console.print("\n[bright_magenta]Your chrome:[/bright_magenta]")
+    console.print(build_loadout_table(character))
 
 
 def print_catalog(catalog: list[dict]) -> None:
@@ -513,44 +518,67 @@ def visit_chop_shop(character: Character) -> None:
         _sell_cyberware(character)
 
 
+def _themed_table(title: str) -> Table:
+    table = Table(title=f"[bold bright_magenta]{title}[/bold bright_magenta]", border_style="bright_cyan", show_header=False)
+    table.add_column("Label", style="cyan")
+    table.add_column("Value", style="bold white")
+    return table
+
+
 def show_character_info(character: Character) -> None:
     console.print()
     console.rule(f"[bold bright_magenta]{character.name}[/bold bright_magenta] [dim]— {character.char_class}[/dim]")
+    console.print()
 
-    stats = Table(border_style="bright_magenta")
-    stats.add_column("Stat", style="cyan")
-    stats.add_column("Value", style="bold white")
-    stats.add_row("Level", str(character.level))
-    stats.add_row("XP", str(character.xp))
-    stats.add_row("HP", f"{character.hp}/{character.max_hp}")
-    stats.add_row("Attack", str(character.attack))
-    stats.add_row("Defense", str(character.defense))
-    stats.add_row("Tech", str(character.tech))
-    stats.add_row("Charisma", str(character.charisma))
-    stats.add_row("Credits", str(character.credits))
-    stats.add_row("Banked", str(character.banked_credits))
-    stats.add_row("Reputation", str(character.reputation))
-    console.print(stats)
+    attributes = _themed_table("Attributes")
+    attributes.add_row("Level", str(character.level))
+    attributes.add_row("XP", str(character.xp))
+    attributes.add_row("HP", f"{character.hp}/{character.max_hp}")
+    attributes.add_row("Attack", str(character.attack))
+    attributes.add_row("Defense", str(character.defense))
+    attributes.add_row("Tech", str(character.tech))
+    attributes.add_row("Charisma", str(character.charisma))
 
-    print_loadout(character)
+    economy = _themed_table("Economy")
+    economy.add_row("Credits", str(character.credits))
+    economy.add_row("Banked", str(character.banked_credits))
 
-    console.print("\n[bright_magenta]Status effects:[/bright_magenta]")
+    contracts = _themed_table("Reputation & Contracts")
+    contracts.add_row("Reputation", str(character.reputation))
+    contracts.add_row("Contracts active", str(len(character.active_quests)))
+    contracts.add_row("Contracts completed", str(len(character.completed_quests)))
+
+    loadout = build_loadout_table(character, title="[bold bright_magenta]Chrome[/bold bright_magenta]")
+
+    effects = _themed_table("Status Effects")
     if character.status_effects:
         for effect, remaining in character.status_effects.items():
-            label = EFFECT_LABELS.get(effect, effect)
-            console.print(f"  {label} — {remaining} round(s) left")
+            effects.add_row(EFFECT_LABELS.get(effect, effect), f"{remaining} round(s)")
     else:
-        console.print("  [dim]None.[/dim]")
+        effects.add_row("No active effects", "")
 
-    console.print("\n[bright_magenta]Quests:[/bright_magenta]")
-    console.print(f"  Active: {len(character.active_quests)}   Completed: {len(character.completed_quests)}")
+    grid = Table.grid(padding=(0, 2))
+    grid.add_column()
+    grid.add_column()
+    grid.add_row(attributes, economy)
+    grid.add_row(contracts, loadout)
+    console.print(grid)
+    console.print(effects)
 
-    console.print("\n[bright_magenta]Kills:[/bright_magenta]")
+    kills = _themed_table("Kills by Faction")
     if character.kills:
-        for name, count in sorted(character.kills.items()):
-            console.print(f"  {name}: {count}")
+        by_faction: dict[str, list[tuple[str, int]]] = {}
+        for name, count in character.kills.items():
+            by_faction.setdefault(enemy_faction(name), []).append((name, count))
+        for faction in sorted(by_faction):
+            entries = sorted(by_faction[faction])
+            total = sum(count for _, count in entries)
+            kills.add_row(f"[bold]{faction}[/bold]", f"[bold]{total}[/bold]")
+            for name, count in entries:
+                kills.add_row(f"  {name}", str(count))
     else:
-        console.print("  [dim]None yet.[/dim]")
+        kills.add_row("No kills yet", "")
+    console.print(kills)
 
 
 def enter_hub(character: Character) -> None:

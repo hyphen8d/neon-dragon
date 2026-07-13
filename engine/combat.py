@@ -12,7 +12,7 @@ from engine.character import Character
 from engine.quests import notify_step, print_quest_result
 from engine.status_effects import EFFECT_LABELS, apply_effect, process_round_start
 
-console = Console()
+console = Console(highlight=False)
 
 
 @dataclass
@@ -27,6 +27,7 @@ class Enemy:
     inflict_effect: str | None = None
     inflict_chance: float = 0.0
     inflict_duration: int = 0
+    faction: str = "Unknown"
 
     @property
     def alive(self) -> bool:
