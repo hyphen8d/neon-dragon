@@ -30,12 +30,14 @@ A menu of locations the player travels between each turn:
 
 ## 3. Core Loop
 
-1. Player logs in (loads save), sees turns remaining for the day.
+1. Player logs in (loads save).
 2. Player picks a hub location from the menu.
-3. Each action (fight, quest step, training) consumes a turn.
-4. Combat/dialogue/quest resolves, stats and credits update.
-5. When turns hit 0, player can end the day (or wait for a daily reset).
-6. Save file persists between sessions.
+3. Combat/dialogue/quest resolves, stats and credits update.
+4. Player keeps navigating the hub for as long as they want — no daily
+   turn limit. (Decided during phase 5+6 review: cut for now to keep
+   sessions unconstrained; revisit later if the game needs a pacing
+   mechanism.)
+5. Save file persists between sessions.
 
 ## 4. Character
 
@@ -92,7 +94,7 @@ drone ambushes, corp patrol shakedowns, nothing-happens flavor text.
 3. Combat engine + Undercity random encounters
 4. NPCs + dialogue system (data-driven)
 5. Quests
-6. Daily turn limit + day-end/reset cycle
+6. ~~Daily turn limit + day-end/reset cycle~~ — cut, see section 3
 7. Chop Shop economy + cyberware
 8. Polish: color palette, ASCII panels, flavor text pass
 
