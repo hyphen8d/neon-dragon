@@ -76,23 +76,33 @@ From there you pick one thing to do:
   +6) — RoboDOJO doesn't train it.
 
 ### Undercity
-No longer a single random roll — you pick your approach:
+No longer a single random roll — you pick your approach. The arrival
+screen carries a LOCAL AREA NETSCAN readout laying out all three
+options and their risk profile, so check that before you choose:
 
-- **Jack in** — attempt to steal credits. Odds and payout scale with
-  your Tech stat. Fail and you're traced: it forces a fight against a
-  Corp-faction enemy (Rogue Drone, Corp Patrol Trooper, or Corp Strike
-  Team) right then. This is Tech's main use outside combat. Rarely,
-  a clean run turns up a **Quantum Core** — check your Character Info
-  screen for a running count. What they're for isn't posted anywhere.
-- **Find a fight** — guarantees a combat encounter (still random which
-  enemy), for when you specifically want XP/credits without gambling
-  on nothing happening.
-- **Scavenge** — the old low-risk pool: a scavenger stash (free
-  credits) or nothing at all. No combat risk — unless you're running
-  hot (see Faction Heat below), in which case there's a 15% chance an
-  ambush interrupts it instead.
+- **[S] Slice Drop Box** — crack a corporate hardware drop box bolted
+  to a wall somewhere in the sublevels. Odds and payout scale with
+  your Tech stat. Crack it clean and you skim a credit-chip off the
+  tray; trip the seal's Black-ICE counter-intrusion and it pins your
+  location, forcing a fight against a Corp-faction enemy (Rogue Drone,
+  Corp Patrol Trooper, or Corp Strike Team) right then. This is Tech's
+  main use outside combat. Rarely, a clean crack exposes the box's
+  logic core and a **Quantum Core** clicks free — check your Character
+  Info screen for a running count. What they're for isn't posted
+  anywhere.
+- **[F] Find a Fight** — guarantees a combat encounter (still random
+  which enemy), for when you specifically want XP/credits without
+  gambling on nothing happening.
+- **[H] Hunt Cache** — a passive scanner sweep for forgotten
+  black-market drop boxes: the old low-risk pool, a cache (free
+  credits) or a dead sector (nothing at all). Low risk, not zero risk:
+  even with no Faction Heat there's a flat 10% chance someone else is
+  sweeping the same frequency and jumps you instead, so it's not a
+  farm-forever loop. Running hot (see Faction Heat below) adds a
+  separate, steeper 15% chance of a faction-specific ambush on top of
+  that baseline.
 
-Three tougher enemies only show up in the fight/jack-in pools once
+Three tougher enemies only show up in the fight/drop-box pools once
 you're leveled enough to meet them: a **Ronin Netrunner** (level 3+,
 dodges some hits), a **Corp Strike Team** (level 5+, ignores your
 Defend), and a **Chrome Beast** (level 7+, heavy Bleed). The Undercity
@@ -157,7 +167,7 @@ Choose a fight from a fixed roster of three gladiators, toughest
 paying out the most. Wins grant credits, XP, and reputation — this is
 one of the two ways to earn reputation (the other is Fixer Board
 contracts). Beating the toughest of the three has the same rare shot
-at a Quantum Core as a clean Jack In does.
+at a Quantum Core as a clean Slice Drop Box crack does.
 
 ### Fixer Board
 Accept, track, and turn in contracts from The Fixer. Each contract is
@@ -313,7 +323,7 @@ build heat with them — currently only **Corp** and **Street Gang**
 track heat, since they're the two factions organized enough to send
 someone looking for you. While hot with a faction, there's a 15%
 chance of a high-risk ambush from that faction: either interrupting a
-Scavenge run in the Undercity, or catching you the moment you wake up
+Hunt Cache sweep in the Undercity, or catching you the moment you wake up
 at the safehouse the next day. Heat resets every time you sleep (see
 below), so it's a same-day consequence of a killing spree, not a
 permanent grudge.

@@ -77,6 +77,12 @@ Starter NPC roster (flavor only — expand freely):
 - **The Fixer** — posts contracts on the Fixer Board
 - **Endr3am** — tall merc who works the Chrome Noodle Bar's back booth,
   brokers merc-to-merc contracts there (charisma-gated, see section 6)
+- **Daryl** — RoboDOJO's front-desk drone, repurposed from a
+  decommissioned delivery unit, handles intake behind plexiglass
+- **Agent Parker** — NetVault's security enforcer, works the floor
+  alongside a robotic K9 partner; a second NPC at NetVault alongside
+  Ms. Kessler (`npc_at` still surfaces Kessler as the primary teller;
+  Parker's dialogue is fetched separately for the security flavor line)
 
 ## 6. Contracts
 
@@ -103,7 +109,7 @@ uses, so nothing else needs to know the roll happened.
 
 **Quantum Cores** (`Character.quantum_cores`): a rare secondary
 currency, LORD-gem-style. 4% drop chance (`QUANTUM_CORE_DROP_CHANCE`
-in `hub.py`) on a successful Jack In and on a Tier 3 Pit win only
+in `hub.py`) on a successful Slice Drop Box crack and on a Tier 3 Pit win only
 (gladiators now carry a `tier` field in `content/pit.json`; Tiers 1-2
 never drop). Spent at a hidden **Black Market** inside Hyphen8d's Hut
 — reachable via an `[M]` hotkey deliberately left off the visible
@@ -167,21 +173,36 @@ fight the same as anyone else, but pays less to get patched up.
 
 ## 8. The Undercity
 
-Not a single random roll — the player picks an approach: **Jack In**
-(steal credits, odds/payout scaled by Tech, failure forces a Corp-faction
-fight), **Find a Fight** (guaranteed combat, random enemy), or **Scavenge**
-(the old low-risk loot/nothing pool). Combat pool includes three
+Not a single random roll — the player picks an approach, framed as a
+physical street heist rather than an abstract cyberspace dive:
+**[S] Slice Drop Box** (`_jack_in` — crack a corporate hardware drop
+box bolted to a wall, credits scaled by Tech, a failed crack trips
+Black-ICE and forces a Corp-faction fight on the spot),
+**[F] Find a Fight** (guaranteed combat, random enemy), or
+**[H] Hunt Cache** (`_scavenge` — a passive scanner sweep for
+forgotten black-market drop boxes, the old low-risk loot/nothing
+pool). The location panel's arrival text carries a "LOCAL AREA
+NETSCAN" readout listing all three with their risk profile, so the
+mechanical hints live in the environment description instead of
+cluttering the hotkey prompt itself. Combat pool includes three
 level-gated tiers (Ronin Netrunner L3+, Corp Strike Team L5+, Chrome
 Beast L7+) so difficulty rises with the player instead of staying flat.
 
 **Faction Heat** (`engine/heat.py`): killing more than 3 enemies of the
 same faction in a single day builds heat with that faction — currently
 Corp and Street Gang only, the two with organized street presence to
-retaliate. While hot, there's a 15% chance per Scavenge roll of an
+retaliate. While hot, there's a 15% chance per Hunt Cache roll of an
 ambush interrupting it instead of the normal loot/nothing outcome, and
 the same 15% roll happens once on waking at the safehouse. Heat is
 tracked on `Character.daily_kills` and wiped every time the player
 sleeps (leaves the hub) — see section 3 on the day cycle.
+
+Hunt Cache also has a flat `CACHE_BASE_RISK_CHANCE` (10%) that applies
+on every attempt regardless of Heat — an unconditional counter to
+farming it as a risk-free credit loop. It's checked only after the
+Heat-triggered ambush misses (or doesn't apply), rolls a
+faction-unlocked `roll_combat_encounter`, and is deliberately flavored
+as opportunistic bad luck rather than a targeted retaliation.
 
 ## 9. Aesthetic Rules
 
@@ -189,6 +210,17 @@ sleeps (leaves the hub) — see section 3 on the day cycle.
   names, and important numbers — not every line (avoid visual noise).
 - Terse, noir-flavored narration. Short punchy sentences.
 - ASCII/box-drawn panels for the hub menu and stat sheet.
+- **Interaction Deck** (`engine/hub.py`: `_interaction_deck`,
+  `_npc_panel`, `_station_data_panel`): the shared layout for a
+  location's sub-screen, used by NetVault, Doc Wire's Clinic,
+  RoboDOJO, Fixer Board, and Chrome Noodle Bar. A `Table.grid(padding=
+  (0, 4), expand=True)` splits the 120-column layout into an NPC
+  dialogue panel (bio, a `Rule`, one quoted line) on the left and a
+  titled operational-data panel (key/value rows, optionally an extra
+  table like RoboDOJO's training costs) on the right. Anything that
+  doesn't fit a compact side panel — the Fixer/Endr3am contract
+  listings — stays its own full-width block below the deck instead of
+  being squeezed in.
 
 ## 10. Build Phases (suggested order)
 

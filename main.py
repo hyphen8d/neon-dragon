@@ -18,7 +18,7 @@ from engine.ui import hotkey_bracket, hotkey_prompt, read_choice
 
 console = Console(width=120, highlight=False)
 
-VERSION = "Alpha 1.5"
+VERSION = "Alpha 2.0"
 
 LORE = (
     "Neo Meridian never sleeps and never forgives. Corp towers own the sky, "

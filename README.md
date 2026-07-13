@@ -1,6 +1,6 @@
 # Neon Dragon
 
-**Alpha 1.5**
+**Alpha 2.0**
 
 A single-player, terminal-based RPG set in a cyberpunk vaporwave city —
 Neo Meridian. No server, no accounts, no web frontend. Just a Python
@@ -90,7 +90,7 @@ Adding or tuning content is a data edit, not a code change.
 
 ## Status
 
-Alpha 1.5. Every hub location has real mechanics; the current "end
+Alpha 2.0. Every hub location has real mechanics; the current "end
 game" is working through Fixer Board and Chrome Noodle Bar contracts,
 with a day-cycle economy layered on top of it. See the "What's not
 built yet" section of `PLAYER_GUIDE.md` for known gaps.

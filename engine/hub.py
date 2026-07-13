@@ -8,6 +8,7 @@ from rich import box
 from rich.console import Console
 from rich.panel import Panel
 from rich.prompt import IntPrompt
+from rich.rule import Rule
 from rich.table import Table
 
 from engine.bestiary import enemy_faction
@@ -47,6 +48,7 @@ from engine.status_effects import EFFECT_LABELS, apply_effect, cure_all
 from engine.theme import (
     ACCENT,
     ACCENT_SOFT,
+    ALERT,
     BORDER,
     BORDER_ACCENT,
     BORDER_RARE,
@@ -113,6 +115,10 @@ LOCATION_DESCRIPTIONS: dict[str, str] = {
         "pooling in cracks where the pavement gave up years ago. Something "
         "always seems to be watching from the dark — a drone, a ganger, a "
         "rat the size of a housecat, hard to say which."
+        "\n\n[bright_magenta]LOCAL AREA NETSCAN:[/bright_magenta]\n"
+        "  » Slice Drop Box      — High-yield corporate node hack. Scaled by Tech. High risk of Trace & Corp Ambush.\n"
+        "  » Find a Fight       — Guaranteed localized enemy intercept. Optimal for raw XP grinding.\n"
+        "  » Hunt Cache         — Passive scanner sweep for forgotten underworld drops. Low risk, unless Heat is high."
     ),
     "NetVault": (
         "Chrome and glass, cold as a server room because it technically is "
@@ -265,6 +271,48 @@ def print_menu_divider(label: str) -> None:
     console.rule(f"[{TEXT_DIM}]{label}[/{TEXT_DIM}]", style=TEXT_DIM)
 
 
+def _npc_panel(npc: dict) -> Panel:
+    """Left half of a location's Interaction Deck — an NPC's bio, a rule,
+    and one line of dialogue, framed in its own bordered box."""
+    body = Table.grid(padding=(0, 0))
+    body.add_column()
+    body.add_row(f"[{TEXT_DIM} italic]{npc['bio']}[/{TEXT_DIM} italic]")
+    body.add_row(Rule(style=TEXT_DIM))
+    body.add_row(f"[italic]“{random_line(npc)}”[/italic]")
+    return Panel(body, title=f"[{INFO}]{npc['name']}[/{INFO}]", border_style=BORDER, padding=(1, 2))
+
+
+def _station_data_panel(title: str, rows: list[tuple[str, str]], extra: Table | None = None) -> Panel:
+    """Right half of a location's Interaction Deck — borderless key/value
+    rows of the room's operational rates, optionally followed by a
+    fuller table (RoboDOJO's training costs, for instance)."""
+    body = Table.grid(padding=(0, 2))
+    body.add_column(style=TEXT_DIM, justify="right")
+    body.add_column(style=TEXT)
+    for label, value in rows:
+        body.add_row(label, value)
+
+    content = body
+    if extra is not None:
+        content = Table.grid()
+        content.add_column()
+        content.add_row(body)
+        content.add_row(extra)
+
+    return Panel(content, title=f"[{ACCENT}]{title}[/{ACCENT}]", border_style=BORDER_ACCENT, padding=(1, 2))
+
+
+def _interaction_deck(npc: dict, right_panel: Panel) -> None:
+    """Print the location's dual-panel dashboard: NPC dialogue on the
+    left, room diagnostics/operational rates on the right, side by side
+    across the full 120-column layout."""
+    grid = Table.grid(padding=(0, 4), expand=True)
+    grid.add_column(ratio=1)
+    grid.add_column(ratio=1)
+    grid.add_row(_npc_panel(npc), right_panel)
+    console.print(grid)
+
+
 JACK_IN_BASE_CHANCE = 0.30
 JACK_IN_TECH_SCALING = 0.04
 JACK_IN_MAX_CHANCE = 0.85
@@ -272,22 +320,34 @@ JACK_IN_CREDIT_RANGE = (15, 35)
 
 
 def _jack_in(character: Character) -> None:
-    console.print(f"[{TEXT_DIM}]You slot in, feel the local net grid light up around you.[/{TEXT_DIM}]")
+    console.print(
+        f"[{TEXT_DIM}]You locate a matte-black corporate drop box bolted to a wet brick wall, its "
+        f"security modules pulsing a cold amber. You slap your deck onto the link interface and "
+        f"begin fracturing the cryptographic seals...[/{TEXT_DIM}]"
+    )
     chance = min(JACK_IN_MAX_CHANCE, JACK_IN_BASE_CHANCE + character.tech * JACK_IN_TECH_SCALING)
     if random.random() < chance:
         low, high = JACK_IN_CREDIT_RANGE
         amount = random.randint(low, high) + character.tech // 2
         character.credits += amount
-        console.print(f"[{ACCENT}]Clean in, clean out.[/{ACCENT}] +{amount} credits.")
+        console.print(
+            f"[{LABEL}]Click. The internal magnetic latch fires and the reinforced hopper drops "
+            f"open.[/{LABEL}] You skim a hot corporate credit-chip off the tray! +{amount} credits."
+        )
         if random.random() < QUANTUM_CORE_DROP_CHANCE:
             character.quantum_cores += 1
             console.print(
-                f"[{INFO}]Buried in the data dump, something crystallizes — a Quantum Core.[/{INFO}] "
-                "+1 Quantum Core."
+                f"[{INFO}]The sub-grid crypto-seal completely ruptures, exposing the vault's "
+                f"high-tier logic core.[/{INFO}] Tucked deep behind the primary cooling rails, a "
+                "glowing Quantum Core clicks free. +1 Quantum Core."
             )
         return
 
-    console.print(f"[{DANGER}]Something pings back. You've been traced.[/{DANGER}]")
+    console.print(
+        f"[{ALERT}]FEEDBACK ALERT: A heavy Black-ICE counter-intrusion sub-routine snaps back "
+        f"through your deck, pinning your physical coordinates.[/{ALERT}] Overhead, an automated "
+        "corporate containment team deploys to neutralize the breach!"
+    )
     encounter = roll_combat_encounter(character.level, faction="Corp")
     console.print(f"[{TEXT_DIM}]{encounter['intro']}[/{TEXT_DIM}]")
     run_combat(character, encounter["enemy"])
@@ -299,15 +359,30 @@ def _find_a_fight(character: Character) -> None:
     run_combat(character, encounter["enemy"])
 
 
+CACHE_BASE_RISK_CHANCE = 0.10  # flat per-attempt risk, independent of Faction Heat
+
+
 def _scavenge(character: Character) -> None:
     hot = hot_factions(character)
     if hot and random.random() < AMBUSH_CHANCE:
         faction = random.choice(hot)
         console.print(
-            f"[{DANGER}]Wrong alley, wrong time — {faction} muscle jumps you mid-scavenge, "
-            f"looking for payback.[/{DANGER}]"
+            f"[{DANGER}]{faction} muscle jumps you while you're focused on sweeping the sector "
+            f"for low-frequency cache signals, looking for payback.[/{DANGER}]"
         )
         encounter = roll_combat_encounter(character.level, faction=faction)
+        console.print(f"[{TEXT_DIM}]{encounter['intro']}[/{TEXT_DIM}]")
+        run_combat(character, encounter["enemy"])
+        return
+
+    # Even at zero Heat, sweeping for caches isn't risk-free — otherwise
+    # it's an infinite farm loop. A flat baseline chance of getting caught
+    # applies to every attempt, on top of the Heat-triggered ambush above.
+    if random.random() < CACHE_BASE_RISK_CHANCE:
+        console.print(
+            f"[{DANGER}]Bad luck — you're not the only one sweeping this frequency tonight.[/{DANGER}]"
+        )
+        encounter = roll_combat_encounter(character.level)
         console.print(f"[{TEXT_DIM}]{encounter['intro']}[/{TEXT_DIM}]")
         run_combat(character, encounter["enemy"])
         return
@@ -326,25 +401,20 @@ def visit_undercity(character: Character) -> None:
     print_arrival(character, "Undercity")
 
     print_menu_divider("The Streets")
-    console.print(
-        f"[{TEXT_DIM}]Every fixer down here says the same thing about jacking in: do it quiet and "
-        f"you're a ghost by the time anyone notices. Get greedy, get sloppy, and the whole grid "
-        f"comes looking for you.[/{TEXT_DIM}]\n"
-    )
     choice = hotkey_prompt(
         console,
         [
-            ("J", "Jack in"),
-            ("F", "Find a fight"),
-            ("S", "Scavenge"),
+            ("S", "Slice Drop Box"),
+            ("F", "Find a Fight"),
+            ("H", "Hunt Cache"),
             ("L", "Leave"),
         ],
     )
-    if choice == "J":
+    if choice == "S":
         _jack_in(character)
     elif choice == "F":
         _find_a_fight(character)
-    elif choice == "S":
+    elif choice == "H":
         _scavenge(character)
 
 
@@ -381,18 +451,21 @@ def _withdraw(character: Character) -> None:
 def visit_netvault(character: Character) -> None:
     print_arrival(character, "NetVault")
 
-    npc = npc_at("NetVault")
-    console.print(f"[{INFO}]{npc['name']}[/{INFO}] [{TEXT_DIM}]— {npc['bio']}[/{TEXT_DIM}]")
-    console.print(f"  {random_line(npc)}")
-
-    print_menu_divider("Banking")
     for result in notify_step(character, "talk", "NetVault"):
         print_quest_result(console, character, result)
 
-    console.print(
-        f"On hand: [{CREDITS}]{character.credits}[/{CREDITS}]   "
-        f"Banked: [{CREDITS}]{character.banked_credits}[/{CREDITS}] [{TEXT_DIM}](safe from death-loss)[/{TEXT_DIM}]"
+    print_menu_divider("Banking")
+    right_panel = _station_data_panel(
+        "VAULT LEDGER",
+        [
+            ("On Hand", f"[{CREDITS}]{character.credits}[/{CREDITS}]"),
+            ("Banked", f"[{CREDITS}]{character.banked_credits}[/{CREDITS}]"),
+            ("Safety", f"[{TEXT_DIM}]Banked credits are safe from death-loss[/{TEXT_DIM}]"),
+            ("Security", "Agent Parker + K9 unit on the floor"),
+        ],
     )
+    _interaction_deck(npc_at("NetVault"), right_panel)
+    console.print(f"[{TEXT_DIM}]{random_line(get_npc('agent_parker'))}[/{TEXT_DIM}]")
 
     action = hotkey_prompt(console, [("D", "Deposit"), ("W", "Withdraw"), ("L", "Leave")])
     if action == "D":
@@ -487,22 +560,26 @@ def _cure(character: Character) -> None:
 def visit_doc_wires_clinic(character: Character) -> None:
     print_arrival(character, "Doc Wire's Clinic")
 
-    npc = npc_at("Doc Wire's Clinic")
-    console.print(f"[{INFO}]{npc['name']}[/{INFO}] [{TEXT_DIM}]— {npc['bio']}[/{TEXT_DIM}]")
-    console.print(f"  {random_line(npc)}")
-
-    print_menu_divider("Clinic Menu")
     for result in notify_step(character, "talk", "Doc Wire's Clinic"):
         print_quest_result(console, character, result)
 
-    console.print(
-        f"HP: [bold]{character.hp}/{character.max_hp}[/bold]   "
-        f"Patch-up rate: {HEAL_COST_PER_HP} credits/HP   "
-        f"Cure rate: {CURE_COST} credits flat"
+    print_menu_divider("Clinic Menu")
+    hp_color = hp_style(character.hp, character.max_hp)
+    effects_text = (
+        ", ".join(EFFECT_LABELS.get(e, e) for e in character.status_effects)
+        if character.status_effects
+        else f"[{TEXT_DIM}]None[/{TEXT_DIM}]"
     )
-    if character.status_effects:
-        labels = ", ".join(EFFECT_LABELS.get(e, e) for e in character.status_effects)
-        console.print(f"[{WARNING}]Active effects:[/{WARNING}] {labels}")
+    right_panel = _station_data_panel(
+        "MEDBAY STATUS",
+        [
+            ("HP", f"[{hp_color}]{character.hp}/{character.max_hp}[/{hp_color}]"),
+            ("Patch-up Rate", f"{HEAL_COST_PER_HP} credits/HP"),
+            ("Cure Cost", f"{CURE_COST} credits flat"),
+            ("Active Effects", effects_text),
+        ],
+    )
+    _interaction_deck(npc_at("Doc Wire's Clinic"), right_panel)
 
     can_afford_heal = character.credits >= HEAL_COST_PER_HP
     can_afford_cure = character.credits >= CURE_COST
@@ -547,7 +624,9 @@ def _train_cost(current_value: int) -> int:
 
 def visit_robodojo(character: Character) -> None:
     print_arrival(character, "RoboDOJO")
-    console.print(f"[{TEXT_DIM}]A training drone powers up, servos whirring, waiting for you to pick a discipline.[/{TEXT_DIM}]")
+
+    for result in notify_step(character, "talk", "RoboDOJO"):
+        print_quest_result(console, character, result)
 
     print_menu_divider("Training")
     table = Table(border_style=BORDER, show_header=False)
@@ -561,7 +640,14 @@ def visit_robodojo(character: Character) -> None:
         affordable = character.credits >= cost
         affordable_stats[key] = affordable
         table.add_row(hotkey_bracket(key, label, affordable), str(current), str(cost))
-    console.print(table)
+
+    right_panel = _station_data_panel(
+        "TRAINING LOG",
+        [("Credits", f"[{CREDITS}]{character.credits}[/{CREDITS}]")],
+        extra=table,
+    )
+    _interaction_deck(npc_at("RoboDOJO"), right_panel)
+    console.print(f"[{TEXT_DIM}]A training drone powers up, servos whirring, waiting for you to pick a discipline.[/{TEXT_DIM}]")
 
     options = [(k, label) for k, (_, label) in TRAINABLE_STATS.items()]
     menu_text = OPTION_SEPARATOR.join(
@@ -630,25 +716,33 @@ REST_THRESHOLD = 0.5  # free rest tops you up to this fraction of max HP, no fur
 def visit_chrome_noodle_bar(character: Character) -> None:
     print_arrival(character, "Chrome Noodle Bar")
 
-    npc = npc_at("Chrome Noodle Bar")
-    console.print(f"[{INFO}]{npc['name']}[/{INFO}] [{TEXT_DIM}]— {npc['bio']}[/{TEXT_DIM}]")
-    console.print(f"  {random_line(npc)}")
-
     for result in notify_step(character, "talk", "Chrome Noodle Bar"):
         print_quest_result(console, character, result)
 
     rest_floor = int(character.max_hp * REST_THRESHOLD)
     if character.hp >= rest_floor:
-        console.print(f"\n[{TEXT_DIM}]You're rested enough already. No need to linger.[/{TEXT_DIM}]")
+        rest_text = f"[{TEXT_DIM}]Already rested — no free heal available[/{TEXT_DIM}]"
     else:
         healed = rest_floor - character.hp
         character.hp = rest_floor
-        console.print(
-            f"\n[{ACCENT}]You crash in a booth for a while, noodles going cold.[/{ACCENT}] "
-            f"+{healed} HP, on the house."
-        )
+        rest_text = f"[{ACCENT}]+{healed} HP, on the house[/{ACCENT}]"
 
-    console.print()
+    board_active = [
+        quest_id for quest_id in character.active_quests if get_quest(quest_id).get("board", "Fixer Board") == "Chrome Noodle Bar"
+    ]
+    round_status = (
+        f"[{TEXT_DIM}]Already had one today[/{TEXT_DIM}]" if character.bought_round_today else f"{BUY_ROUND_COST} credits"
+    )
+    right_panel = _station_data_panel(
+        "BAR TAB",
+        [
+            ("Free Rest", rest_text),
+            ("Buy a Round", round_status),
+            ("Active Contracts", str(len(board_active))),
+        ],
+    )
+    _interaction_deck(npc_at("Chrome Noodle Bar"), right_panel)
+
     choice = hotkey_prompt(
         console,
         [("B", "Buy a round"), ("C", "Check the shady booth in the back"), ("L", "Leave")],
@@ -759,13 +853,25 @@ def _browse_contract_board(character: Character, board: str) -> None:
 def visit_fixer_board(character: Character) -> None:
     print_arrival(character, "Fixer Board")
 
-    npc = npc_at("Fixer Board")
-    console.print(f"[{INFO}]{npc['name']}[/{INFO}] [{TEXT_DIM}]— {npc['bio']}[/{TEXT_DIM}]")
-    console.print(f"  {random_line(npc)}")
-
-    print_menu_divider("Contract Board")
     for result in notify_step(character, "talk", "Fixer Board"):
         print_quest_result(console, character, result)
+
+    print_menu_divider("Contract Board")
+    board_active = [
+        quest_id for quest_id in character.active_quests if get_quest(quest_id).get("board", "Fixer Board") == "Fixer Board"
+    ]
+    board_completed = [
+        quest_id for quest_id in character.completed_quests if get_quest(quest_id).get("board", "Fixer Board") == "Fixer Board"
+    ]
+    right_panel = _station_data_panel(
+        "BOARD STATUS",
+        [
+            ("Reputation", str(character.reputation)),
+            ("Contracts Active", str(len(board_active))),
+            ("Contracts Completed", str(len(board_completed))),
+        ],
+    )
+    _interaction_deck(npc_at("Fixer Board"), right_panel)
     _browse_contract_board(character, "Fixer Board")
 
 

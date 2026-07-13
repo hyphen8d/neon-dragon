@@ -122,7 +122,7 @@
       "type": "loot",
       "weight": 18,
       "min_level": 1,
-      "intro": "You spot a stash tucked behind a dead vending unit — someone's old cache.",
+      "intro": "Your scanner picks up a faint underground frequency. Hidden behind a dead vending terminal, you pry loose a rusty, forgotten black-market drop box.",
       "credits": [10, 35]
     },
     {
@@ -130,7 +130,7 @@
       "type": "nothing",
       "weight": 20,
       "min_level": 1,
-      "intro": "Rain hisses off warm concrete. Just static and neon tonight. Nothing bites."
+      "intro": "Your scanner pulses against stripped fiber-optics and empty dead links. Just rain and neon static tonight. This cache sector has been picked completely clean."
     }
   ]
 }
