@@ -10,7 +10,7 @@ from rich.prompt import IntPrompt, Prompt
 from rich.table import Table
 
 from engine.bestiary import enemy_faction
-from engine.character import CYBERWARE_SLOTS, Character
+from engine.character import CYBERWARE_SLOTS, Character, hp_style
 from engine.combat import run_combat
 from engine.encounters import roll_encounter
 from engine.help import show_help
@@ -90,10 +90,11 @@ LOCATION_DESCRIPTIONS: dict[str, str] = {
 
 
 def print_status(character: Character) -> None:
+    style = hp_style(character.hp, character.max_hp)
     console.print(
         f"[bright_cyan]{character.name}[/bright_cyan] "
         f"[dim](Lvl {character.level} {character.char_class})[/dim]   "
-        f"HP [bold]{character.hp}/{character.max_hp}[/bold]   "
+        f"HP [{style}]{character.hp}/{character.max_hp}[/{style}]   "
         f"Credits [bold yellow]{character.credits}[/bold yellow]   "
         f"Banked [bold yellow]{character.banked_credits}[/bold yellow]"
     )
@@ -414,10 +415,16 @@ def _browse_contract_board(character: Character, board: str) -> None:
 
     locked = locked_quests(character, board)
     if locked:
-        console.print(
-            f"\n[dim]{len(locked)} more contract(s) here need more reputation or charisma "
-            f"before they'll be offered.[/dim]"
-        )
+        console.print("\n[dim]Locked contracts:[/dim]")
+        for quest in locked:
+            gaps = []
+            min_rep = quest.get("min_reputation", 0)
+            if character.reputation < min_rep:
+                gaps.append(f"Reputation {min_rep} (have {character.reputation})")
+            min_cha = quest.get("min_charisma", 0)
+            if character.charisma < min_cha:
+                gaps.append(f"Charisma {min_cha} (have {character.charisma})")
+            console.print(f"  [dim]{quest['title']} — needs {', '.join(gaps)}[/dim]")
 
     open_quests = available_quests(character, board)
     if not open_quests:
@@ -593,7 +600,8 @@ def show_character_info(character: Character) -> None:
     attributes = _themed_table("Attributes")
     attributes.add_row("Level", str(character.level))
     attributes.add_row("XP", f"{character.xp}/{xp_for_next_level(character)}")
-    attributes.add_row("HP", f"{character.hp}/{character.max_hp}")
+    hp_row_style = hp_style(character.hp, character.max_hp)
+    attributes.add_row("HP", f"[{hp_row_style}]{character.hp}/{character.max_hp}[/{hp_row_style}]")
     attributes.add_row("Attack", str(character.attack))
     attributes.add_row("Defense", str(character.defense))
     attributes.add_row("Tech", str(character.tech))

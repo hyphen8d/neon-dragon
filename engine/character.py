@@ -68,3 +68,15 @@ class Character:
     @classmethod
     def from_dict(cls, data: dict) -> "Character":
         return cls(**data)
+
+
+def hp_style(hp: int, max_hp: int) -> str:
+    """Rich style name for displaying HP, colored by danger level."""
+    if max_hp <= 0:
+        return "bold white"
+    ratio = hp / max_hp
+    if ratio <= 0.25:
+        return "bold red"
+    if ratio <= 0.5:
+        return "bold yellow"
+    return "bold white"

@@ -8,7 +8,7 @@ from dataclasses import dataclass
 from rich.console import Console
 from rich.prompt import Prompt
 
-from engine.character import Character
+from engine.character import Character, hp_style
 from engine.leveling import check_level_up
 from engine.quests import notify_step, print_quest_result
 from engine.status_effects import EFFECT_LABELS, apply_effect, process_round_start
@@ -49,9 +49,14 @@ def run_combat(character: Character, enemy_data: dict) -> None:
         if character.hp <= 0:
             break
 
+        style = hp_style(character.hp, character.max_hp)
+        effects_text = ""
+        if character.status_effects:
+            parts = [f"{EFFECT_LABELS.get(e, e)} ({r})" for e, r in character.status_effects.items()]
+            effects_text = f"   [yellow]{', '.join(parts)}[/yellow]"
         console.print(
-            f"\n[bright_cyan]{character.name}[/bright_cyan] HP {character.hp}/{character.max_hp}   "
-            f"[red]{enemy.name}[/red] HP {max(enemy.hp, 0)}"
+            f"\n[bright_cyan]{character.name}[/bright_cyan] HP [{style}]{character.hp}/{character.max_hp}[/{style}]"
+            f"{effects_text}   [red]{enemy.name}[/red] HP {max(enemy.hp, 0)}"
         )
 
         defending = False

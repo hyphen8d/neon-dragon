@@ -8,11 +8,11 @@ from rich.prompt import IntPrompt, Prompt
 from rich.table import Table
 from rich.text import Text
 
-from engine.character import CLASSES, Character
+from engine.character import CLASSES, Character, hp_style
 from engine.help import show_help
 from engine.hub import enter_hub
 from engine.leveling import xp_for_next_level
-from engine.save import list_saves, load_character, save_character, save_exists
+from engine.save import delete_save, list_saves, load_character, save_character, save_exists
 
 console = Console(highlight=False)
 
@@ -40,8 +40,9 @@ def print_main_menu() -> None:
     table.add_column("Action", style="bold white")
     table.add_row("1", "New Merc")
     table.add_row("2", "Load Merc")
-    table.add_row("3", "Help")
-    table.add_row("4", "Quit")
+    table.add_row("3", "Delete Merc")
+    table.add_row("4", "Help")
+    table.add_row("5", "Quit")
     console.print(table)
 
 
@@ -52,7 +53,8 @@ def print_character_sheet(character: Character) -> None:
     table.add_column("Value", style="bold white")
     table.add_row("Level", str(character.level))
     table.add_row("XP", f"{character.xp}/{xp_for_next_level(character)}")
-    table.add_row("HP", f"{character.hp}/{character.max_hp}")
+    style = hp_style(character.hp, character.max_hp)
+    table.add_row("HP", f"[{style}]{character.hp}/{character.max_hp}[/{style}]")
     table.add_row("Attack", str(character.attack))
     table.add_row("Defense", str(character.defense))
     table.add_row("Tech", str(character.tech))
@@ -113,7 +115,7 @@ def create_character() -> Character:
     return character
 
 
-def choose_existing_save() -> str | None:
+def choose_existing_save(verb: str = "Load") -> str | None:
     slugs = list_saves()
     if not slugs:
         console.print("[dim]No mercs found on file.[/dim]")
@@ -127,7 +129,7 @@ def choose_existing_save() -> str | None:
     console.print(table)
 
     choice = IntPrompt.ask(
-        "Load which merc? (0 to cancel)",
+        f"{verb} which merc? (0 to cancel)",
         choices=[str(i) for i in range(len(slugs) + 1)],
         show_choices=False,
     )
@@ -136,12 +138,29 @@ def choose_existing_save() -> str | None:
     return slugs[choice - 1]
 
 
+def delete_character() -> None:
+    slug = choose_existing_save(verb="Delete")
+    if slug is None:
+        return
+
+    name = slug.replace("_", " ")
+    confirm = Prompt.ask(
+        f"Really delete '{name}'? This can't be undone. "
+        f"[bright_magenta]1[/bright_magenta] Yes  [bright_magenta]0[/bright_magenta] No",
+        choices=["0", "1"],
+        show_choices=False,
+    )
+    if confirm == "1":
+        delete_save(slug)
+        console.print(f"[red]{name} deleted.[/red]")
+
+
 def main() -> None:
     print_title()
     while True:
         console.print()
         print_main_menu()
-        choice = Prompt.ask("Choose", choices=["1", "2", "3", "4"], show_choices=False)
+        choice = Prompt.ask("Choose", choices=["1", "2", "3", "4", "5"], show_choices=False)
 
         if choice == "1":
             character = create_character()
@@ -153,6 +172,9 @@ def main() -> None:
             console.print()
             print_character_sheet(character)
         elif choice == "3":
+            delete_character()
+            continue
+        elif choice == "4":
             show_help(console)
             continue
         else:
