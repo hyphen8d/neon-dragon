@@ -66,3 +66,13 @@ tuning content is a data edit, not a code change.
 Alpha 1.0. Every hub location has real mechanics; the current "end
 game" is working through Fixer Board contracts. See the "What's not
 built yet" section of `PLAYER_GUIDE.md` for known gaps.
+
+## Credits
+
+Built by Matthew Arevalo ([Gial Ventures](mailto:matt@gial.co)) with
+[Claude](https://claude.com) via [Claude Code](https://claude.com/claude-code).
+
+## License
+
+[MIT](LICENSE) — free to use, modify, and distribute. Keep the
+copyright notice.
