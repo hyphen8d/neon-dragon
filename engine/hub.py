@@ -11,6 +11,7 @@ from rich.table import Table
 from engine.character import Character
 from engine.combat import run_combat
 from engine.encounters import roll_encounter
+from engine.npcs import npc_at, random_line
 
 console = Console()
 
@@ -65,6 +66,18 @@ def visit_undercity(character: Character) -> None:
     # "nothing" encounters just print their flavor line above.
 
 
+def visit_location(character: Character, location: str) -> None:
+    console.print(f"\n[bright_magenta]{location}[/bright_magenta] — [dim]{LOCATIONS[location]}[/dim]")
+
+    npc = npc_at(location)
+    if npc is None:
+        console.print("[dim](nothing to do here yet — coming in a later phase)[/dim]")
+        return
+
+    console.print(f"[bold cyan]{npc['name']}[/bold cyan] [dim]— {npc['bio']}[/dim]")
+    console.print(f"  {random_line(npc)}")
+
+
 def enter_hub(character: Character) -> None:
     location_names = list(LOCATIONS.keys())
     while True:
@@ -83,7 +96,5 @@ def enter_hub(character: Character) -> None:
 
         if chosen == "Undercity":
             visit_undercity(character)
-            continue
-
-        console.print(f"\n[bright_magenta]{chosen}[/bright_magenta] — [dim]{LOCATIONS[chosen]}[/dim]")
-        console.print("[dim](nothing to do here yet — coming in a later phase)[/dim]")
+        else:
+            visit_location(character, chosen)
