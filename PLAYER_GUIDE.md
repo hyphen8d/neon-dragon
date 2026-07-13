@@ -12,17 +12,13 @@ no daily turn limit — play as long as you like in one sitting.
 
 ## Classes
 
-Three classes, each a different balance of the same stats:
+Two classes right now, each a different balance of the same stats (a
+third, charisma-focused class is pulled pending a redesign):
 
 - **Street Samurai** — high HP and Attack, low Tech. Built to punch
   through fights with raw damage.
 - **Netrunner** — low HP and Attack, high Tech. Built around the
   Tech/Hack combat action instead of Attack.
-- **Grifter** — high Charisma, everything else middling. Talks fast,
-  moves smoothly, and survives on street-smarts. Doesn't hit as hard
-  or hack as deep as the other two, but its edge shows up in the
-  economy: cheaper cyberware and cheaper trauma bills (see Stats and
-  Combat below).
 
 ## Stats
 
@@ -201,12 +197,10 @@ Each round you pick:
 - **Flee** — coin-flip chance to escape with no reward either way.
 
 Attack and Tech/Hack narration is gear-aware — a bare fist reads
-nothing like a Chrome Arm punch or Razor Claws, and an unaugmented
-Grifter improvises with a zip-gun or a spoofed credential token
-instead of a generic swing. The verb itself also scales with how hard
-you hit: a 2-damage tap "grazes," an 8-damage hit "strikes," and
-anything 9+ "shatters" or worse. Same system applies to enemy hits
-against you.
+nothing like a Chrome Arm punch or Razor Claws. The verb itself also
+scales with how hard you hit: a 2-damage tap "grazes," an 8-damage hit
+"strikes," and anything 9+ "shatters" or worse. Same system applies to
+enemy hits against you.
 
 Each class also gets a signature move, on a 3-round cooldown (usable
 turn 1, then locked out for 3 rounds after each use):
@@ -346,7 +340,8 @@ before then.
 ## Saving
 
 One JSON save file per character, named after them. The game saves
-automatically whenever you leave the hub back to the main menu.
+automatically whenever you leave the hub, and also on exit — even an
+unexpected one — so nothing since your last visit is lost.
 
 ## What's not built yet
 
@@ -354,6 +349,6 @@ A few things mentioned in the game's design notes but not implemented:
 
 - Charisma still has no effect on dialogue.
 - No ability/skill system beyond each class's single combat special —
-  RoboDOJO trains stats, not abilities, and the Grifter doesn't have
-  a combat special (its build strength is economic instead).
+  RoboDOJO trains stats, not abilities.
+- A third, charisma-focused class is pulled pending a redesign.
 - No fetch/deliver contracts — only talk/kill steps exist so far.

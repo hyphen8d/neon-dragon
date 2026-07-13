@@ -14,8 +14,7 @@ BLACK_MARKET_PATH = Path(__file__).resolve().parent.parent / "content" / "black_
 
 SELL_BACK_RATE = 0.5
 
-# Every point of Charisma haggles 2% off cyberware, capped at 40% —
-# the Grifter's headline economic edge (see CLASSES in character.py).
+# Every point of Charisma haggles 2% off cyberware, capped at 40%.
 CHARISMA_DISCOUNT_PER_POINT = 0.02
 CHARISMA_DISCOUNT_CAP = 0.40
 

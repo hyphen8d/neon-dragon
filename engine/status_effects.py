@@ -23,6 +23,15 @@ EFFECT_LABELS: dict[str, str] = {
     "drunk": f"[{WARNING}][☣ DRUNK][/{WARNING}]",
 }
 
+# Plain adjective form for narration that embeds the effect mid-sentence
+# (e.g. "leaves you bleeding!") — EFFECT_LABELS is a styled badge, not
+# grammatical prose, so it can't just be lowercased for that.
+EFFECT_ADJECTIVES: dict[str, str] = {
+    "bleed": "bleeding",
+    "stunned": "stunned",
+    "drunk": "drunk",
+}
+
 DRUNK_STAT_PENALTY = 3
 
 

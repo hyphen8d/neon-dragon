@@ -45,24 +45,26 @@ def buy_item(character: Character, item_id: str) -> dict[str, Any]:
 
 
 def use_item(character: Character, item_id: str, console: Console, enemy: Any = None) -> None:
-    """Consume one copy of an item from inventory and apply its effect.
-    `enemy` is required for enemy-targeted effects (e.g. stun); heal-type
-    effects ignore it."""
+    """Apply an item's effect and, only if it actually did something, consume
+    one copy from inventory. `enemy` is required for enemy-targeted effects
+    (e.g. stun); heal-type effects ignore it. A heal at full HP or a stun
+    that fizzles on the wrong faction leaves the item uncharged rather than
+    burning it for nothing."""
     item = get_usable_item(item_id)
-    character.inventory.remove(item_id)
 
     if item["effect"] == "heal":
-        old_hp = character.hp
         missing = character.max_hp - character.hp
         healed = min(missing, item["amount"])
-        character.hp += healed
-        if healed > 0:
-            console.print(
-                f"[{ACCENT}]{item['name']} used.[/{ACCENT}] +{healed} HP. "
-                f"[{TEXT_DIM}](Your HP: {old_hp} -> {character.hp})[/{TEXT_DIM}]"
-            )
-        else:
+        if healed <= 0:
             console.print(f"[{TEXT_DIM}]{item['name']} used, but you're already at full health.[/{TEXT_DIM}]")
+            return
+        character.inventory.remove(item_id)
+        old_hp = character.hp
+        character.hp += healed
+        console.print(
+            f"[{ACCENT}]{item['name']} used.[/{ACCENT}] +{healed} HP. "
+            f"[{TEXT_DIM}](Your HP: {old_hp} -> {character.hp})[/{TEXT_DIM}]"
+        )
         return
 
     if item["effect"] == "stun":
@@ -76,6 +78,7 @@ def use_item(character: Character, item_id: str, console: Console, enemy: Any = 
                 f"it's built for.[/{TEXT_DIM}]"
             )
             return
+        character.inventory.remove(item_id)
         apply_effect(enemy, "stunned", item["duration"])
         console.print(
             f"[{INFO}]{item['name']}![/{INFO}] {enemy.name}'s systems lock up — "

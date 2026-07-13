@@ -17,25 +17,20 @@ CLASSES: dict[str, dict] = {
         "charisma": 3,
     },
     "Netrunner": {
-        "flavor": "Jacked into the net more than the street. Fights with code and drones.",
+        # Kept short enough to fit the class-select table's Flavor column
+        # on one line at the game's fixed 120-column width — see main.py's
+        # choose_class(), which is the only place CLASSES[...]['flavor'] renders.
+        "flavor": "More wired into the net than the street. Fights with code.",
         "hp": 22,
         "attack": 3,
         "defense": 3,
         "tech": 9,
         "charisma": 4,
     },
-    "Grifter": {
-        "flavor": (
-            "Talks fast, moves smoothly, and survives on street-smarts. Uses "
-            "charisma and social engineering to bypass problems that steel or "
-            "code can't touch."
-        ),
-        "hp": 24,
-        "attack": 4,
-        "defense": 4,
-        "tech": 4,
-        "charisma": 9,
-    },
+    # Grifter (charisma-focused) is pulled for now, pending a redesigned
+    # third class. Charisma itself stays a live stat — it still gates
+    # Endr3am's contracts, discounts Hyphen8d's Hut, and softens the
+    # trauma bill — it's just not any class's headline stat right now.
 }
 
 

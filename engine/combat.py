@@ -15,7 +15,14 @@ from engine.inventory import describe_effect, get_usable_item, use_item
 from engine.leveling import check_level_up
 from engine.quests import notify_step, print_quest_result
 from engine.shop import get_item
-from engine.status_effects import DRUNK_STAT_PENALTY, EFFECT_LABELS, apply_effect, has_effect, process_round_start
+from engine.status_effects import (
+    DRUNK_STAT_PENALTY,
+    EFFECT_ADJECTIVES,
+    EFFECT_LABELS,
+    apply_effect,
+    has_effect,
+    process_round_start,
+)
 from engine.theme import (
     ACCENT,
     ACCENT_SOFT,
@@ -142,15 +149,6 @@ EMPTY_ARM_FLAVOR = [
 ]
 EMPTY_TECH_FLAVOR = [
     "Your flood of basic ping spam {verb} {enemy}'s network ports for {dmg} damage.",
-]
-
-# An unaugmented Grifter improvises instead of throwing a bare fist or
-# script-kiddie ping spam — dirty tricks instead of chrome.
-GRIFTER_ATTACK_FLAVOR = [
-    "Your hidden zip-gun pocket piece {verb} {enemy} for {dmg} damage.",
-]
-GRIFTER_TECH_FLAVOR = [
-    "Your spoofed administrative credential token {verb} {enemy}'s circuits for {dmg} damage.",
 ]
 
 DODGE_FLAVOR = [
@@ -356,21 +354,18 @@ def _gear_inflict(character: Character, enemy: Enemy, slot: str, console: Consol
         return
     if not apply_effect(enemy, effect, item.get("inflict_duration", 1)):
         return
-    label = EFFECT_LABELS.get(effect, effect)
-    console.print(_player_line(f"[{WARNING}]{item['name']} leaves {enemy.name} {label.lower()}![/{WARNING}]"))
+    adjective = EFFECT_ADJECTIVES.get(effect, effect)
+    console.print(_player_line(f"[{WARNING}]{item['name']} leaves {enemy.name} {adjective}![/{WARNING}]"))
 
 
 def _hit_flavor(character: Character, action_type: str, enemy_name: str, dmg: int) -> str:
     """Pick a hit description tailored to whatever's (or isn't) equipped in
     the slot this action uses — a Chrome Arm punch reads nothing like a
-    bare-knuckle brawl, and an unaugmented Grifter improvises with dirty
-    tricks instead of throwing a generic fist or script-kiddie ping spam."""
+    bare-knuckle brawl."""
     if action_type == "attack":
-        slot, gear_flavor = "arm", ARM_HIT_FLAVOR
-        empty_flavor = GRIFTER_ATTACK_FLAVOR if character.char_class == "Grifter" else EMPTY_ARM_FLAVOR
+        slot, gear_flavor, empty_flavor = "arm", ARM_HIT_FLAVOR, EMPTY_ARM_FLAVOR
     else:
-        slot, gear_flavor = "eyes", EYES_HIT_FLAVOR
-        empty_flavor = GRIFTER_TECH_FLAVOR if character.char_class == "Grifter" else EMPTY_TECH_FLAVOR
+        slot, gear_flavor, empty_flavor = "eyes", EYES_HIT_FLAVOR, EMPTY_TECH_FLAVOR
 
     item_id = character.cyberware.get(slot)
     if item_id and item_id in gear_flavor:
@@ -422,14 +417,18 @@ def run_combat(character: Character, enemy_data: dict) -> bool:
 
     while character.hp > 0 and enemy.alive:
         console.clear()
+        # Decrement before drawing anything this round, so the HUD panel
+        # and the action menu's cooldown label always agree — previously
+        # the HUD showed the pre-decrement value and the menu showed the
+        # post-decrement one, disagreeing by one round every fight.
+        if special_cooldown > 0:
+            special_cooldown -= 1
         _print_combat_hud(character, enemy, enemy_max_hp, special, special_cooldown)
         console.print()
 
         stunned = process_round_start(character, console, is_player=True)
         if character.hp <= 0:
             break
-        if special_cooldown > 0:
-            special_cooldown -= 1
 
         defending = False
         if stunned:
@@ -512,8 +511,8 @@ def run_combat(character: Character, enemy_data: dict) -> bool:
 
             if enemy.inflict_effect and random.random() < enemy.inflict_chance:
                 apply_effect(character, enemy.inflict_effect, enemy.inflict_duration)
-                label = EFFECT_LABELS.get(enemy.inflict_effect, enemy.inflict_effect)
-                console.print(_enemy_line(f"[{WARNING}]The hit leaves you {label.lower()}![/{WARNING}]"))
+                adjective = EFFECT_ADJECTIVES.get(enemy.inflict_effect, enemy.inflict_effect)
+                console.print(_enemy_line(f"[{WARNING}]The hit leaves you {adjective}![/{WARNING}]"))
 
         # The round's over but the fight isn't — pause here so the player
         # actually gets to read what just happened before the next round's
@@ -556,7 +555,7 @@ TRAUMA_BILL_BASE = 40
 TRAUMA_BILL_PER_LEVEL = 15
 
 # Every point of Charisma talks the trauma team down 3%, capped at 45% —
-# a Grifter can smooth-talk their way out of most of the bill.
+# a high-Charisma build can smooth-talk their way out of most of the bill.
 CHARISMA_BILL_DISCOUNT_PER_POINT = 0.03
 CHARISMA_BILL_DISCOUNT_CAP = 0.45
 

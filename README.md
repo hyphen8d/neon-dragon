@@ -28,9 +28,9 @@ python3 -m venv .venv
 
 ## Features
 
-- Character creation — 3 classes (Street Samurai, Netrunner, Grifter),
-  each a different balance of the same stats, each with its own
-  economic or combat edge (see below)
+- Character creation — 2 classes (Street Samurai, Netrunner), each a
+  different balance of the same stats (a third, charisma-focused class
+  is pulled for now pending a redesign)
 - A hub of 8 locations in Neo Meridian, each with real mechanics:
   Undercity (Jack In / Find a Fight / Scavenge), NetVault (banking),
   Hyphen8d's Hut (cyberware with a daily rotating stock and market

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import re
 from pathlib import Path
 
 from engine.character import Character
@@ -11,7 +12,10 @@ SAVES_DIR = Path(__file__).resolve().parent.parent / "saves"
 
 
 def _save_path(name: str) -> Path:
-    slug = name.strip().lower().replace(" ", "_")
+    # Collapse anything that isn't alphanumeric (spaces, slashes, dots...)
+    # to a single underscore so a stray character in a player-typed name
+    # can't break the file path or escape the saves/ directory.
+    slug = re.sub(r"[^a-z0-9]+", "_", name.strip().lower()).strip("_") or "merc"
     return SAVES_DIR / f"{slug}.json"
 
 

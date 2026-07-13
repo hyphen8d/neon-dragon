@@ -233,8 +233,12 @@ def main() -> None:
             console.print(f"[{TEXT_DIM}]Stay chrome.[/{TEXT_DIM}]")
             break
 
-        enter_hub(character)
-        save_character(character)
+        try:
+            enter_hub(character)
+        finally:
+            # Save even if the hub loop is interrupted (crash, Ctrl+C) —
+            # otherwise progress since the last sleep is silently lost.
+            save_character(character)
 
 
 if __name__ == "__main__":

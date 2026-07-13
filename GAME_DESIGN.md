@@ -25,7 +25,6 @@ A menu of locations the player travels between:
 | Healer                    | **Doc Wire's Clinic**     | Heal HP for credits, cure status effects |
 | Trainer                  | **RoboDOJO**              | Spar with training drones to train stats, learn new abilities |
 | Arena                     | **The Pit**               | PvE gladiator fights for reputation/credits |
-| Romance NPC (Violet)    | **[NPC of your choosing]** | Flavor relationship subplot             |
 | Leaderboard/contracts    | **Fixer Board**           | Leaderboard, contracts posted    |
 
 ## 3. Core Loop
@@ -54,9 +53,9 @@ The player is a cyber mercenary (**merc**) working Neo Meridian's edges.
   ranged), Charisma (contract-gating, shop discounts, trauma bill
   reduction), Credits, XP/Level.
 - Class flavor at creation: **Street Samurai** (melee-focused), **Netrunner**
-  (tech/hacking-focused), **Grifter** (charisma-focused — talks fast,
-  moves smoothly, survives on street-smarts; bypasses problems steel or
-  code can't touch). Charisma now carries real mechanical weight instead
+  (tech/hacking-focused). A third, charisma-focused class (previously
+  **Grifter**) is pulled for now pending a redesign — Charisma stays a
+  live stat regardless of class, carrying real mechanical weight instead
   of only gating two Chrome Noodle Bar contracts — see section 6 and
   section 7 for the shop discount and trauma bill reduction it grants.
 - Cyberware slots instead of traditional armor slots (arm, eyes, spine,
@@ -94,9 +93,10 @@ to contracts on either board and is tied to the same tiers that unlock
 Undercity's tougher enemies (`min_reputation`, `min_charisma`, `min_level`
 in the schema). 12 contracts total as of this pass. Beyond gating
 Endr3am's board, Charisma also gets Hyphen8d's Hut prices down (2%
-off per point, capped at 40%) — the Grifter's build strength shows up
-there rather than in raw combat stats. Some contracts unlock
-new hub locations or NPCs — not used yet, but the hook exists.
+off per point, capped at 40%) — a general economic lever any class can
+lean into, not tied to a specific class right now (see section 4). Some
+contracts unlock new hub locations or NPCs — not used yet, but the hook
+exists.
 
 **Dynamic economy** (`engine/shop.py`, rolled by `roll_daily_market` in
 `_sleep_and_advance_day`): each day, Hyphen8d's Hut restocks to a
@@ -153,8 +153,7 @@ along with a `_scan_readout()` line that shifts with the enemy's HP
 percentage (Nominal / Structural Degradation / Catastrophic Hardware
 Failure). Attack/Tech/Hack narration in `_player_hit` is gear-aware —
 `_hit_flavor` picks the line by what's equipped in the relevant
-cyberware slot (arm for Attack, eyes for Tech), with dedicated
-dirty-trick flavor for an unaugmented Grifter instead of the generic
+cyberware slot (arm for Attack, eyes for Tech) instead of a generic
 empty-slot line — and every hit line's verb is chosen by damage
 magnitude via `_impact_verb` (grazes/strikes/shatters tiers), so the
 same weapon reads differently at 2 damage vs. 15.
@@ -164,8 +163,7 @@ Street Samurai's **Samurai Slash** (1.5x damage, guaranteed Bleed,
 still dodgeable) and Netrunner's **Override System** (no damage,
 guaranteed 2-round Stun, bypasses dodge). Cooldown state lives in
 `run_combat`'s local loop, not on the saved Character — it resets
-every fight. The Grifter doesn't have a combat special (yet) — its
-build strength shows up in the economy instead (below).
+every fight.
 
 Charisma talks down the trauma bill from a lost fight: 3% off per
 point, capped at 45%. A high-Charisma build still goes down in a
