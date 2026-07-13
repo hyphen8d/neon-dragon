@@ -2,10 +2,9 @@
 
 **Alpha 1.0**
 
-A single-player, terminal-based RPG inspired by *Legend of the Red
-Dragon*, reskinned into a cyberpunk vaporwave city — Neo Meridian.
-No server, no accounts, no web frontend. Just a Python CLI you run in
-a terminal, with a local JSON save file per character.
+A single-player, terminal-based RPG set in a cyberpunk vaporwave city —
+Neo Meridian. No server, no accounts, no web frontend. Just a Python
+CLI you run in a terminal, with a local JSON save file per character.
 
 ## Requirements
 
