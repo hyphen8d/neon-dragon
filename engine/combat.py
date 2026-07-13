@@ -151,15 +151,23 @@ def _handle_victory(character: Character, enemy: Enemy) -> None:
         print_quest_result(console, character, result)
 
 
-TRAUMA_BILL = 40
+TRAUMA_BILL_BASE = 40
+TRAUMA_BILL_PER_LEVEL = 15
+
+
+def trauma_bill(level: int) -> int:
+    """Doc Wire's rate rises with level, so a bad fight stays costly instead
+    of becoming trivial once credit income outgrows a flat fee."""
+    return TRAUMA_BILL_BASE + (level - 1) * TRAUMA_BILL_PER_LEVEL
 
 
 def _handle_defeat(character: Character) -> None:
-    character.credits -= TRAUMA_BILL
+    bill = trauma_bill(character.level)
+    character.credits -= bill
     character.hp = 1
     console.print(
         f"\n[bold red]You go down hard.[/bold red] Doc Wire's trauma team scrapes you "
-        f"off the pavement and stabilizes you — {TRAUMA_BILL} credits, billed on the spot."
+        f"off the pavement and stabilizes you — {bill} credits, billed on the spot."
     )
     if character.credits < 0:
         console.print(f"[red]You're {-character.credits} in the hole now.[/red]")

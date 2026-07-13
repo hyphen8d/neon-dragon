@@ -58,9 +58,11 @@ only way to heal further or clear status effects).
 Endr3am, a tall merc working the back booth, runs his own contract
 board here, separate from the Fixer Board — gated by **Charisma**
 instead of Reputation. "Loose Ends" is open from the start (0
-Charisma); "Loose Lips" needs 6 Charisma, "Friends in High Places"
-needs 10. Push Charisma up via RoboDOJO or Chop Shop cyberware
-(Synth-Derm, Mirrorskin) to unlock the higher tiers.
+Charisma); "Loose Lips" needs 8 Charisma, "Friends in High Places"
+needs 14. Push Charisma up via RoboDOJO or Chop Shop cyberware
+(Synth-Derm, Mirrorskin) to unlock the higher tiers — a single item
+purchase isn't enough on its own anymore, so it takes real investment
+rather than one lucky trip to the Chop Shop.
 
 ### Undercity
 Random encounters, weighted: gang fights, a rogue drone, a corp
@@ -95,10 +97,12 @@ carrying any).
 
 ### RoboDOJO
 Permanently trains a stat (Attack, Defense, Tech, or Charisma) up by
-1 for a flat 40 credits per point. No cap on how high you can train.
-Framed as sparring against a training drone rather than a flat
-purchase — each stat has its own short sparring flavor line, but the
-mechanic itself is unchanged.
+1. Cost scales with the stat's current value — 40 credits base, +5
+credits for every point you already have (so Attack 8 costs 80 for
+the next point, Attack 20 costs 140). No hard cap, but grinding one
+stat sky-high gets progressively more expensive rather than staying
+flat forever. Each stat's sparring bout has its own short flavor
+line, but the underlying training mechanic is unchanged.
 
 ### The Pit
 Choose a fight from a fixed roster of three gladiators, toughest
@@ -126,9 +130,12 @@ Turn-based. Each round you pick:
 Damage is roughly `stat + random(1-6) - enemy defense`, minimum 1.
 
 If your HP hits zero, Doc Wire's trauma team patches you up to 1 HP
-and bills you a flat 40 credits from whatever's on hand — this can put
-you in debt (negative credits) if you don't have enough. Banked
-credits at NetVault are never touched by this.
+and bills you from whatever's on hand — this can put you in debt
+(negative credits) if you don't have enough. The bill scales with
+level (40 credits base, +15 per level above 1), so losing a fight
+stays costly as you progress instead of becoming trivial once your
+income outgrows a flat fee. Banked credits at NetVault are never
+touched by this.
 
 ### Status effects
 

@@ -314,7 +314,8 @@ def visit_doc_wires_clinic(character: Character) -> None:
         _cure(character)
 
 
-TRAIN_COST_PER_POINT = 40
+TRAIN_BASE_COST = 40
+TRAIN_SURCHARGE_PER_POINT = 5
 
 TRAINABLE_STATS: dict[str, tuple[str, str]] = {
     "1": ("attack", "Attack"),
@@ -332,6 +333,12 @@ SPARRING_FLAVOR: dict[str, str] = {
 }
 
 
+def _train_cost(current_value: int) -> int:
+    """Training cost rises with the stat's current value, so grinding one
+    stat sky-high gets progressively more expensive instead of staying flat."""
+    return TRAIN_BASE_COST + current_value * TRAIN_SURCHARGE_PER_POINT
+
+
 def visit_robodojo(character: Character) -> None:
     print_arrival("RoboDOJO")
     console.print("[dim]A training drone powers up, servos whirring, waiting for you to pick a discipline.[/dim]")
@@ -341,10 +348,11 @@ def visit_robodojo(character: Character) -> None:
     table.add_column("#", justify="right", style="bright_magenta")
     table.add_column("Stat", style="bold white")
     table.add_column("Current", justify="right")
+    table.add_column("Next +1 costs", justify="right")
     for key, (attr, label) in TRAINABLE_STATS.items():
-        table.add_row(key, label, str(getattr(character, attr)))
+        current = getattr(character, attr)
+        table.add_row(key, label, str(current), str(_train_cost(current)))
     console.print(table)
-    console.print(f"[dim]{TRAIN_COST_PER_POINT} credits per +1.[/dim]")
 
     choice = Prompt.ask(
         "Train which stat? (0 to cancel)",
@@ -353,17 +361,19 @@ def visit_robodojo(character: Character) -> None:
     )
     if choice == "0":
         return
-    if character.credits < TRAIN_COST_PER_POINT:
+
+    attr, label = TRAINABLE_STATS[choice]
+    cost = _train_cost(getattr(character, attr))
+    if character.credits < cost:
         console.print("[red]Not enough credits to train right now.[/red]")
         return
 
-    attr, label = TRAINABLE_STATS[choice]
     console.print(f"[dim]{SPARRING_FLAVOR[attr]}[/dim]")
-    character.credits -= TRAIN_COST_PER_POINT
+    character.credits -= cost
     setattr(character, attr, getattr(character, attr) + 1)
     console.print(
         f"[bold bright_magenta]{label} increased to {getattr(character, attr)}.[/bold bright_magenta] "
-        f"-{TRAIN_COST_PER_POINT} credits."
+        f"-{cost} credits."
     )
 
 

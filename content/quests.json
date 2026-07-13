@@ -82,7 +82,7 @@
       "reward": {"credits": 25, "xp": 12, "reputation": 5},
       "complete_text": "\"Knew you had it in you. That's worth something.\"",
       "min_reputation": 0,
-      "min_charisma": 6
+      "min_charisma": 8
     },
     {
       "id": "friends_in_high_places",
@@ -96,7 +96,7 @@
       "reward": {"credits": 65, "xp": 30, "reputation": 12},
       "complete_text": "\"Told you I had friends. Drinks are on me tonight.\"",
       "min_reputation": 0,
-      "min_charisma": 10
+      "min_charisma": 14
     }
   ]
 }
