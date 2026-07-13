@@ -48,6 +48,7 @@ class Character:
     tech: int = 5
     charisma: int = 5
     credits: int = 50
+    banked_credits: int = 0
     reputation: int = 0
     cyberware: dict = field(default_factory=lambda: {slot: None for slot in CYBERWARE_SLOTS})
     active_quests: dict = field(default_factory=dict)  # quest_id -> current step index

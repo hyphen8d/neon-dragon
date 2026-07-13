@@ -6,7 +6,7 @@ import random
 
 from rich.console import Console
 from rich.panel import Panel
-from rich.prompt import Prompt
+from rich.prompt import IntPrompt, Prompt
 from rich.table import Table
 
 from engine.character import CYBERWARE_SLOTS, Character
@@ -81,7 +81,8 @@ def print_status(character: Character) -> None:
         f"[bright_cyan]{character.name}[/bright_cyan] "
         f"[dim](Lvl {character.level} {character.char_class})[/dim]   "
         f"HP [bold]{character.hp}/{character.max_hp}[/bold]   "
-        f"Credits [bold yellow]{character.credits}[/bold yellow]"
+        f"Credits [bold yellow]{character.credits}[/bold yellow]   "
+        f"Banked [bold yellow]{character.banked_credits}[/bold yellow]"
     )
 
 
@@ -124,6 +125,60 @@ def visit_undercity(character: Character) -> None:
         character.credits += amount
         console.print(f"[bold yellow]+{amount} credits.[/bold yellow]")
     # "nothing" encounters just print their flavor line above.
+
+
+def _deposit(character: Character) -> None:
+    if character.credits <= 0:
+        console.print("[dim]Nothing on hand to deposit.[/dim]")
+        return
+    amount = IntPrompt.ask(f"Deposit how much? (0 to cancel, up to {character.credits})")
+    if amount <= 0:
+        return
+    if amount > character.credits:
+        console.print("[red]You don't have that much on hand.[/red]")
+        return
+    character.credits -= amount
+    character.banked_credits += amount
+    console.print(f"[bold yellow]{amount} credits deposited.[/bold yellow] Banked: {character.banked_credits}")
+
+
+def _withdraw(character: Character) -> None:
+    if character.banked_credits <= 0:
+        console.print("[dim]Nothing banked to withdraw.[/dim]")
+        return
+    amount = IntPrompt.ask(f"Withdraw how much? (0 to cancel, up to {character.banked_credits})")
+    if amount <= 0:
+        return
+    if amount > character.banked_credits:
+        console.print("[red]You don't have that much banked.[/red]")
+        return
+    character.banked_credits -= amount
+    character.credits += amount
+    console.print(f"[bold yellow]{amount} credits withdrawn.[/bold yellow] On hand: {character.credits}")
+
+
+def visit_netvault(character: Character) -> None:
+    print_arrival("NetVault")
+
+    npc = npc_at("NetVault")
+    console.print(f"[bold cyan]{npc['name']}[/bold cyan] [dim]— {npc['bio']}[/dim]")
+    console.print(f"  {random_line(npc)}")
+
+    console.print(
+        f"\nOn hand: [bold yellow]{character.credits}[/bold yellow]   "
+        f"Banked: [bold yellow]{character.banked_credits}[/bold yellow] [dim](safe from death-loss)[/dim]"
+    )
+
+    action = Prompt.ask(
+        "[bright_magenta]1[/bright_magenta] Deposit  [bright_magenta]2[/bright_magenta] Withdraw  "
+        "[bright_magenta]0[/bright_magenta] Leave",
+        choices=["0", "1", "2"],
+        show_choices=False,
+    )
+    if action == "1":
+        _deposit(character)
+    elif action == "2":
+        _withdraw(character)
 
 
 def visit_location(character: Character, location: str) -> None:
@@ -319,5 +374,7 @@ def enter_hub(character: Character) -> None:
             visit_fixer_board(character)
         elif chosen == "Chop Shop":
             visit_chop_shop(character)
+        elif chosen == "NetVault":
+            visit_netvault(character)
         else:
             visit_location(character, chosen)

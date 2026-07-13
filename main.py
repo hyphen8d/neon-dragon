@@ -45,6 +45,7 @@ def print_character_sheet(character: Character) -> None:
     table.add_row("Tech", str(character.tech))
     table.add_row("Charisma", str(character.charisma))
     table.add_row("Credits", str(character.credits))
+    table.add_row("Banked", str(character.banked_credits))
     table.add_row("Reputation", str(character.reputation))
     console.print(table)
 
