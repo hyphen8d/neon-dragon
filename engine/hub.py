@@ -102,16 +102,31 @@ def print_hub_menu(character: Character, location_names: list[str]) -> None:
     console.rule("[bright_magenta]Neo Meridian[/bright_magenta]")
     print_status(character)
     console.print()
-    table = Table(border_style="bright_cyan", show_header=False)
-    table.add_column("#", justify="right", style="bright_magenta")
-    table.add_column("Location", style="bold white")
-    table.add_column("Description", style="dim")
+
+    locations = Table(
+        title="[bold bright_magenta]Locations[/bold bright_magenta]",
+        border_style="bright_cyan",
+        show_header=False,
+    )
+    locations.add_column("#", justify="right", style="bright_magenta")
+    locations.add_column("Location", style="bold white")
+    locations.add_column("Description", style="dim")
     for i, name in enumerate(location_names, start=1):
-        table.add_row(str(i), name, LOCATIONS[name])
-    table.add_row("0", "Leave", "Head home and save your progress.")
-    table.add_row("i", "Character Info", "View your full stats, gear, quests, and kills.")
-    table.add_row("?", "Help", "Open the player guide.")
-    console.print(table)
+        locations.add_row(str(i), name, LOCATIONS[name])
+    console.print(locations)
+
+    actions = Table(
+        title="[bold bright_magenta]Actions[/bold bright_magenta]",
+        border_style="bright_cyan",
+        show_header=False,
+    )
+    actions.add_column("#", justify="right", style="bright_magenta")
+    actions.add_column("Action", style="bold white")
+    actions.add_column("Description", style="dim")
+    actions.add_row("i", "Character Info", "View your full stats, gear, quests, and kills.")
+    actions.add_row("?", "Help", "Open the player guide.")
+    actions.add_row("0", "Leave", "Head home and save your progress.")
+    console.print(actions)
 
 
 def print_arrival(location: str) -> None:
