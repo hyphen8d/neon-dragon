@@ -6,7 +6,7 @@ import random
 
 from rich.console import Console
 from rich.panel import Panel
-from rich.prompt import IntPrompt, Prompt
+from rich.prompt import IntPrompt
 from rich.table import Table
 
 from engine.bestiary import enemy_faction
@@ -14,6 +14,7 @@ from engine.character import CYBERWARE_SLOTS, Character, hp_style
 from engine.combat import run_combat
 from engine.encounters import roll_combat_encounter, roll_scavenge_encounter
 from engine.help import show_help
+from engine.inventory import buy_item, describe_effect, get_usable_item, load_usable_items
 from engine.leveling import xp_for_next_level
 from engine.npcs import get_npc, npc_at, random_line
 from engine.pit import load_gladiators
@@ -26,9 +27,9 @@ from engine.quests import (
     notify_step,
     print_quest_result,
 )
-from engine.shop import buy_and_equip, get_item, load_cyberware, sell_back_value, unequip
+from engine.shop import buy_and_equip, discounted_cost, get_item, load_cyberware, sell_back_value, unequip
 from engine.status_effects import EFFECT_LABELS, apply_effect, cure_all
-from engine.ui import hotkey_bracket, hotkey_prompt
+from engine.ui import hotkey_bracket, hotkey_prompt, read_choice
 
 console = Console(highlight=False)
 
@@ -333,6 +334,36 @@ def _heal(character: Character) -> None:
     )
 
 
+def _buy_supplies(character: Character) -> None:
+    catalog = load_usable_items()
+
+    table = Table(border_style="bright_cyan")
+    table.add_column("#", justify="right", style="bright_magenta")
+    table.add_column("Item", style="bold white")
+    table.add_column("Effect")
+    table.add_column("Cost", justify="right")
+    table.add_column("Description", style="dim")
+    for i, item in enumerate(catalog, start=1):
+        table.add_row(str(i), item["name"], describe_effect(item), str(item["cost"]), item["flavor"])
+    console.print(table)
+
+    choice = read_choice(
+        console,
+        [str(i) for i in range(len(catalog) + 1)],
+        prompt="Buy which item? (0 to cancel)",
+    )
+    if choice == "0":
+        return
+
+    item = catalog[int(choice) - 1]
+    if character.credits < item["cost"]:
+        console.print("[red]Not enough credits for that.[/red]")
+        return
+
+    buy_item(character, item["id"])
+    console.print(f"[bold bright_magenta]Bought:[/bold bright_magenta] {item['name']}. -{item['cost']} credits.")
+
+
 def _cure(character: Character) -> None:
     if not character.status_effects:
         console.print("[dim]No status effects to clear.[/dim]")
@@ -372,11 +403,16 @@ def visit_doc_wires_clinic(character: Character) -> None:
         labels = ", ".join(EFFECT_LABELS.get(e, e) for e in character.status_effects)
         console.print(f"[yellow]Active effects:[/yellow] {labels}")
 
-    action = hotkey_prompt(console, [("H", "Heal"), ("C", "Cure Effects"), ("L", "Leave")])
+    action = hotkey_prompt(
+        console,
+        [("H", "Heal"), ("C", "Cure Effects"), ("B", "Buy Supplies"), ("L", "Leave")],
+    )
     if action == "H":
         _heal(character)
     elif action == "C":
         _cure(character)
+    elif action == "B":
+        _buy_supplies(character)
 
 
 TRAIN_BASE_COST = 40
@@ -453,10 +489,10 @@ def visit_the_pit(character: Character) -> None:
         table.add_row(str(i), g["name"], str(g["hp"]), f"{g['credits_reward']}cr / {g['reputation_reward']}rep")
     console.print(table)
 
-    choice = Prompt.ask(
-        "Step into the ring? (0 to cancel)",
-        choices=[str(i) for i in range(len(gladiators) + 1)],
-        show_choices=False,
+    choice = read_choice(
+        console,
+        [str(i) for i in range(len(gladiators) + 1)],
+        prompt="Step into the ring? (0 to cancel)",
     )
     if choice == "0":
         return
@@ -581,10 +617,10 @@ def _browse_contract_board(character: Character, board: str) -> None:
         table.add_row(str(i), quest["title"], quest["hook"])
     console.print(table)
 
-    choice = Prompt.ask(
-        "Take a contract? (0 to cancel)",
-        choices=[str(i) for i in range(len(open_quests) + 1)],
-        show_choices=False,
+    choice = read_choice(
+        console,
+        [str(i) for i in range(len(open_quests) + 1)],
+        prompt="Take a contract? (0 to cancel)",
     )
     if choice == "0":
         return
@@ -632,7 +668,7 @@ def print_loadout(character: Character) -> None:
     console.print(build_loadout_table(character))
 
 
-def print_catalog(catalog: list[dict]) -> None:
+def print_catalog(catalog: list[dict], character: Character) -> None:
     console.print("\n[bright_magenta]For sale:[/bright_magenta]")
     table = Table(border_style="bright_cyan")
     table.add_column("#", justify="right", style="bright_magenta")
@@ -647,13 +683,15 @@ def print_catalog(catalog: list[dict]) -> None:
         if item.get("inflict_effect"):
             label = EFFECT_LABELS.get(item["inflict_effect"], item["inflict_effect"])
             special = f"Causes {label}"
+        price = discounted_cost(character, item)
+        cost_text = str(price) if price == item["cost"] else f"[bold yellow]{price}[/bold yellow] [dim]({item['cost']})[/dim]"
         table.add_row(
             str(i),
             item["name"],
             item["slot"].capitalize(),
             f"+{item['bonus']} {item['stat']}",
             special,
-            str(item["cost"]),
+            cost_text,
             item["flavor"],
         )
     console.print(table)
@@ -661,12 +699,12 @@ def print_catalog(catalog: list[dict]) -> None:
 
 def _buy_cyberware(character: Character) -> None:
     catalog = load_cyberware()
-    print_catalog(catalog)
+    print_catalog(catalog, character)
 
-    choice = Prompt.ask(
-        "Buy which item? (0 to cancel)",
-        choices=[str(i) for i in range(len(catalog) + 1)],
-        show_choices=False,
+    choice = read_choice(
+        console,
+        [str(i) for i in range(len(catalog) + 1)],
+        prompt="Buy which item? (0 to cancel)",
     )
     if choice == "0":
         return
@@ -674,7 +712,8 @@ def _buy_cyberware(character: Character) -> None:
     item = catalog[int(choice) - 1]
     old_id = character.cyberware[item["slot"]]
     trade_in = sell_back_value(get_item(old_id)) if old_id else 0
-    if character.credits + trade_in < item["cost"]:
+    price = discounted_cost(character, item)
+    if character.credits + trade_in < price:
         console.print("[red]Not enough credits for that, even with a trade-in.[/red]")
         return
 
@@ -683,7 +722,7 @@ def _buy_cyberware(character: Character) -> None:
         console.print(f"[dim]{get_item(old_id)['name']} pulled and sold back for parts.[/dim]")
     console.print(
         f"[bold bright_magenta]Installed:[/bold bright_magenta] {item['name']} "
-        f"(+{item['bonus']} {item['stat']})"
+        f"(+{item['bonus']} {item['stat']}) for {price} credits."
     )
 
 
@@ -702,10 +741,10 @@ def _sell_cyberware(character: Character) -> None:
         table.add_row(str(i), slot.capitalize(), f"{item['name']} (sells for {sell_back_value(item)})")
     console.print(table)
 
-    choice = Prompt.ask(
-        "Sell which item? (0 to cancel)",
-        choices=[str(i) for i in range(len(equipped_slots) + 1)],
-        show_choices=False,
+    choice = read_choice(
+        console,
+        [str(i) for i in range(len(equipped_slots) + 1)],
+        prompt="Sell which item? (0 to cancel)",
     )
     if choice == "0":
         return
@@ -775,13 +814,24 @@ def show_character_info(character: Character) -> None:
     else:
         effects.add_row("No active effects", "")
 
+    inventory = _themed_table("Inventory")
+    if character.inventory:
+        counts: dict[str, int] = {}
+        for item_id in character.inventory:
+            counts[item_id] = counts.get(item_id, 0) + 1
+        for item_id, count in counts.items():
+            item = get_usable_item(item_id)
+            inventory.add_row(item["name"], f"x{count}")
+    else:
+        inventory.add_row("Nothing carried", "")
+
     grid = Table.grid(padding=(0, 2))
     grid.add_column()
     grid.add_column()
     grid.add_row(attributes, economy)
     grid.add_row(contracts, loadout)
+    grid.add_row(effects, inventory)
     console.print(grid)
-    console.print(effects)
 
     kills = _themed_table("Kills by Faction")
     if character.kills:
@@ -803,12 +853,7 @@ def enter_hub(character: Character) -> None:
     while True:
         console.print()
         print_hub_menu(character)
-        choice = Prompt.ask(
-            "Where to?",
-            choices=[*LOCATION_HOTKEYS.keys(), "I", "L", "?"],
-            show_choices=False,
-            case_sensitive=False,
-        ).upper()
+        choice = read_choice(console, [*LOCATION_HOTKEYS.keys(), "I", "L", "?"], prompt="Where to?")
         if choice == "L":
             console.print("[dim]You head back, credits and gear safe... for now.[/dim]")
             return

@@ -24,6 +24,18 @@ CLASSES: dict[str, dict] = {
         "tech": 9,
         "charisma": 4,
     },
+    "Grifter": {
+        "flavor": (
+            "Talks fast, moves smoothly, and survives on street-smarts. Uses "
+            "charisma and social engineering to bypass problems that steel or "
+            "code can't touch."
+        ),
+        "hp": 24,
+        "attack": 4,
+        "defense": 4,
+        "tech": 4,
+        "charisma": 9,
+    },
 }
 
 
@@ -47,6 +59,7 @@ class Character:
     completed_quests: list = field(default_factory=list)
     status_effects: dict = field(default_factory=dict)  # effect name -> rounds remaining
     kills: dict = field(default_factory=dict)  # enemy name -> times defeated
+    inventory: list = field(default_factory=list)  # usable_item ids, one entry per copy carried
 
     @classmethod
     def new(cls, name: str, char_class: str) -> "Character":

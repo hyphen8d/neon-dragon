@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from rich.console import Console, Group
 from rich.panel import Panel
-from rich.prompt import IntPrompt, Prompt
+from rich.prompt import Prompt
 from rich.table import Table
 from rich.text import Text
 
@@ -13,7 +13,7 @@ from engine.help import show_help
 from engine.hub import enter_hub
 from engine.leveling import xp_for_next_level
 from engine.save import delete_save, list_saves, load_character, save_character, save_exists
-from engine.ui import hotkey_bracket, hotkey_prompt
+from engine.ui import hotkey_bracket, hotkey_prompt, read_choice
 
 console = Console(highlight=False)
 
@@ -179,14 +179,14 @@ def choose_existing_save(verb: str = "Load") -> str | None:
         table.add_row(str(i), slug.replace("_", " "))
     console.print(table)
 
-    choice = IntPrompt.ask(
-        f"{verb} which merc? (0 to cancel)",
-        choices=[str(i) for i in range(len(slugs) + 1)],
-        show_choices=False,
+    choice = read_choice(
+        console,
+        [str(i) for i in range(len(slugs) + 1)],
+        prompt=f"{verb} which merc? (0 to cancel)",
     )
-    if choice == 0:
+    if choice == "0":
         return None
-    return slugs[choice - 1]
+    return slugs[int(choice) - 1]
 
 
 def delete_character() -> None:

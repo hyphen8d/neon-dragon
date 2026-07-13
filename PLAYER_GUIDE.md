@@ -12,15 +12,17 @@ no daily turn limit — play as long as you like in one sitting.
 
 ## Classes
 
-Two classes right now, each a different balance of the same stats:
+Three classes, each a different balance of the same stats:
 
 - **Street Samurai** — high HP and Attack, low Tech. Built to punch
   through fights with raw damage.
 - **Netrunner** — low HP and Attack, high Tech. Built around the
   Tech/Hack combat action instead of Attack.
-
-(A third class, Fixer, built around Charisma, is on hold until
-Charisma has more mechanical weight behind it — see below.)
+- **Grifter** — high Charisma, everything else middling. Talks fast,
+  moves smoothly, and survives on street-smarts. Doesn't hit as hard
+  or hack as deep as the other two, but its edge shows up in the
+  economy: cheaper cyberware and cheaper trauma bills (see Stats and
+  Combat below).
 
 ## Stats
 
@@ -30,8 +32,10 @@ Charisma has more mechanical weight behind it — see below.)
 - **Defense** — reduces incoming damage in combat.
 - **Tech** — damage on the Tech/Hack combat action.
 - **Charisma** — gates the two higher-tier contracts Endr3am offers at
-  the Chrome Noodle Bar (see below). No effect on combat, dialogue, or
-  shop prices yet.
+  the Chrome Noodle Bar (see below), knocks the price down at
+  Hyphen8d's Hut (2% off per point, capped at 40%), and talks down
+  your trauma bill if you go down in a fight (3% off per point,
+  capped at 45% — see Combat). Still no effect on dialogue.
 - **Credits** — cash on hand. Spent at Hyphen8d's Hut, the Clinic, and
   RoboDOJO; lost (partially) if you go down in a fight.
 - **Banked Credits** — cash stored at NetVault. Never touched by
@@ -43,8 +47,8 @@ Charisma has more mechanical weight behind it — see below.)
   level 3 needs 150, level 4 needs 300 — 50 more per level than the
   one before). Every level grants +3 Max HP, +1 Attack, +1 Defense,
   +1 Tech, and a full heal. A single big XP reward can trigger
-  multiple level-ups at once. Charisma doesn't grow on level-up since it has no
-  effect in combat.
+  multiple level-ups at once. Charisma doesn't grow on level-up — it
+  comes from cyberware, not training (RoboDOJO doesn't offer it).
 
 ## The Hub — Neo Meridian
 
@@ -102,6 +106,12 @@ Charisma). Buying a second item for an occupied slot auto-sells the
 old one for half its cost as trade-in credit. You can also sell
 outright from the Sell menu.
 
+Your Charisma haggles the sticker price down — 2% off per point,
+capped at 40% off. The catalog shows your actual price next to the
+listed one whenever you're getting a discount, and the affordability
+check (including trade-in credit) always uses your discounted price,
+not the sticker price.
+
 The higher-cost arm and eyes items also let you inflict status effects
 on enemies, not just deal more damage: **Razor Claws** (arm) has a
 chance to cause Bleeding on Attack, **Target-Lock Eyes** (eyes) has a
@@ -152,6 +162,20 @@ Turn-based. Each round you pick:
 - **Defend** — halves incoming damage that round.
 - **Flee** — coin-flip chance to escape with no reward either way.
 
+Each class also gets a signature move, on a 3-round cooldown (usable
+turn 1, then locked out for 3 rounds after each use):
+
+- **Street Samurai — [S]amurai Slash** — 1.5x damage and guarantees
+  Bleeding on the enemy (a normal Attack's Bleed only comes from
+  Razor Claws cyberware, and even then only by chance). Still dodgeable
+  like a normal Attack.
+- **Netrunner — [O]verride System** — no damage, but guarantees 2
+  rounds of Stun. Not a physical hit, so enemy dodge doesn't apply.
+
+While it's on cooldown, the combat menu shows rounds remaining next to
+the move's name; picking it early just tells you it's still recharging
+without costing your turn.
+
 Damage is roughly `stat + random(1-6) - enemy defense`, minimum 1.
 Every hit — yours or theirs — has a 20% chance to be a **critical hit**
 for 1.5x damage, called out with a CRITICAL! tag.
@@ -177,8 +201,9 @@ and bills you from whatever's on hand — this can put you in debt
 (negative credits) if you don't have enough. The bill scales with
 level (40 credits base, +15 per level above 1), so losing a fight
 stays costly as you progress instead of becoming trivial once your
-income outgrows a flat fee. Banked credits at NetVault are never
-touched by this.
+income outgrows a flat fee. Your Charisma talks the trauma team down
+— 3% off the bill per point, capped at 45% off — applied after the
+level scaling. Banked credits at NetVault are never touched by this.
 
 ### Status effects
 
@@ -249,7 +274,8 @@ automatically whenever you leave the hub back to the main menu.
 
 A few things mentioned in the game's design notes but not implemented:
 
-- Charisma only gates two contracts — no effect on combat, dialogue,
-  or shop prices.
-- No ability/skill system — RoboDOJO trains stats, not abilities.
+- Charisma still has no effect on dialogue.
+- No ability/skill system beyond each class's single combat special —
+  RoboDOJO trains stats, not abilities, and the Grifter doesn't have
+  a combat special (its build strength is economic instead).
 - No fetch/deliver contracts — only talk/kill steps exist so far.

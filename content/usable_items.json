@@ -1,0 +1,21 @@
+{
+  "usable_items": [
+    {
+      "id": "nanite_patch",
+      "name": "Nanite Patch",
+      "cost": 20,
+      "effect": "heal",
+      "amount": 15,
+      "flavor": "Self-replicating gel that knits torn tissue closed in under a minute."
+    },
+    {
+      "id": "emp_grenade",
+      "name": "EMP Grenade",
+      "cost": 35,
+      "effect": "stun",
+      "faction": "Corp",
+      "duration": 2,
+      "flavor": "Fries anything running on a chip. Corp hardware hates this trick — street muscle barely notices."
+    }
+  ]
+}

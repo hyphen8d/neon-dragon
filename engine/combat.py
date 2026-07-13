@@ -6,13 +6,15 @@ import random
 from dataclasses import dataclass, field
 
 from rich.console import Console
+from rich.table import Table
 
 from engine.character import Character, hp_style
+from engine.inventory import describe_effect, get_usable_item, use_item
 from engine.leveling import check_level_up
 from engine.quests import notify_step, print_quest_result
 from engine.shop import get_item
 from engine.status_effects import DRUNK_STAT_PENALTY, EFFECT_LABELS, apply_effect, has_effect, process_round_start
-from engine.ui import hotkey_prompt
+from engine.ui import hotkey_prompt, read_choice
 
 console = Console(highlight=False)
 
@@ -56,6 +58,81 @@ FINISHING_LINES = [
     "One last hit and {enemy} folds.",
     "The killing blow lands hard. {enemy} doesn't get up.",
 ]
+
+# Class -> (hotkey, label) for each class's signature combat move.
+# Classes with no entry here just don't get a fifth menu option.
+CLASS_SPECIALS: dict[str, tuple[str, str]] = {
+    "Street Samurai": ("S", "Samurai Slash"),
+    "Netrunner": ("O", "Override System"),
+}
+
+SPECIAL_COOLDOWN = 3
+SAMURAI_SLASH_MULTIPLIER = 1.5
+SAMURAI_SLASH_BLEED_DURATION = 2
+OVERRIDE_STUN_DURATION = 2
+
+
+def _samurai_slash(character: Character, enemy: Enemy, drunk_penalty: int, console: Console) -> None:
+    """Guaranteed 1.5x-damage strike that always leaves the enemy bleeding.
+    A dodge still evades it entirely, same as a normal Attack."""
+    if enemy.dodge_chance and random.random() < enemy.dodge_chance:
+        console.print(f"[dim]{enemy.name} slips the hit — you swing through empty air.[/dim]")
+        return
+
+    stat_value = max(0, character.attack - drunk_penalty)
+    dmg, crit = roll_damage(stat_value, enemy.defense)
+    dmg = max(1, int(dmg * SAMURAI_SLASH_MULTIPLIER))
+    enemy.hp -= dmg
+    prefix = "[bold yellow]CRITICAL![/bold yellow] " if crit else ""
+
+    if not enemy.alive:
+        line = random.choice(FINISHING_LINES).format(enemy=enemy.name, dmg=dmg)
+        console.print(f"{prefix}[bold bright_magenta]{line}[/bold bright_magenta]")
+        return
+
+    console.print(f"{prefix}[bold magenta]Samurai Slash![/bold magenta] You carve {enemy.name} for {dmg} damage.")
+    apply_effect(enemy, "bleed", SAMURAI_SLASH_BLEED_DURATION)
+    console.print(f"[yellow]{enemy.name} is left bleeding.[/yellow]")
+
+
+def _override_system(enemy: Enemy, console: Console) -> None:
+    """Deals no damage but forces a guaranteed multi-round stun — a hack,
+    not a physical hit, so it isn't subject to dodge_chance."""
+    apply_effect(enemy, "stunned", OVERRIDE_STUN_DURATION)
+    console.print(
+        f"[bold cyan]Override System![/bold cyan] You lock {enemy.name}'s systems — "
+        f"stunned for {OVERRIDE_STUN_DURATION} rounds."
+    )
+
+
+def _choose_inventory_item(character: Character, console: Console) -> str | None:
+    """Show the player's carried items and return the chosen item_id, or
+    None if they cancel. Doesn't consume anything itself."""
+    counts: dict[str, int] = {}
+    order: list[str] = []
+    for item_id in character.inventory:
+        if item_id not in counts:
+            order.append(item_id)
+        counts[item_id] = counts.get(item_id, 0) + 1
+
+    table = Table(border_style="bright_cyan", show_header=False)
+    table.add_column("#", justify="right", style="bright_magenta")
+    table.add_column("Item", style="bold white")
+    table.add_column("Qty", justify="right")
+    table.add_column("Effect", style="dim")
+    for i, item_id in enumerate(order, start=1):
+        item = get_usable_item(item_id)
+        table.add_row(str(i), item["name"], f"x{counts[item_id]}", describe_effect(item))
+    console.print(table)
+
+    choice = read_choice(
+        console,
+        [str(i) for i in range(len(order) + 1)],
+        prompt="Use which item? (0 to cancel)",
+    )
+    if choice == "0":
+        return None
+    return order[int(choice) - 1]
 
 
 def _status_text(combatant) -> str:
@@ -103,10 +180,15 @@ def run_combat(character: Character, enemy_data: dict) -> None:
     enemy = Enemy(**enemy_data)
     console.print(f"\n[bold red]{enemy.name}[/bold red] (HP {enemy.hp}) blocks your path.")
 
+    special = CLASS_SPECIALS.get(character.char_class)
+    special_cooldown = 0  # rounds left before the class special is usable again
+
     while character.hp > 0 and enemy.alive:
         stunned = process_round_start(character, console, is_player=True)
         if character.hp <= 0:
             break
+        if special_cooldown > 0:
+            special_cooldown -= 1
 
         style = hp_style(character.hp, character.max_hp)
         console.print(
@@ -118,10 +200,25 @@ def run_combat(character: Character, enemy_data: dict) -> None:
         if stunned:
             console.print("[yellow]You're stunned — you can't act this round![/yellow]")
         else:
-            action = hotkey_prompt(
-                console,
-                [("A", "Attack"), ("T", "Tech/Hack"), ("D", "Defend"), ("F", "Flee")],
-            )
+            options = [("A", "Attack"), ("T", "Tech/Hack"), ("D", "Defend"), ("F", "Flee")]
+            if special:
+                skey, slabel = special
+                label = slabel if special_cooldown <= 0 else f"{slabel} ({special_cooldown})"
+                options.append((skey, label))
+            if character.inventory:
+                options.append(("I", "Items"))
+
+            while True:
+                action = hotkey_prompt(console, options)
+                if special and action == special[0] and special_cooldown > 0:
+                    console.print(f"[dim]{special[1]} is still recharging ({special_cooldown} more round(s)).[/dim]")
+                    continue
+                if action == "I":
+                    item_id = _choose_inventory_item(character, console)
+                    if item_id is None:
+                        continue
+                    use_item(character, item_id, console, enemy=enemy)
+                break
 
             drunk_penalty = DRUNK_STAT_PENALTY if has_effect(character, "drunk") else 0
 
@@ -136,6 +233,14 @@ def run_combat(character: Character, enemy_data: dict) -> None:
             elif action == "D":
                 defending = True
                 console.print("[dim]You brace for the hit.[/dim]")
+            elif special and action == special[0]:
+                if special[0] == "S":
+                    _samurai_slash(character, enemy, drunk_penalty, console)
+                else:
+                    _override_system(enemy, console)
+                special_cooldown = SPECIAL_COOLDOWN
+            elif action == "I":
+                pass  # item effect already resolved in the selection loop above
             else:
                 if random.random() < 0.5:
                     console.print("[dim]You slip into the shadows and get away.[/dim]")
@@ -198,6 +303,11 @@ def _handle_victory(character: Character, enemy: Enemy) -> None:
 TRAUMA_BILL_BASE = 40
 TRAUMA_BILL_PER_LEVEL = 15
 
+# Every point of Charisma talks the trauma team down 3%, capped at 45% —
+# a Grifter can smooth-talk their way out of most of the bill.
+CHARISMA_BILL_DISCOUNT_PER_POINT = 0.03
+CHARISMA_BILL_DISCOUNT_CAP = 0.45
+
 
 def trauma_bill(level: int) -> int:
     """Doc Wire's rate rises with level, so a bad fight stays costly instead
@@ -207,6 +317,8 @@ def trauma_bill(level: int) -> int:
 
 def _handle_defeat(character: Character) -> None:
     bill = trauma_bill(character.level)
+    discount = min(CHARISMA_BILL_DISCOUNT_CAP, character.charisma * CHARISMA_BILL_DISCOUNT_PER_POINT)
+    bill = int(bill * (1 - discount))
     character.credits -= bill
     character.hp = 1
     console.print(
