@@ -12,6 +12,10 @@
         "Insurance doesn't cover chrome. Insurance doesn't cover you, either, way you're bleeding.",
         "You keep coming back here, I'm gonna start charging rent on the gurney.",
         "Half my patients lie about how they got hurt. I stopped asking years ago."
+      ],
+      "conditional_lines": [
+        {"condition": "in_debt", "min": 1, "line": "You're running a tab with me now. Don't make it a habit."},
+        {"condition": "in_debt", "min": 1, "line": "Credits in the red and you're still walking in here like you own the place. Respect, I guess."}
       ]
     },
     {
@@ -26,6 +30,10 @@
         "Your transaction has been logged, timestamped, and forgotten by everyone except the system.",
         "I am required to remind you that NetVault is not liable for what you do with your own credits.",
         "No, I don't know what's behind the vault door. I've stopped asking that too."
+      ],
+      "conditional_lines": [
+        {"condition": "banked_credits", "min": 500, "line": "Your balance is... substantial. NetVault appreciates a customer who plans ahead."},
+        {"condition": "banked_credits", "min": 500, "line": "I don't usually notice account numbers. Yours, I noticed."}
       ]
     },
     {
@@ -40,6 +48,10 @@
         "You'd be surprised how many people try to walk out with more than they walked in with.",
         "Rex here can smell a forged credit-chip from across the lobby. Don't test him.",
         "Move along when your business is done. Loitering makes the dog nervous."
+      ],
+      "conditional_lines": [
+        {"condition": "total_kills", "min": 10, "line": "Word travels. You've put a lot of people down out there. None of them in here, though. Keep it that way."},
+        {"condition": "total_kills", "min": 10, "line": "Rex growls different at mercs with a body count. He's growling at you."}
       ]
     },
     {
@@ -54,6 +66,10 @@
         "Warranty's simple: it works when you buy it. After that, you're on your own.",
         "I don't do refunds. I do favors, and favors cost more.",
         "You didn't see the guy who left before you. He didn't see you either."
+      ],
+      "conditional_lines": [
+        {"condition": "quantum_cores", "min": 1, "line": "You're carrying something rare, aren't you. I can always tell. Panel's in the back whenever you're ready to talk business."},
+        {"condition": "quantum_cores", "min": 1, "line": "That glow behind your eyes — that's a Quantum Core talking. Don't spend it stupid."}
       ]
     },
     {
@@ -68,6 +84,10 @@
         "Kitchen's closed but the noodles don't know that. Sit down.",
         "You want gossip or you want the truth? Because I'm only selling one of those.",
         "Somebody's always looking for somebody else in this city. Rarely good news either way."
+      ],
+      "conditional_lines": [
+        {"condition": "corp_kills", "min": 5, "line": "Word's out you've been putting corp badges in the ground. Careful — that kind of reputation cuts both ways."},
+        {"condition": "corp_kills", "min": 5, "line": "Heard about your little corp problem. Or should I say, their little you problem."}
       ]
     },
     {
@@ -82,6 +102,10 @@
         "Contracts don't negotiate. Neither do I.",
         "Somebody's always hiring in this city. Question is whether you're the one getting paid or the one getting spent.",
         "Reputation opens doors here. Charisma opens different ones. Figure out which ones you want."
+      ],
+      "conditional_lines": [
+        {"condition": "completed_quests", "min": 3, "line": "You've cleared enough jobs off my board that I don't double-check your work anymore. That's rare."},
+        {"condition": "completed_quests", "min": 3, "line": "Reliable. That's worth more than talent in this city."}
       ]
     },
     {
@@ -96,6 +120,10 @@
         "Every job I hand out, I've done myself once. That's the only guarantee you get.",
         "Reputation's for the Fixer Board crowd. Down here, it's about who trusts you.",
         "Charm only gets you in the door. What you do after is on you."
+      ],
+      "conditional_lines": [
+        {"condition": "charisma", "min": 9, "line": "You could talk your way out of a locked vault. I've seen it. Don't waste it."},
+        {"condition": "charisma", "min": 9, "line": "Half the mercs I broker for couldn't charm a vending machine. You're not half the mercs."}
       ]
     },
     {
@@ -110,6 +138,10 @@
         "Form states you'll stop if a servo starts smoking. Please actually stop.",
         "The drones don't hold grudges. I've checked. Repeatedly.",
         "Sign here, here, and here. The third one's for my supervisor. I don't have a supervisor."
+      ],
+      "conditional_lines": [
+        {"condition": "learned_abilities", "min": 2, "line": "You've learned everything I'm cleared to teach. Rest is just repetition now."},
+        {"condition": "learned_abilities", "min": 2, "line": "Both abilities logged and signed off. Wish more mercs made it this far."}
       ]
     }
   ]

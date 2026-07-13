@@ -244,7 +244,11 @@ def print_hub_menu(character: Character) -> None:
     )
     actions.add_column("Action", style=TEXT)
     actions.add_column("Description", style=TEXT_DIM)
-    actions.add_row(hotkey_bracket("I", "Character Info"), "View your full stats, gear, contracts, and kills.")
+    contracts_note = f"{len(character.active_quests)} active" if character.active_quests else "none active"
+    actions.add_row(
+        hotkey_bracket("I", "Character Info"),
+        f"View your full stats, gear, contracts ({contracts_note}), and kills.",
+    )
     actions.add_row(f"[{ACCENT}][?][/{ACCENT}] Help", "Open the player guide.")
     actions.add_row(hotkey_bracket("L", "Leave"), "Head to the safehouse to sleep — advances the day, full heal.")
     console.print(actions)
@@ -272,14 +276,16 @@ def print_menu_divider(label: str) -> None:
     console.rule(f"[{TEXT_DIM}]{label}[/{TEXT_DIM}]", style=TEXT_DIM)
 
 
-def _npc_panel(npc: dict) -> Panel:
+def _npc_panel(npc: dict, character: Character) -> Panel:
     """Left half of a location's Interaction Deck — an NPC's bio, a rule,
-    and one line of dialogue, framed in its own bordered box."""
+    and one line of dialogue, framed in its own bordered box. The line is
+    character-aware — see random_line's conditional_lines handling — so
+    an NPC can react to what this merc has actually done."""
     body = Table.grid(padding=(0, 0))
     body.add_column()
     body.add_row(f"[{TEXT_DIM} italic]{npc['bio']}[/{TEXT_DIM} italic]")
     body.add_row(Rule(style=TEXT_DIM))
-    body.add_row(f"[italic]“{random_line(npc)}”[/italic]")
+    body.add_row(f"[italic]“{random_line(npc, character)}”[/italic]")
     return Panel(body, title=f"[{INFO}]{npc['name']}[/{INFO}]", border_style=BORDER, padding=(1, 2))
 
 
@@ -303,14 +309,14 @@ def _station_data_panel(title: str, rows: list[tuple[str, str]], extra: Table | 
     return Panel(content, title=f"[{ACCENT}]{title}[/{ACCENT}]", border_style=BORDER_ACCENT, padding=(1, 2))
 
 
-def _interaction_deck(npc: dict, right_panel: Panel) -> None:
+def _interaction_deck(npc: dict, right_panel: Panel, character: Character) -> None:
     """Print the location's dual-panel dashboard: NPC dialogue on the
     left, room diagnostics/operational rates on the right, side by side
     across the full 120-column layout."""
     grid = Table.grid(padding=(0, 4), expand=True)
     grid.add_column(ratio=1)
     grid.add_column(ratio=1)
-    grid.add_row(_npc_panel(npc), right_panel)
+    grid.add_row(_npc_panel(npc, character), right_panel)
     console.print(grid)
 
 
@@ -465,8 +471,8 @@ def visit_netvault(character: Character) -> None:
             ("Security", "Agent Parker + K9 unit on the floor"),
         ],
     )
-    _interaction_deck(npc_at("NetVault"), right_panel)
-    console.print(f"[{TEXT_DIM}]{random_line(get_npc('agent_parker'))}[/{TEXT_DIM}]")
+    _interaction_deck(npc_at("NetVault"), right_panel, character)
+    console.print(_npc_panel(get_npc("agent_parker"), character))
 
     action = hotkey_prompt(console, [("D", "Deposit"), ("W", "Withdraw"), ("L", "Leave")])
     if action == "D":
@@ -580,7 +586,7 @@ def visit_doc_wires_clinic(character: Character) -> None:
             ("Active Effects", effects_text),
         ],
     )
-    _interaction_deck(npc_at("Doc Wire's Clinic"), right_panel)
+    _interaction_deck(npc_at("Doc Wire's Clinic"), right_panel, character)
 
     can_afford_heal = character.credits >= HEAL_COST_PER_HP
     can_afford_cure = character.credits >= CURE_COST
@@ -653,7 +659,7 @@ def visit_robodojo(character: Character) -> None:
         ],
         extra=table,
     )
-    _interaction_deck(npc_at("RoboDOJO"), right_panel)
+    _interaction_deck(npc_at("RoboDOJO"), right_panel, character)
     if can_train:
         console.print(
             f"[{TEXT_DIM}]A training drone powers up, servos whirring, waiting for you to pick a discipline. "
@@ -831,11 +837,11 @@ def visit_chrome_noodle_bar(character: Character) -> None:
             ("Active Contracts", str(len(board_active))),
         ],
     )
-    _interaction_deck(npc_at("Chrome Noodle Bar"), right_panel)
+    _interaction_deck(npc_at("Chrome Noodle Bar"), right_panel, character)
 
     choice = hotkey_prompt(
         console,
-        [("B", "Buy a round"), ("C", "Check the shady booth in the back"), ("L", "Leave")],
+        [("B", "Buy a round"), ("C", "Contract Booth"), ("L", "Leave")],
     )
     if choice == "B":
         _buy_a_round(character)
@@ -878,10 +884,22 @@ def _buy_a_round(character: Character) -> None:
 
 
 def _visit_endr3am(character: Character) -> None:
-    print_menu_divider("Contract Board")
-    broker = get_npc("endr3am")
-    console.print(f"[{INFO}]{broker['name']}[/{INFO}] [{TEXT_DIM}]— {broker['bio']}[/{TEXT_DIM}]")
-    console.print(f"  {random_line(broker)}")
+    print_menu_divider("Contract Booth")
+    board_active = [
+        quest_id for quest_id in character.active_quests if get_quest(quest_id).get("board", "Fixer Board") == "Chrome Noodle Bar"
+    ]
+    board_completed = [
+        quest_id for quest_id in character.completed_quests if get_quest(quest_id).get("board", "Fixer Board") == "Chrome Noodle Bar"
+    ]
+    right_panel = _station_data_panel(
+        "BOOTH LEDGER",
+        [
+            ("Charisma", str(character.charisma)),
+            ("Contracts Active", str(len(board_active))),
+            ("Contracts Completed", str(len(board_completed))),
+        ],
+    )
+    _interaction_deck(get_npc("endr3am"), right_panel, character)
     _browse_contract_board(character, "Chrome Noodle Bar")
 
 
@@ -961,7 +979,7 @@ def visit_fixer_board(character: Character) -> None:
             ("Contracts Completed", str(len(board_completed))),
         ],
     )
-    _interaction_deck(npc_at("Fixer Board"), right_panel)
+    _interaction_deck(npc_at("Fixer Board"), right_panel, character)
     _browse_contract_board(character, "Fixer Board")
 
 
@@ -1162,17 +1180,18 @@ def _visit_black_market(character: Character) -> None:
 def visit_hyphen8ds_hut(character: Character) -> None:
     print_arrival(character, "Hyphen8d's Hut")
 
-    npc = npc_at("Hyphen8d's Hut")
-    console.print(f"[{INFO}]{npc['name']}[/{INFO}] [{TEXT_DIM}]— {npc['bio']}[/{TEXT_DIM}]")
-    console.print(f"  {random_line(npc)}")
-
-    print_menu_divider("Shop Menu")
     for result in notify_step(character, "talk", "Hyphen8d's Hut"):
         print_quest_result(console, character, result)
 
+    print_menu_divider("Shop Menu")
     if not character.market_stock:
         roll_daily_market(character)
-    console.print(f"[{TEXT_DIM}]{describe_market_modifier(character)}[/{TEXT_DIM}]")
+
+    right_panel = _station_data_panel(
+        "SHOP STATUS",
+        [("Today's Event", describe_market_modifier(character))],
+    )
+    _interaction_deck(npc_at("Hyphen8d's Hut"), right_panel, character)
 
     catalog = get_daily_catalog(character)
     _print_shop_dashboard(character, catalog)

@@ -1,6 +1,6 @@
 # Neon Dragon
 
-**Alpha 2.0**
+**Alpha 2.5**
 
 A single-player, terminal-based RPG set in a cyberpunk vaporwave city —
 Neo Meridian. No server, no accounts, no web frontend. Just a Python
@@ -35,20 +35,25 @@ python3 -m venv .venv
   Undercity (Jack In / Find a Fight / Scavenge), NetVault (banking),
   Hyphen8d's Hut (cyberware with a daily rotating stock and market
   events), Doc Wire's Clinic (healing, curing, and consumable
-  supplies), RoboDOJO (drone sparring / stat training), The Pit
-  (tiered gladiator fights), Fixer Board (reputation-gated contracts),
-  Chrome Noodle Bar (free rest + charisma-gated contracts)
+  supplies), RoboDOJO (real sparring fights to train stats, plus
+  purchasable combat abilities), The Pit (tiered gladiator fights),
+  Fixer Board (reputation-gated contracts), Chrome Noodle Bar (free
+  rest + charisma-gated contracts)
 - Turn-based combat with a live two-panel HUD (HP bars, status badges,
   a real-time enemy sensor scan), directional »»»/««« narration tags,
   and gear- and damage-aware hit descriptions that change with your
   equipped cyberware, class, and how hard you actually hit
 - Status effects (Bleeding, Stunned, Drunk) with colored glyph badges,
-  per-enemy factions (Street Gang, Corp, Ronin, Feral, Gladiator), and
-  a signature class special on a cooldown — Street Samurai's Samurai
-  Slash, Netrunner's Override System
+  per-enemy factions (Street Gang, Corp, Scavs, Ronin, Feral,
+  Gladiator), a signature class special on a cooldown — Street
+  Samurai's Samurai Slash, Netrunner's Override System — and two more
+  class-independent combat abilities purchasable at RoboDOJO (Adrenal
+  Surge, Kill Switch), each stacking on top of a class special with
+  its own cooldown
 - A day/night cycle — leaving the hub (with confirmation) sends your
-  merc home to sleep: full heal, status effects cleared, and a "Daily
-  Data Feed" panel summarizing where you stand
+  merc home to sleep: full heal, status effects cleared, daily caps
+  reset (RoboDOJO sparring, Buy a Round, Chrome Noodle Bar's free
+  rest), and a "Daily Data Feed" panel summarizing where you stand
 - Faction Heat — rack up too many kills against Corp or Street Gang in
   one day and you risk a retaliatory ambush, mid-Scavenge or the
   moment you wake up
@@ -56,19 +61,23 @@ python3 -m venv .venv
   (discount or surge) on one cyberware slot, on top of a Charisma
   discount that stacks with it
 - A consumable-item inventory (Nanite Patches, EMP Grenades, and more)
-  usable mid-combat without breaking your turn economy
+  usable mid-combat without breaking your turn economy, never
+  consumed on a no-op use (full-HP heal, faction-mismatched stun)
 - Charisma has real mechanical weight: shop discounts, cheaper trauma
   bills after a lost fight, and gates on higher-tier contracts
 - A rare secondary currency and the black-market economy built around
   it, for players who go looking
+- 10 Undercity enemies, 5 Pit gladiators, and 16 contracts across two
+  boards — enough variety that repeat play doesn't loop the same
+  handful of fights
 - In-game character info (`[I]`) and help (`[?]`) screens, accessible
   mid-session without spending a turn
 - Bracket-hotkey menus throughout — every screen shows a bold-bracketed
   letter, and on a real terminal you don't even need to press Enter
 - A fixed 120-column layout so tables and panels render identically
   regardless of terminal width
-- JSON save/load, one file per character, autosaved on returning to
-  the main menu
+- JSON save/load, one file per character, autosaved whenever you leave
+  the hub *and* on a crash or interrupt mid-session
 
 ## Docs
 
@@ -78,6 +87,11 @@ python3 -m venv .venv
 - [`PLAYER_GUIDE.md`](PLAYER_GUIDE.md) — how everything actually works
   right now, including an honest list of what's not built yet. Also
   readable in-game via the `?` command
+- [`ADMIN_GUIDE.md`](ADMIN_GUIDE.md) — admin-facing reference wiki:
+  every location, NPC, enemy, gladiator, contract, and item with its
+  actual numbers, pulled straight from `content/*.json` and the
+  engine constants. Use this to look something up; use `GAME_DESIGN.md`
+  to understand why it works that way
 - [`CLAUDE.md`](CLAUDE.md) — the technical/process contract this
   project is built under (this was built with
   [Claude Code](https://claude.com/claude-code))
@@ -86,14 +100,18 @@ python3 -m venv .venv
 
 NPCs, contracts, encounter tables, cyberware, consumables, and the
 Pit's gladiator roster all live under [`content/`](content/) as JSON.
-Adding or tuning content is a data edit, not a code change.
+Adding or tuning content is a data edit, not a code change. (Class
+templates, combat specials/abilities, and RoboDOJO's sparring drones
+are the deliberate exceptions — see `ADMIN_GUIDE.md`'s content map.)
 
 ## Status
 
-Alpha 2.0. Every hub location has real mechanics; the current "end
-game" is working through Fixer Board and Chrome Noodle Bar contracts,
-with a day-cycle economy layered on top of it. See the "What's not
-built yet" section of `PLAYER_GUIDE.md` for known gaps.
+Alpha 2.5. Every hub location has real mechanics; RoboDOJO trains
+stats through actual sparring fights and sells permanent combat
+abilities; the current "end game" is working through Fixer Board and
+Chrome Noodle Bar contracts (16 across both boards), with a
+day-cycle economy layered on top of it. See the "What's not built
+yet" section of `PLAYER_GUIDE.md` for known gaps.
 
 ## Credits
 

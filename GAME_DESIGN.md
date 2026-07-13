@@ -61,12 +61,28 @@ The player is a cyber mercenary (**merc**) working Neo Meridian's edges.
   section 7 for the shop discount and trauma bill reduction it grants.
 - Cyberware slots instead of traditional armor slots (arm, eyes, spine,
   skin) — each grants a stat bonus, sourced from Hyphen8d's Hut.
+- Leveling up is no longer fully deterministic: on top of the flat
+  `STAT_GROWTH` (+3 Max HP, +1 Attack, +1 Defense, +1 Tech, full heal),
+  the player picks one of Attack/Defense/Tech to bump an extra point
+  (`engine/leveling.py`'s `LEVEL_UP_BONUS_STATS`, prompted via
+  `hotkey_prompt`) — the one build-crafting decision between character
+  creation and cyberware, so two Street Samurai builds can diverge over
+  a playthrough instead of following an identical curve.
 
 ## 5. NPCs
 
 Data-driven (see CLAUDE.md) — not hardcoded. Each NPC has:
 - Name, location, a short bio/flavor text
 - A pool of dialogue lines (randomized on visit)
+- Optionally: `conditional_lines` — an array of `{condition, min, line}`
+  entries checked against the visiting Character (`engine/npcs.py`'s
+  `_condition_value`/`random_line`); once a threshold is met (kills by
+  faction, Quantum Cores held, contracts completed, Charisma, banked
+  credits, being in debt, abilities learned), the NPC draws only from
+  the eligible conditional pool instead of the generic one — the world
+  reacting to what this specific merc has actually done, reusing
+  existing Character state rather than adding new tracking just for
+  flavor
 - Optionally: a contract hook, a shop inventory, or a relationship-track flag
 
 Starter NPC roster (flavor only — expand freely):
@@ -245,15 +261,30 @@ as opportunistic bad luck rather than a targeted retaliation.
 - ASCII/box-drawn panels for the hub menu and stat sheet.
 - **Interaction Deck** (`engine/hub.py`: `_interaction_deck`,
   `_npc_panel`, `_station_data_panel`): the shared layout for a
-  location's sub-screen, used by NetVault, Doc Wire's Clinic,
-  RoboDOJO, Fixer Board, and Chrome Noodle Bar. A `Table.grid(padding=
+  location's sub-screen, used by every location with a primary NPC —
+  NetVault, Doc Wire's Clinic, RoboDOJO, Fixer Board, Chrome Noodle
+  Bar, Hyphen8d's Hut, and Endr3am's Contract Booth (a sub-screen off
+  Chrome Noodle Bar, not a separate hub location — he's the same
+  bar's back booth, not somewhere you travel to). Every primary NPC
+  interaction in the game goes through this same treatment now; there
+  used to be three holdouts (Hyphen8d, Endr3am, and NetVault's
+  secondary Agent Parker) that printed as plain text instead of a
+  bordered panel — fixed for visual consistency. A `Table.grid(padding=
   (0, 4), expand=True)` splits the 120-column layout into an NPC
   dialogue panel (bio, a `Rule`, one quoted line) on the left and a
   titled operational-data panel (key/value rows, optionally an extra
   table like RoboDOJO's training costs) on the right. Anything that
   doesn't fit a compact side panel — the Fixer/Endr3am contract
   listings — stays its own full-width block below the deck instead of
-  being squeezed in.
+  being squeezed in. A *secondary* NPC in the same room (Agent Parker)
+  gets `_npc_panel` printed standalone, full-width, rather than paired
+  in the two-column grid — visually distinct from the primary pairing
+  without falling back to plain dim text.
+- The main hub menu's Actions table surfaces active contract count
+  inline on the Character Info row ("contracts (N active)") rather
+  than as a new column on the persistent `print_status` HUD strip —
+  that table is reused on every location screen, so adding a column
+  there risked the fixed 120-column layout everywhere, not just the hub.
 
 ## 10. Build Phases (suggested order)
 

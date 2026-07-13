@@ -6,12 +6,23 @@ from rich.console import Console
 
 from engine.character import Character
 from engine.theme import ACCENT
+from engine.ui import hotkey_prompt
 
 XP_STEP = 50
 
 # Flat stat growth applied per level gained. Charisma is left out —
 # it has no mechanical effect anywhere yet, so growing it would be noise.
 STAT_GROWTH = {"max_hp": 3, "attack": 1, "defense": 1, "tech": 1}
+
+# On top of the flat STAT_GROWTH, the player picks one of these to bump an
+# extra point — the one build-crafting decision in an otherwise fully
+# deterministic level-up, so Street Samurai vs. Netrunner can diverge
+# further than their starting templates over a playthrough.
+LEVEL_UP_BONUS_STATS: dict[str, tuple[str, str]] = {
+    "A": ("attack", "Attack"),
+    "D": ("defense", "Defense"),
+    "T": ("tech", "Tech"),
+}
 
 
 def xp_for_level(level: int) -> int:
@@ -49,3 +60,9 @@ def check_level_up(character: Character, console: Console) -> None:
             f"+{STAT_GROWTH['defense']} Defense, +{STAT_GROWTH['tech']} Tech — "
             f"and fully healed."
         )
+
+        options = [(key, label) for key, (_, label) in LEVEL_UP_BONUS_STATS.items()]
+        choice = hotkey_prompt(console, options, prompt="Put a bonus point somewhere:")
+        attr, label = LEVEL_UP_BONUS_STATS[choice]
+        setattr(character, attr, getattr(character, attr) + 1)
+        console.print(f"[{ACCENT}]+1 {label}[/{ACCENT}], your call.")

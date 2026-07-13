@@ -42,13 +42,22 @@ third, charisma-focused class is pulled pending a redesign):
   Each level costs more than the last (level 2 needs 50 total XP,
   level 3 needs 150, level 4 needs 300 — 50 more per level than the
   one before). Every level grants +3 Max HP, +1 Attack, +1 Defense,
-  +1 Tech, and a full heal. A single big XP reward can trigger
-  multiple level-ups at once. Charisma doesn't grow on level-up — it
-  comes from cyberware, not training (RoboDOJO doesn't offer it).
+  +1 Tech, and a full heal — **plus you pick one of Attack/Defense/Tech
+  to bump an extra point**, the one build-crafting choice you get
+  outside of gear. A single big XP reward can trigger multiple
+  level-ups at once, prompting you for a bonus point each time.
+  Charisma doesn't grow on level-up — it comes from cyberware, not
+  training (RoboDOJO doesn't offer it).
 
 ## The Hub — Neo Meridian
 
-Every session loops through this menu. Locations:
+Every session loops through this menu. The Character Info line on the
+main menu now shows how many contracts you've got active, so you don't
+have to hunt for a reminder. NPCs also aren't purely random flavor —
+a handful will start drawing from a different line pool once you've
+actually earned it (a body count, a debt, a stash of Quantum Cores,
+proven reliability) instead of repeating generic chatter forever.
+Locations:
 
 ### Chrome Noodle Bar
 Static Rin, the bartender, has a pool of flavor lines, and it's a step
