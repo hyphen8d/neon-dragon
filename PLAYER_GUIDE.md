@@ -78,6 +78,13 @@ Charisma). Buying a second item for an occupied slot auto-sells the
 old one for half its cost as trade-in credit. You can also sell
 outright from the Sell menu.
 
+The higher-cost arm and eyes items also let you inflict status effects
+on enemies, not just deal more damage: **Razor Claws** (arm) has a
+chance to cause Bleeding on Attack, **Target-Lock Eyes** (eyes) has a
+chance to cause Stunned on Tech/Hack. The cheaper tier of each slot
+(Chrome Arm Mk.I, Optic Scanner) doesn't — that capability is what the
+higher price actually buys.
+
 ### Doc Wire's Clinic
 Heals HP for credits at a flat rate (2 credits per HP), capped to
 whatever you can afford. No-op if you're already at full health. Also
@@ -120,23 +127,29 @@ credits at NetVault are never touched by this.
 
 ### Status effects
 
-Some enemies have a chance to inflict a status effect when they hit
-you:
+Status effects go both ways:
 
-- **Bleeding** — 3 damage at the start of each of your turns for the
-  effect's duration.
-- **Stunned** — you lose your action for that round entirely (no
-  Attack, Tech/Hack, Defend, or Flee).
+- **Bleeding** — 3 damage at the start of the affected side's turn,
+  for the effect's duration.
+- **Stunned** — the affected side loses their action for that round
+  entirely.
+
+Enemies inflict effects on hit if they have the ability; you inflict
+them via certain cyberware when you Attack (arm slot) or Tech/Hack
+(eyes slot) — see Chop Shop above. Both sides' active effects show up
+in the combat status line.
 
 Effects tick down once per round and expire on their own, but they
 don't clear just by leaving combat — if you win a fight while still
 bleeding or stunned, you'll carry it into whatever you do next
 (including your next fight) until it wears off or you pay to clear it
-at Doc Wire's Clinic.
+at Doc Wire's Clinic. Enemy status effects don't carry over — they
+reset with each new fight.
 
 Currently: Street Gangers and Scrap Dog Vex/The Widow (Pit) can inflict
 Bleeding; Rogue Drones and Corp Patrol Troopers can inflict Stunned.
-Ironclad Marta (Pit) doesn't inflict anything.
+Ironclad Marta (Pit) doesn't inflict anything. On your side, Razor
+Claws causes Bleeding and Target-Lock Eyes causes Stunned.
 
 ## Contracts
 

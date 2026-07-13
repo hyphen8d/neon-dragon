@@ -1,10 +1,14 @@
-"""Status effect application, per-round ticking, and curing."""
+"""Status effect application, per-round ticking, and curing.
+
+Works on both the player Character and combat Enemy objects — anything
+with .hp, .name, and .status_effects attributes.
+"""
 
 from __future__ import annotations
 
-from rich.console import Console
+from typing import Any
 
-from engine.character import Character
+from rich.console import Console
 
 BLEED_DAMAGE = 3
 
@@ -14,35 +18,39 @@ EFFECT_LABELS: dict[str, str] = {
 }
 
 
-def apply_effect(character: Character, effect: str, duration: int) -> None:
-    character.status_effects[effect] = max(character.status_effects.get(effect, 0), duration)
+def apply_effect(combatant: Any, effect: str, duration: int) -> None:
+    combatant.status_effects[effect] = max(combatant.status_effects.get(effect, 0), duration)
 
 
-def has_effect(character: Character, effect: str) -> bool:
-    return character.status_effects.get(effect, 0) > 0
+def has_effect(combatant: Any, effect: str) -> bool:
+    return combatant.status_effects.get(effect, 0) > 0
 
 
-def process_round_start(character: Character, console: Console) -> bool:
+def process_round_start(combatant: Any, console: Console, is_player: bool = False) -> bool:
     """Apply bleed damage and decay every active effect by one round.
-    Returns True if the player was stunned at the start of this round
+    Returns True if the combatant was stunned at the start of this round
     (checked before decay, so a 1-round stun still blocks this round's action)."""
-    stunned = has_effect(character, "stunned")
+    subject = "You" if is_player else combatant.name
+    stunned = has_effect(combatant, "stunned")
 
-    if has_effect(character, "bleed"):
-        character.hp = max(0, character.hp - BLEED_DAMAGE)
-        console.print(f"[red]Bleeding out: -{BLEED_DAMAGE} HP.[/red]")
+    if has_effect(combatant, "bleed"):
+        combatant.hp = max(0, combatant.hp - BLEED_DAMAGE)
+        verb = "bleed" if is_player else "bleeds"
+        console.print(f"[red]{subject} {verb} for {BLEED_DAMAGE} damage.[/red]")
 
-    for effect in list(character.status_effects.keys()):
-        character.status_effects[effect] -= 1
-        if character.status_effects[effect] <= 0:
-            del character.status_effects[effect]
-            console.print(f"[dim]{EFFECT_LABELS.get(effect, effect)} wears off.[/dim]")
+    for effect in list(combatant.status_effects.keys()):
+        combatant.status_effects[effect] -= 1
+        if combatant.status_effects[effect] <= 0:
+            del combatant.status_effects[effect]
+            label = EFFECT_LABELS.get(effect, effect)
+            possessive = "Your" if is_player else f"{combatant.name}'s"
+            console.print(f"[dim]{possessive} {label} wears off.[/dim]")
 
     return stunned
 
 
-def cure_all(character: Character) -> int:
+def cure_all(combatant: Any) -> int:
     """Remove all status effects. Returns how many were cured."""
-    count = len(character.status_effects)
-    character.status_effects.clear()
+    count = len(combatant.status_effects)
+    combatant.status_effects.clear()
     return count

@@ -16,7 +16,10 @@
       "cost": 150,
       "stat": "attack",
       "bonus": 6,
-      "flavor": "Retractable monofilament blades. Illegal in six districts."
+      "flavor": "Retractable monofilament blades. Illegal in six districts.",
+      "inflict_effect": "bleed",
+      "inflict_chance": 0.25,
+      "inflict_duration": 2
     },
     {
       "id": "optic_scanner",
@@ -34,7 +37,10 @@
       "cost": 160,
       "stat": "tech",
       "bonus": 7,
-      "flavor": "Military surplus. Tracks micro-movements you can't even see."
+      "flavor": "Military surplus. Tracks micro-movements you can't even see.",
+      "inflict_effect": "stunned",
+      "inflict_chance": 0.2,
+      "inflict_duration": 1
     },
     {
       "id": "spinal_brace",
