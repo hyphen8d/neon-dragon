@@ -142,6 +142,13 @@ def print_arrival(location: str) -> None:
     )
 
 
+def print_menu_divider(label: str) -> None:
+    """Visually separate in-character scene/dialogue above from the
+    out-of-character menu/mechanics below."""
+    console.print()
+    console.rule(f"[dim]{label}[/dim]", style="dim")
+
+
 def visit_undercity(character: Character) -> None:
     print_arrival("Undercity")
     encounter = roll_encounter()
@@ -190,15 +197,16 @@ def _withdraw(character: Character) -> None:
 def visit_netvault(character: Character) -> None:
     print_arrival("NetVault")
 
-    for result in notify_step(character, "talk", "NetVault"):
-        print_quest_result(console, character, result)
-
     npc = npc_at("NetVault")
     console.print(f"[bold cyan]{npc['name']}[/bold cyan] [dim]— {npc['bio']}[/dim]")
     console.print(f"  {random_line(npc)}")
 
+    print_menu_divider("Banking")
+    for result in notify_step(character, "talk", "NetVault"):
+        print_quest_result(console, character, result)
+
     console.print(
-        f"\nOn hand: [bold yellow]{character.credits}[/bold yellow]   "
+        f"On hand: [bold yellow]{character.credits}[/bold yellow]   "
         f"Banked: [bold yellow]{character.banked_credits}[/bold yellow] [dim](safe from death-loss)[/dim]"
     )
 
@@ -247,12 +255,13 @@ def _offer_cure(character: Character) -> None:
 def visit_doc_wires_clinic(character: Character) -> None:
     print_arrival("Doc Wire's Clinic")
 
-    for result in notify_step(character, "talk", "Doc Wire's Clinic"):
-        print_quest_result(console, character, result)
-
     npc = npc_at("Doc Wire's Clinic")
     console.print(f"[bold cyan]{npc['name']}[/bold cyan] [dim]— {npc['bio']}[/dim]")
     console.print(f"  {random_line(npc)}")
+
+    print_menu_divider("Clinic Menu")
+    for result in notify_step(character, "talk", "Doc Wire's Clinic"):
+        print_quest_result(console, character, result)
 
     _offer_cure(character)
 
@@ -301,6 +310,7 @@ def visit_the_dojo(character: Character) -> None:
     print_arrival("The Dojo")
     console.print("[dim]No trainer in sight — just a chalkboard bolted to the wall with a price list.[/dim]")
 
+    print_menu_divider("Training")
     table = Table(border_style="bright_cyan", show_header=False)
     table.add_column("#", justify="right", style="bright_magenta")
     table.add_column("Stat", style="bold white")
@@ -334,6 +344,7 @@ def visit_the_pit(character: Character) -> None:
     print_arrival("The Pit")
     console.print("[dim]The crowd wants blood. Pick your match.[/dim]")
 
+    print_menu_divider("The Ring")
     gladiators = load_gladiators()
     table = Table(border_style="bright_cyan")
     table.add_column("#", justify="right", style="bright_magenta")
@@ -364,9 +375,6 @@ REST_THRESHOLD = 0.5  # free rest tops you up to this fraction of max HP, no fur
 def visit_chrome_noodle_bar(character: Character) -> None:
     print_arrival("Chrome Noodle Bar")
 
-    for result in notify_step(character, "talk", "Chrome Noodle Bar"):
-        print_quest_result(console, character, result)
-
     npc = npc_at("Chrome Noodle Bar")
     console.print(f"[bold cyan]{npc['name']}[/bold cyan] [dim]— {npc['bio']}[/dim]")
     console.print(f"  {random_line(npc)}")
@@ -386,22 +394,11 @@ def visit_chrome_noodle_bar(character: Character) -> None:
         "\n[dim]Rin leans in, voice low — she's got side work for the right kind of "
         "smile, if you're charming enough to earn it.[/dim]"
     )
-    _browse_contract_board(character, "Chrome Noodle Bar")
 
-
-def visit_location(character: Character, location: str) -> None:
-    print_arrival(location)
-
-    for result in notify_step(character, "talk", location):
+    print_menu_divider("Contract Board")
+    for result in notify_step(character, "talk", "Chrome Noodle Bar"):
         print_quest_result(console, character, result)
-
-    npc = npc_at(location)
-    if npc is None:
-        console.print("[dim](nothing to do here yet — coming in a later phase)[/dim]")
-        return
-
-    console.print(f"[bold cyan]{npc['name']}[/bold cyan] [dim]— {npc['bio']}[/dim]")
-    console.print(f"  {random_line(npc)}")
+    _browse_contract_board(character, "Chrome Noodle Bar")
 
 
 def _browse_contract_board(character: Character, board: str) -> None:
@@ -453,13 +450,13 @@ def _browse_contract_board(character: Character, board: str) -> None:
 def visit_fixer_board(character: Character) -> None:
     print_arrival("Fixer Board")
 
-    for result in notify_step(character, "talk", "Fixer Board"):
-        print_quest_result(console, character, result)
-
     npc = npc_at("Fixer Board")
     console.print(f"[bold cyan]{npc['name']}[/bold cyan] [dim]— {npc['bio']}[/dim]")
     console.print(f"  {random_line(npc)}")
 
+    print_menu_divider("Contract Board")
+    for result in notify_step(character, "talk", "Fixer Board"):
+        print_quest_result(console, character, result)
     _browse_contract_board(character, "Fixer Board")
 
 
@@ -559,12 +556,13 @@ def _sell_cyberware(character: Character) -> None:
 def visit_chop_shop(character: Character) -> None:
     print_arrival("Chop Shop")
 
-    for result in notify_step(character, "talk", "Chop Shop"):
-        print_quest_result(console, character, result)
-
     npc = npc_at("Chop Shop")
     console.print(f"[bold cyan]{npc['name']}[/bold cyan] [dim]— {npc['bio']}[/dim]")
     console.print(f"  {random_line(npc)}")
+
+    print_menu_divider("Chop Shop Menu")
+    for result in notify_step(character, "talk", "Chop Shop"):
+        print_quest_result(console, character, result)
 
     print_loadout(character)
 
@@ -682,4 +680,4 @@ def enter_hub(character: Character) -> None:
         elif chosen == "The Pit":
             visit_the_pit(character)
         else:
-            visit_location(character, chosen)
+            raise ValueError(f"No hub handler wired up for location: {chosen!r}")
