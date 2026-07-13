@@ -48,91 +48,67 @@ LOCATIONS: dict[str, str] = {
 # into the place (as opposed to the short blurb in the hub menu table).
 LOCATION_DESCRIPTIONS: dict[str, str] = {
     "Chrome Noodle Bar": (
-        "Steam curls off the noodle vats under a buzzing pink sign, condensation "
-        "beading on cracked plastic booths that have seen better decades. Synth "
-        "pop bleeds from a speaker with one blown tweeter, looping the same "
-        "three songs since before you were running jobs. Every stool's got a "
-        "story nobody's telling straight, and half the regulars are working an "
-        "angle you'll never clock. The noodles are cheap, the gossip is "
-        "cheaper, and somewhere behind the counter Static Rin keeps a mental "
-        "ledger of every favor owed in three districts."
+        "Steam curls off the noodle vats under a buzzing pink sign, "
+        "condensation beading on cracked plastic booths. Synth pop bleeds "
+        "from a speaker with one blown tweeter, looping the same three songs "
+        "for years. Every stool's got a story nobody's telling straight. The "
+        "noodles are cheap, the gossip is cheaper, and Static Rin keeps a "
+        "mental ledger of every favor owed in three districts."
     ),
     "Undercity": (
-        "Sublevel streets, sodium light dying orange through a smog that never "
-        "quite clears. Water drips from a hundred unseen pipes, pooling in "
-        "cracks where the pavement gave up years ago. Graffiti layers over "
-        "graffiti layers over corp propaganda nobody bothered to scrub. "
-        "Something always seems to be watching from the dark — a drone, a "
-        "ganger, a rat the size of a housecat, hard to say which. The deeper "
-        "tunnels supposedly connect to the old transit grid, but nobody who's "
-        "gone looking has come back with a straight answer."
+        "Sublevel streets, sodium light dying orange through a smog that "
+        "never quite clears. Water drips from a hundred unseen pipes, "
+        "pooling in cracks where the pavement gave up years ago. Something "
+        "always seems to be watching from the dark — a drone, a ganger, a "
+        "rat the size of a housecat, hard to say which."
     ),
     "NetVault": (
         "Chrome and glass, cold as a server room because it technically is "
-        "one, the air conditioning tuned two degrees colder than comfortable "
-        "on purpose. Biometric scanners hum behind a counter that's processed "
-        "a thousand transactions today alone and trusts none of them, "
-        "flagging half for review out of institutional habit more than actual "
-        "suspicion. Armed drones drift near the ceiling on quiet rotors, "
-        "watching everyone equally, which somehow feels worse than being "
-        "watched selectively. The vault door behind reception hasn't opened "
-        "in front of a customer in years, and nobody's sure it needs to."
+        "one. Biometric scanners hum behind a counter that's processed a "
+        "thousand transactions today and trusts none of them. Armed drones "
+        "drift near the ceiling on quiet rotors, watching everyone equally. "
+        "The vault door behind reception hasn't opened for a customer in "
+        "years."
     ),
     "Hyphen8d's Hut": (
-        "Wires hang from the ceiling like vines that gave up trying to be "
-        "anything else, tangled around fluorescent tubes that flicker on a "
-        "schedule only Hyphen8d understands. Half-built limbs sit in bins "
-        "marked in a shorthand only the shop understands, chrome fingers "
-        "twitching occasionally when a stray current finds them. Smells like "
-        "solder and ozone and something faintly organic underneath that "
-        "nobody asks about. A cracked monitor loops security footage of a "
-        "break-in that happened months ago, apparently for atmosphere, since "
-        "nothing was ever fixed or reported. Hyphen8d insists everything's "
+        "Wires hang from the ceiling like vines, tangled around fluorescent "
+        "tubes that flicker on a schedule only Hyphen8d understands. "
+        "Half-built limbs sit in bins marked in a shorthand only the shop "
+        "understands, chrome fingers twitching when a stray current finds "
+        "them. Smells like solder and ozone. Hyphen8d insists everything's "
         "legitimate. Hyphen8d is lying."
     ),
     "Doc Wire's Clinic": (
         "A converted shipping container wired for surgery, welded shut on "
-        "three sides and propped open on the fourth with a car battery "
-        "nobody's bothered to remove. Trauma gurneys line one wall, "
-        "mismatched monitors beeping out of sync with each other on the "
-        "other, and a fridge in the corner that's definitely not for food, no "
-        "matter what the handwritten sign taped to it claims. The smell of "
-        "antiseptic fights a losing battle against synth-tobacco smoke that "
-        "clings to every surface. Doc Wire's hands shake faintly when he's "
-        "not working, steady the instant they pick up a scalpel."
+        "three sides and propped open with a car battery nobody's bothered "
+        "to remove. Trauma gurneys line one wall, a fridge in the corner "
+        "that's definitely not for food. The smell of antiseptic fights "
+        "synth-tobacco smoke. Doc Wire's hands shake until they pick up a "
+        "scalpel."
     ),
     "RoboDOJO": (
-        "Servo-limbed training drones circle a scorched practice ring, sparks "
-        "catching the overhead floods every time a hit lands clean. A "
-        "diagnostic wall panel hums beside a rack of practice blades worn "
-        "smooth from years of grips, and the mats underneath are patched more "
-        "than they're original. This is where you get better, one bruise at "
-        "a time, whether the discipline is fists, ranged tech, or absorbing "
-        "one more hit than you thought you could before your guard finally "
-        "gives. The drones don't hold back, don't get tired, and don't care "
-        "how much it costs — that part's between you and the front desk."
+        "Servo-limbed training drones circle a scorched practice ring, "
+        "sparks catching the overhead floods every time a hit lands clean. A "
+        "rack of practice blades sits worn smooth from years of grips, mats "
+        "patched more than original. This is where you get better, one "
+        "bruise at a time. The drones don't hold back, or get tired, or care "
+        "what it costs."
     ),
     "The Pit": (
         "A sunken arena ringed by chain-link and floodlights, a chanting "
-        "crowd lost in the dark beyond the light's reach where you can hear "
-        "them but never quite see faces. The sand's stained in ways bleach "
-        "won't fix, and the house doesn't pretend otherwise — it's part of "
-        "the pitch when they're selling you a match. Betting runs the aisles "
-        "in a currency that isn't quite credits and isn't quite favors, "
-        "changing hands too fast to track. Somewhere above the ring a "
-        "scoreboard flickers names of gladiators who didn't walk out, kept up "
-        "less as memorial than as a warning."
+        "crowd lost in the dark beyond the light's reach. The sand's "
+        "stained in ways bleach won't fix, and the house doesn't pretend "
+        "otherwise. Betting runs the aisles in a currency that isn't quite "
+        "credits and isn't quite favors. A scoreboard flickers names of "
+        "gladiators who didn't walk out."
     ),
     "Fixer Board": (
         "A cracked terminal bolted to a brick wall, scrolling contracts in "
-        "glitchy green text that occasionally drops a line mid-scroll and "
-        "never seems to notice. Torn paper flyers underneath it are decades "
-        "out of date, advertising jobs that paid out or got someone killed "
-        "long before you were running these streets. Nobody's ever seen who "
-        "updates the listings, and asking around only gets you a shrug or a "
-        "change of subject. The terminal takes a cut before you even see the "
-        "payout, quietly, automatically, and nobody's figured out how to stop "
-        "it or decided it's worth the trouble to try."
+        "glitchy green text that occasionally drops a line and never "
+        "notices. Torn paper flyers underneath are decades out of date, "
+        "advertising jobs that paid out or got someone killed long ago. The "
+        "terminal takes a cut before you even see the payout, quietly, "
+        "automatically."
     ),
 }
 
@@ -475,7 +451,7 @@ def visit_chrome_noodle_bar(character: Character) -> None:
         )
 
     choice = Prompt.ask(
-        "\n[bright_magenta]1[/bright_magenta] Talk to Endr3am about work  [bright_magenta]0[/bright_magenta] Leave",
+        "\n[bright_magenta]1[/bright_magenta] Check the shady booth in the back  [bright_magenta]0[/bright_magenta] Leave",
         choices=["0", "1"],
         show_choices=False,
     )
