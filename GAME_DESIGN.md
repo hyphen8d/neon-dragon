@@ -125,7 +125,33 @@ vs. defense). Status effects are implemented: Stunned (skip your
 action) and Bleeding (damage over time), inflicted by specific
 enemies. Droid enemies (`is_droid: true` in encounter data — currently
 just Rogue Drone) are immune to Bleed from any source, enforced
-centrally in `status_effects.apply_effect`.
+centrally in `status_effects.apply_effect`. `EFFECT_LABELS` in
+`status_effects.py` bakes in a colored glyph badge per effect (e.g.
+`[🩸 BLEED]`), pre-wrapped in the WARNING theme color, so every
+consumer gets the same styled badge for free.
+
+`run_combat`'s round loop clears and redraws a two-panel HUD
+(`_print_combat_hud`) at the top of every round — player left, enemy
+right, both via `_combatant_panel`, HP shown as a number plus a
+`make_hp_bar()` block meter. Only that round's narrative streams below
+before a `press_any_key` pause; skipping that pause was a real bug
+(narration flashed and vanished under the next round's clear) fixed by
+gating the pause on the fight still being live. Narration lines are
+tagged with a directional prefix — `»»»` (`_player_line`) for the
+player's turn, an indented, darker `«««` (`_enemy_line`) for the
+enemy's — via `PLAYER_ARROW`/`ENEMY_ARROW` in `engine/theme.py`.
+
+Enemy content (`content/encounters.json`, `content/pit.json`) carries
+a `scan_desc` string, rendered in the enemy panel under Faction/Status
+along with a `_scan_readout()` line that shifts with the enemy's HP
+percentage (Nominal / Structural Degradation / Catastrophic Hardware
+Failure). Attack/Tech/Hack narration in `_player_hit` is gear-aware —
+`_hit_flavor` picks the line by what's equipped in the relevant
+cyberware slot (arm for Attack, eyes for Tech), with dedicated
+dirty-trick flavor for an unaugmented Grifter instead of the generic
+empty-slot line — and every hit line's verb is chosen by damage
+magnitude via `_impact_verb` (grazes/strikes/shatters tiers), so the
+same weapon reads differently at 2 damage vs. 15.
 
 Each class also has a signature special move on a 3-round cooldown:
 Street Samurai's **Samurai Slash** (1.5x damage, guaranteed Bleed,

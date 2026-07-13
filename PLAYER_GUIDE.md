@@ -169,12 +169,34 @@ lower-tier contracts first.
 
 ## Combat
 
-Turn-based. Each round you pick:
+Turn-based. The screen redraws fresh at the start of every round: your
+status on the left, the enemy's on the right, both with a block-bar HP
+meter alongside the numbers. Below that HUD, only that round's action
+text streams in — your move, then the enemy's — tagged with a bright
+`»»»` if it's something you did or a dim, indented `«««` if it's the
+enemy's turn, so you can tell at a glance who did what without reading
+every line. You'll be asked to press a key before the next round clears
+the screen, so nothing flashes past unread.
+
+The enemy's panel also runs a live sensor scan: a fixed description of
+what you're looking at, plus a readout line that shifts as their HP
+drops — "Systems Nominal" above 75%, "Structural Degradation Detected"
+between 30-75%, "Catastrophic Hardware Failure Imminent" below 30%.
+
+Each round you pick:
 
 - **Attack** — damage based on your Attack stat.
 - **Tech/Hack** — damage based on your Tech stat.
 - **Defend** — halves incoming damage that round.
 - **Flee** — coin-flip chance to escape with no reward either way.
+
+Attack and Tech/Hack narration is gear-aware — a bare fist reads
+nothing like a Chrome Arm punch or Razor Claws, and an unaugmented
+Grifter improvises with a zip-gun or a spoofed credential token
+instead of a generic swing. The verb itself also scales with how hard
+you hit: a 2-damage tap "grazes," an 8-damage hit "strikes," and
+anything 9+ "shatters" or worse. Same system applies to enemy hits
+against you.
 
 Each class also gets a signature move, on a 3-round cooldown (usable
 turn 1, then locked out for 3 rounds after each use):
@@ -221,7 +243,10 @@ level scaling. Banked credits at NetVault are never touched by this.
 
 ### Status effects
 
-Status effects go both ways:
+Status effects show up everywhere as a colored glyph badge — `[🩸
+BLEED]`, `[⚡ STUN]`, `[☣ DRUNK]` — in the combat HUD, your Character
+Info screen, and anywhere else they're listed, so they're easy to spot
+at a glance. Status effects go both ways:
 
 - **Bleeding** — 3 damage at the start of the affected side's turn,
   for the effect's duration. Droids (Rogue Drone) have no blood to

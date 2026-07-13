@@ -12,6 +12,7 @@
       "credits_reward": 35,
       "xp_reward": 10,
       "reputation_reward": 10,
+      "scan_desc": "Record: Pit regular. Knuckledusters are scrap-forged but the swings are fast.",
       "inflict_effect": "bleed",
       "inflict_chance": 0.3,
       "inflict_duration": 2
@@ -27,7 +28,8 @@
       "defense": 7,
       "credits_reward": 55,
       "xp_reward": 18,
-      "reputation_reward": 18
+      "reputation_reward": 18,
+      "scan_desc": "Armor: Salvaged riot plate, heavily reinforced. Built to soak hits, not dodge them."
     },
     {
       "id": "the_widow",
@@ -41,6 +43,7 @@
       "credits_reward": 80,
       "xp_reward": 28,
       "reputation_reward": 28,
+      "scan_desc": "Record: Undefeated. Movement pattern suggests reflex augments, not luck.",
       "inflict_effect": "bleed",
       "inflict_chance": 0.35,
       "inflict_duration": 2

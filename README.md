@@ -38,7 +38,11 @@ python3 -m venv .venv
   supplies), RoboDOJO (drone sparring / stat training), The Pit
   (tiered gladiator fights), Fixer Board (reputation-gated contracts),
   Chrome Noodle Bar (free rest + charisma-gated contracts)
-- Turn-based combat with status effects (Bleeding, Stunned, Drunk),
+- Turn-based combat with a live two-panel HUD (HP bars, status badges,
+  a real-time enemy sensor scan), directional »»»/««« narration tags,
+  and gear- and damage-aware hit descriptions that change with your
+  equipped cyberware, class, and how hard you actually hit
+- Status effects (Bleeding, Stunned, Drunk) with colored glyph badges,
   per-enemy factions (Street Gang, Corp, Ronin, Feral, Gladiator), and
   a signature class special on a cooldown — Street Samurai's Samurai
   Slash, Netrunner's Override System

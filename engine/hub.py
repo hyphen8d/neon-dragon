@@ -326,10 +326,15 @@ def visit_undercity(character: Character) -> None:
     print_arrival(character, "Undercity")
 
     print_menu_divider("The Streets")
+    console.print(
+        f"[{TEXT_DIM}]Every fixer down here says the same thing about jacking in: do it quiet and "
+        f"you're a ghost by the time anyone notices. Get greedy, get sloppy, and the whole grid "
+        f"comes looking for you.[/{TEXT_DIM}]\n"
+    )
     choice = hotkey_prompt(
         console,
         [
-            ("J", "Jack in (steal credits, risk a trace)"),
+            ("J", "Jack in"),
             ("F", "Find a fight"),
             ("S", "Scavenge"),
             ("L", "Leave"),
@@ -1155,11 +1160,11 @@ def enter_hub(character: Character) -> None:
             return
         if choice == "?":
             show_help(console)
-            press_any_key(console)
+            press_any_key(console, "Press any key to return to the central hub...")
             continue
         if choice == "I":
             show_character_info(character)
-            press_any_key(console)
+            press_any_key(console, "Press any key to return to the central hub...")
             continue
 
         chosen = LOCATION_HOTKEYS[choice]
@@ -1183,4 +1188,4 @@ def enter_hub(character: Character) -> None:
         else:
             raise ValueError(f"No hub handler wired up for location: {chosen!r}")
 
-        press_any_key(console)
+        press_any_key(console, "Press any key to return to the central hub...")

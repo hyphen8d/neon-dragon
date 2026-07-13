@@ -113,13 +113,14 @@ def hotkey_prompt(console: Console, options: list[tuple[str, str]], prompt: str 
     return choice
 
 
-def press_any_key(console: Console) -> None:
-    """Show a dim 'press any key' prompt and block on a single keypress
-    before clearing the screen. Since menu input is unbuffered elsewhere,
-    important narration (victory/defeat text, contract rewards) needs an
-    explicit pause like this or a player can blow straight past it with
-    their next hotkey press."""
-    console.print(f"\n[{NOTE}][Press any key to return to the central hub...][/{NOTE}]")
+def press_any_key(console: Console, message: str = "Press any key to continue...") -> None:
+    """Show a dim prompt and block on a single keypress before clearing the
+    screen. Since menu input is unbuffered elsewhere, important narration
+    (victory/defeat text, contract rewards, a combat round's outcome)
+    needs an explicit pause like this or a player can blow straight past
+    it with their next hotkey press. Pass a context-specific `message`
+    when "continue" isn't accurate (e.g. actually returning to the hub)."""
+    console.print(f"\n[{NOTE}][{message}][/{NOTE}]")
     console.file.flush()
     read_key()
     console.clear()

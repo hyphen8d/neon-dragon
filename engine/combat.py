@@ -18,6 +18,7 @@ from engine.shop import get_item
 from engine.status_effects import DRUNK_STAT_PENALTY, EFFECT_LABELS, apply_effect, has_effect, process_round_start
 from engine.theme import (
     ACCENT,
+    ACCENT_SOFT,
     ALERT,
     BORDER,
     CREDITS,
@@ -35,7 +36,7 @@ from engine.theme import (
     TEXT_PLAIN,
     WARNING,
 )
-from engine.ui import hotkey_prompt, make_hp_bar, read_choice
+from engine.ui import hotkey_prompt, make_hp_bar, press_any_key, read_choice
 
 console = Console(width=120, highlight=False)
 
@@ -56,6 +57,7 @@ class Enemy:
     dodge_chance: float = 0.0
     ignores_defend: bool = False
     is_droid: bool = False  # no blood to bleed — immune to the Bleed effect
+    scan_desc: str = "No scan data available."  # flavor text shown in the enemy HUD panel
     status_effects: dict = field(default_factory=dict)
 
     @property
@@ -92,6 +94,97 @@ FINISHING_LINES = [
     "You finish it clean — {dmg} damage, lights out for {enemy}.",
     "One last hit and {enemy} folds.",
     "The killing blow lands hard. {enemy} doesn't get up.",
+    "{enemy} goes down in a shower of sparks and static.",
+    "You put {enemy} down for good, {dmg} damage and done.",
+]
+
+# Randomized per-hit narration so no two rounds read identically. Each
+# pool is picked from with random.choice() and formatted with whatever
+# of {enemy}/{dmg} it uses — see _player_hit, _samurai_slash, and
+# run_combat's enemy-turn section.
+
+# Impact verbs, chosen by the magnitude of the damage roll rather than
+# randomly — a graze reads as a graze regardless of what dealt it. Every
+# flavor template below takes a {verb} slot filled by _impact_verb().
+IMPACT_VERBS_LOW = ["grazes", "pings off", "scratches"]  # 1-3 damage
+IMPACT_VERBS_STANDARD = ["strikes", "hits", "breaches"]  # 4-8 damage
+IMPACT_VERBS_HIGH = ["shatters", "melts down", "ruptures", "eviscerates"]  # 9+ damage
+
+
+def _impact_verb(dmg: int) -> str:
+    if dmg <= 3:
+        return random.choice(IMPACT_VERBS_LOW)
+    if dmg <= 8:
+        return random.choice(IMPACT_VERBS_STANDARD)
+    return random.choice(IMPACT_VERBS_HIGH)
+
+
+# Attack/Tech hit flavor is gear-aware: which cyberware (if any) sits in
+# the relevant slot decides the flavor, not just the action type. Keyed
+# by item id from content/items.json and content/black_market.json.
+ARM_HIT_FLAVOR: dict[str, str] = {
+    "chrome_arm_mk1": "Your servo-driven hydraulic Chrome Arm {verb} {enemy} for {dmg} damage.",
+    "razor_claws": "Your monofilament Razor Claws {verb} {enemy} for {dmg} damage.",
+    "singularity_fist": "Your Singularity Fist's graviton emitter {verb} {enemy} for {dmg} damage.",
+}
+
+EYES_HIT_FLAVOR: dict[str, str] = {
+    "optic_scanner": "Your Optic Scanner calculates defensive trajectories — a buffer overflow "
+    "{verb} {enemy} for {dmg} damage.",
+    "target_lock_eyes": "Your military surplus Target-Lock arrays calibrate on vital circuits as "
+    "a terminal exploit {verb} {enemy} for {dmg} damage.",
+    "oracle_retinas": "Your Oracle Retinas read three seconds ahead — the routed exploit "
+    "{verb} {enemy} for {dmg} damage.",
+}
+
+EMPTY_ARM_FLAVOR = [
+    "Your desperate street-brawler punch {verb} {enemy} for {dmg} damage.",
+]
+EMPTY_TECH_FLAVOR = [
+    "Your flood of basic ping spam {verb} {enemy}'s network ports for {dmg} damage.",
+]
+
+# An unaugmented Grifter improvises instead of throwing a bare fist or
+# script-kiddie ping spam — dirty tricks instead of chrome.
+GRIFTER_ATTACK_FLAVOR = [
+    "Your hidden zip-gun pocket piece {verb} {enemy} for {dmg} damage.",
+]
+GRIFTER_TECH_FLAVOR = [
+    "Your spoofed administrative credential token {verb} {enemy}'s circuits for {dmg} damage.",
+]
+
+DODGE_FLAVOR = [
+    "{enemy} slips the hit — you swing through empty air.",
+    "{enemy} reads the attack and steps clear.",
+    "Your strike goes wide as {enemy} ducks away.",
+    "{enemy} weaves out of range just in time.",
+]
+
+ENEMY_ATTACK_FLAVOR = [
+    "{enemy} {verb} you for {dmg} damage.",
+    "{enemy} lands a solid hit and {verb} you for {dmg} damage.",
+    "Pain flares as {enemy} {verb} you for {dmg} damage.",
+    "{enemy} doesn't hold back — it {verb} you for {dmg} damage.",
+    "A vicious strike from {enemy} {verb} you for {dmg} damage.",
+    "{enemy} finds a gap in your guard and {verb} you for {dmg} damage.",
+]
+
+DEFEND_FLAVOR = [
+    "You raise your guard, bracing for impact.",
+    "You plant your feet and prepare to absorb the hit.",
+    "You tighten your stance, ready to weather the blow.",
+]
+
+FLEE_SUCCESS_FLAVOR = [
+    "You slip into the shadows and get away.",
+    "You break line of sight and vanish into the crowd.",
+    "A sharp turn down an alley loses your pursuer.",
+]
+
+FLEE_FAIL_FLAVOR = [
+    "You can't shake them — they block your escape.",
+    "No clean angle — you're boxed in.",
+    "They anticipate the move and cut you off.",
 ]
 
 # Class -> (hotkey, label) for each class's signature combat move.
@@ -111,7 +204,8 @@ def _samurai_slash(character: Character, enemy: Enemy, drunk_penalty: int, conso
     """Guaranteed 1.5x-damage strike that always leaves the enemy bleeding.
     A dodge still evades it entirely, same as a normal Attack."""
     if enemy.dodge_chance and random.random() < enemy.dodge_chance:
-        console.print(_player_line(f"[{TEXT_DIM}]{enemy.name} slips the hit — you swing through empty air.[/{TEXT_DIM}]"))
+        miss = random.choice(DODGE_FLAVOR).format(enemy=enemy.name)
+        console.print(_player_line(f"[{TEXT_DIM}]{miss}[/{TEXT_DIM}]"))
         return
 
     old_hp = enemy.hp
@@ -184,6 +278,17 @@ def _effects_text(combatant) -> str:
     return ", ".join(parts)
 
 
+def _scan_readout(hp: int, max_hp: int) -> str:
+    """A live behavioral readout that shifts with the enemy's HP, so the
+    scan panel reads as an active sensor feed rather than static flavor."""
+    ratio = 0.0 if max_hp <= 0 else max(hp, 0) / max_hp
+    if ratio > 0.75:
+        return f"[{ACCENT_SOFT}]Scan: Systems Nominal[/{ACCENT_SOFT}]"
+    if ratio >= 0.30:
+        return f"[{WARNING}]Scan: Structural Degradation Detected[/{WARNING}]"
+    return f"[{ALERT}]Scan: Catastrophic Hardware Failure Imminent[/{ALERT}]"
+
+
 def _combatant_panel(
     name: str,
     hp: int,
@@ -224,7 +329,12 @@ def _print_combat_hud(
         player_rows.append((slabel, cd_text))
     player_panel = _combatant_panel(character.name, character.hp, character.max_hp, player_rows, BORDER, NAME)
 
-    enemy_rows = [("Faction", enemy.faction), ("Status", _effects_text(enemy))]
+    enemy_rows = [
+        ("Faction", enemy.faction),
+        ("Status", _effects_text(enemy)),
+        ("Scan", f"[{TEXT_DIM}]{enemy.scan_desc}[/{TEXT_DIM}]"),
+        ("Readout", _scan_readout(enemy.hp, enemy_max_hp)),
+    ]
     enemy_panel = _combatant_panel(enemy.name, enemy.hp, enemy_max_hp, enemy_rows, ALERT, ALERT)
 
     grid = Table.grid(expand=True, padding=(0, 2))
@@ -250,11 +360,37 @@ def _gear_inflict(character: Character, enemy: Enemy, slot: str, console: Consol
     console.print(_player_line(f"[{WARNING}]{item['name']} leaves {enemy.name} {label.lower()}![/{WARNING}]"))
 
 
-def _player_hit(enemy: Enemy, stat_value: int, verb: str, console: Console) -> bool:
+def _hit_flavor(character: Character, action_type: str, enemy_name: str, dmg: int) -> str:
+    """Pick a hit description tailored to whatever's (or isn't) equipped in
+    the slot this action uses — a Chrome Arm punch reads nothing like a
+    bare-knuckle brawl, and an unaugmented Grifter improvises with dirty
+    tricks instead of throwing a generic fist or script-kiddie ping spam."""
+    if action_type == "attack":
+        slot, gear_flavor = "arm", ARM_HIT_FLAVOR
+        empty_flavor = GRIFTER_ATTACK_FLAVOR if character.char_class == "Grifter" else EMPTY_ARM_FLAVOR
+    else:
+        slot, gear_flavor = "eyes", EYES_HIT_FLAVOR
+        empty_flavor = GRIFTER_TECH_FLAVOR if character.char_class == "Grifter" else EMPTY_TECH_FLAVOR
+
+    item_id = character.cyberware.get(slot)
+    if item_id and item_id in gear_flavor:
+        template = gear_flavor[item_id]
+    elif item_id:
+        # Unlisted gear in this slot (future content) — still gear-aware,
+        # just without hand-written flavor for it yet.
+        template = f"Your {get_item(item_id)['name']} {{verb}} {{enemy}} for {{dmg}} damage."
+    else:
+        template = random.choice(empty_flavor)
+
+    return template.format(enemy=enemy_name, dmg=dmg, verb=_impact_verb(dmg))
+
+
+def _player_hit(character: Character, enemy: Enemy, stat_value: int, action_type: str, console: Console) -> bool:
     """Resolve one player attack against the enemy. Returns True if it connected
     (missed dodges don't trigger gear on-hit effects)."""
     if enemy.dodge_chance and random.random() < enemy.dodge_chance:
-        console.print(_player_line(f"[{TEXT_DIM}]{enemy.name} slips the hit — you swing through empty air.[/{TEXT_DIM}]"))
+        miss = random.choice(DODGE_FLAVOR).format(enemy=enemy.name)
+        console.print(_player_line(f"[{TEXT_DIM}]{miss}[/{TEXT_DIM}]"))
         return False
 
     old_hp = enemy.hp
@@ -267,8 +403,9 @@ def _player_hit(enemy: Enemy, stat_value: int, verb: str, console: Console) -> b
         line = random.choice(FINISHING_LINES).format(enemy=enemy.name, dmg=dmg)
         console.print(_player_line(f"{prefix}[{ACCENT}]{line}[/{ACCENT}] [{TEXT_DIM}]({enemy.name} HP: {old_hp} -> 0)[/{TEXT_DIM}]"))
     else:
+        line = _hit_flavor(character, action_type, enemy.name, dmg)
         console.print(_player_line(
-            f"{prefix}[{TEXT_PLAIN}]You {verb} for {dmg} damage.[/{TEXT_PLAIN}] "
+            f"{prefix}[{TEXT_PLAIN}]{line}[/{TEXT_PLAIN}] "
             f"[{TEXT_DIM}]({enemy.name} HP: {old_hp} -> {new_hp})[/{TEXT_DIM}]"
         ))
     return True
@@ -322,15 +459,16 @@ def run_combat(character: Character, enemy_data: dict) -> bool:
 
             if action == "A":
                 stat_value = max(0, character.attack - drunk_penalty)
-                if _player_hit(enemy, stat_value, "strike", console) and enemy.alive:
+                if _player_hit(character, enemy, stat_value, "attack", console) and enemy.alive:
                     _gear_inflict(character, enemy, "arm", console)
             elif action == "T":
                 stat_value = max(0, character.tech - drunk_penalty)
-                if _player_hit(enemy, stat_value, "hack their systems", console) and enemy.alive:
+                if _player_hit(character, enemy, stat_value, "tech", console) and enemy.alive:
                     _gear_inflict(character, enemy, "eyes", console)
             elif action == "D":
                 defending = True
-                console.print(_player_line(f"[{TEXT_DIM}]You brace for the hit.[/{TEXT_DIM}]"))
+                brace = random.choice(DEFEND_FLAVOR)
+                console.print(_player_line(f"[{TEXT_DIM}]{brace}[/{TEXT_DIM}]"))
             elif special and action == special[0]:
                 if special[0] == "S":
                     _samurai_slash(character, enemy, drunk_penalty, console)
@@ -341,9 +479,11 @@ def run_combat(character: Character, enemy_data: dict) -> bool:
                 pass  # item effect already resolved in the selection loop above
             else:
                 if random.random() < 0.5:
-                    console.print(_player_line(f"[{TEXT_DIM}]You slip into the shadows and get away.[/{TEXT_DIM}]"))
+                    line = random.choice(FLEE_SUCCESS_FLAVOR)
+                    console.print(_player_line(f"[{TEXT_DIM}]{line}[/{TEXT_DIM}]"))
                     return False
-                console.print(_player_line(f"[{TEXT_DIM}]You can't shake them — they block your escape.[/{TEXT_DIM}]"))
+                line = random.choice(FLEE_FAIL_FLAVOR)
+                console.print(_player_line(f"[{TEXT_DIM}]{line}[/{TEXT_DIM}]"))
 
         if not enemy.alive:
             break
@@ -364,8 +504,9 @@ def run_combat(character: Character, enemy_data: dict) -> bool:
             new_hp = character.hp
             prefix = f"[{CREDITS}]CRITICAL![/{CREDITS}] " if crit else ""
             suffix = " Your guard didn't matter." if bypassed else ""
+            line = random.choice(ENEMY_ATTACK_FLAVOR).format(enemy=enemy.name, dmg=dmg, verb=_impact_verb(dmg))
             console.print(_enemy_line(
-                f"{prefix}[{DANGER}]{enemy.name} hits you for {dmg} damage.{suffix}[/{DANGER}] "
+                f"{prefix}[{DANGER}]{line}{suffix}[/{DANGER}] "
                 f"[{TEXT_DIM}](Your HP: {old_hp} -> {new_hp})[/{TEXT_DIM}]"
             ))
 
@@ -373,6 +514,12 @@ def run_combat(character: Character, enemy_data: dict) -> bool:
                 apply_effect(character, enemy.inflict_effect, enemy.inflict_duration)
                 label = EFFECT_LABELS.get(enemy.inflict_effect, enemy.inflict_effect)
                 console.print(_enemy_line(f"[{WARNING}]The hit leaves you {label.lower()}![/{WARNING}]"))
+
+        # The round's over but the fight isn't — pause here so the player
+        # actually gets to read what just happened before the next round's
+        # clear() wipes it. Without this, narration flashes and vanishes.
+        if character.hp > 0 and enemy.alive:
+            press_any_key(console, "Press any key for the next round...")
 
     if character.hp <= 0:
         _handle_defeat(character)

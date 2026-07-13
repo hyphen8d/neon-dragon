@@ -14,6 +14,7 @@
         "defense": 2,
         "credits_reward": 25,
         "xp_reward": 12,
+        "scan_desc": "Threat: Low-tier muscle. Subdermal wiring looks frayed and self-installed.",
         "inflict_effect": "bleed",
         "inflict_chance": 0.25,
         "inflict_duration": 2
@@ -34,6 +35,7 @@
         "credits_reward": 30,
         "xp_reward": 15,
         "is_droid": true,
+        "scan_desc": "Chassis: Quad-rotor frame. Optics flicker with unpatched logistics firmware.",
         "inflict_effect": "stunned",
         "inflict_chance": 0.25,
         "inflict_duration": 1
@@ -53,6 +55,7 @@
         "defense": 6,
         "credits_reward": 45,
         "xp_reward": 25,
+        "scan_desc": "Armor: Standard-issue riot plate. Stun baton reads fully charged.",
         "inflict_effect": "stunned",
         "inflict_chance": 0.3,
         "inflict_duration": 1
@@ -72,6 +75,7 @@
         "defense": 8,
         "credits_reward": 60,
         "xp_reward": 25,
+        "scan_desc": "Signature: Masterless netrunner rig. Reflex augments running hot, expect evasive footwork.",
         "dodge_chance": 0.2
       }
     },
@@ -89,6 +93,7 @@
         "defense": 8,
         "credits_reward": 85,
         "xp_reward": 35,
+        "scan_desc": "Loadout: Heavy corp ordnance, coordinated squad tactics. Your guard won't mean much here.",
         "ignores_defend": true
       }
     },
@@ -106,6 +111,7 @@
         "defense": 10,
         "credits_reward": 110,
         "xp_reward": 45,
+        "scan_desc": "Biology: Unclassified. Chrome grafts fused directly into muscle tissue, badly.",
         "inflict_effect": "bleed",
         "inflict_chance": 0.35,
         "inflict_duration": 3
