@@ -40,7 +40,7 @@ laid out for lookup rather than narrative reading.
 | | |
 |---|---|
 | Version | Alpha 3.0 |
-| Classes | 2 (Street Samurai, Netrunner) — third charisma-focused class pulled, pending redesign |
+| Classes | 2 (Street Samurai, Netrunner) — settled roster; a third (Grifter) was cut, not planned |
 | Hub locations | 8 |
 | NPCs | 8 |
 | Undercity combat encounters | 11 (10 open + 1 kill-gated: the Draxx grudge match) |
@@ -70,7 +70,7 @@ Defined in `engine/character.py`'s `CLASSES` dict.
 |---|---|---|---|---|---|---|
 | Street Samurai | 30 | 8 | 6 | 2 | 3 | Melee-focused. Special: Samurai Slash |
 | Netrunner | 22 | 3 | 3 | 9 | 4 | Tech-focused. Special: Override System |
-| ~~Grifter~~ | 24 | 4 | 4 | 4 | 9 | **Pulled.** Was charisma-focused; no combat special existed for it. A redesigned third class is pending — see `GAME_DESIGN.md` §4 |
+| ~~Grifter~~ | 24 | 4 | 4 | 4 | 9 | **Cut, not planned.** Was charisma-focused; no combat special existed for it. Two classes is the settled roster — see `GAME_DESIGN.md` §4 |
 
 Charisma remains a fully live stat regardless of class — see [Economy](#economy). It is excluded from the automatic `STAT_GROWTH` per level (`engine/leveling.py`), but it's a `LEVEL_UP_BONUS_STATS` choice and one of the "Buy a Round" stat outcomes (`ROUND_ENCOUNTERS` in `engine/hub.py`) — see [Progression](#progression). Skin-slot cyberware (Synth-Derm/Mirrorskin) is no longer its only growth path.
 

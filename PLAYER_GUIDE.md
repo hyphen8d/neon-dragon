@@ -12,8 +12,7 @@ no daily turn limit — play as long as you like in one sitting.
 
 ## Classes
 
-Two classes right now, each a different balance of the same stats (a
-third, charisma-focused class is pulled pending a redesign):
+Two classes, each a different balance of the same stats:
 
 - **Street Samurai** — high HP and Attack, low Tech. Built to punch
   through fights with raw damage.
@@ -506,9 +505,3 @@ attempt it, with the Charisma requirement shown up front. Meet it, and
 the job's done clean. Fall short and say yes anyway, and the attempt
 goes sideways into a fight — win that fight and the job still gets
 done, just the hard way.
-
-## What's not built yet
-
-A few things mentioned in the game's design notes but not implemented:
-
-- A third, charisma-focused class is pulled pending a redesign.

@@ -33,8 +33,7 @@ python3 -m venv .venv
 ### Core loop
 
 - **2 classes** — Street Samurai, Netrunner, each a different balance
-  of the same stats (a third, charisma-focused class is pulled for now
-  pending a redesign)
+  of the same stats
 - **8 hub locations**, each with real mechanics: Undercity (Jack In /
   Find a Fight / Scavenge), NetVault (banking), Hyphen8d's Hut
   (cyberware with a daily rotating stock and market events), Doc
@@ -169,8 +168,8 @@ Alpha 3.0. Every hub location has real mechanics; RoboDOJO trains
 stats through actual sparring fights and sells permanent combat
 abilities; the current "end game" is working through Fixer Board and
 Chrome Noodle Bar contracts (20 across both boards), with a
-day-cycle economy layered on top of it. See the "What's not built
-yet" section of `PLAYER_GUIDE.md` for known gaps.
+day-cycle economy layered on top of it. Two classes (Street Samurai,
+Netrunner) is the settled roster, not a placeholder.
 
 ## Credits
 

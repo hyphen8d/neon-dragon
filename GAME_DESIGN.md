@@ -65,11 +65,13 @@ The player is a cyber mercenary (**merc**) working Neo Meridian's edges.
   ranged), Charisma (contract-gating, shop discounts, trauma bill
   reduction), Credits, XP/Level.
 - Class flavor at creation: **Street Samurai** (melee-focused), **Netrunner**
-  (tech/hacking-focused). A third, charisma-focused class (previously
-  **Grifter**) is pulled for now pending a redesign — Charisma stays a
-  live stat regardless of class, carrying real mechanical weight instead
-  of only gating two Chrome Noodle Bar contracts — see section 6 and
-  section 7 for the shop discount and trauma bill reduction it grants.
+  (tech/hacking-focused). Two classes is the settled roster — an earlier
+  charisma-focused third class (**Grifter**) was cut because it had no
+  combat special of its own, and is not planned. Charisma stays a live
+  stat regardless of class, carrying real mechanical weight instead of
+  needing a dedicated class to matter — see section 6 and section 7 for
+  the shop discount and trauma bill reduction it grants, plus its own
+  dialogue/coerce effects.
 - Cyberware slots instead of traditional armor slots (arm, eyes, spine,
   skin) — each grants a stat bonus, sourced from Hyphen8d's Hut.
 - Leveling up is no longer fully deterministic: on top of the flat
