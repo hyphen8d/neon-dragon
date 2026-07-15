@@ -58,6 +58,14 @@ TELEMETRY_ENEMY = "bold red"  # color for the indented ««« tag
 # --- Menu structure ---
 DIVIDER = "│"  # vertical partition between options in a hotkey menu row
 
+# --- Screen-tear ASCII dividers ---
+# Rich's console.rule() draws a perfectly clean horizontal line — too
+# pristine for a cracked street terminal. These repeating units get tiled
+# to the full console width (engine/ui.py's glitch_rule/glitch_title_rule)
+# instead, for a static/screen-tear texture.
+DIVIDER_STATIC = "▓▒░"  # general-purpose divider (panel/menu separators)
+DIVIDER_TEAR = "///==="  # section-header divider (titled rules)
+
 THEME: dict[str, str] = {
     "BORDER": BORDER,
     "BORDER_ACCENT": BORDER_ACCENT,
@@ -85,4 +93,6 @@ THEME: dict[str, str] = {
     "TELEMETRY_PLAYER": TELEMETRY_PLAYER,
     "TELEMETRY_ENEMY": TELEMETRY_ENEMY,
     "DIVIDER": DIVIDER,
+    "DIVIDER_STATIC": DIVIDER_STATIC,
+    "DIVIDER_TEAR": DIVIDER_TEAR,
 }

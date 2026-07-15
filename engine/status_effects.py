@@ -14,14 +14,16 @@ from engine.theme import DANGER, TEXT_DIM, WARNING
 
 BLEED_DAMAGE = 3
 
-# Glyph badges, pre-colored WARNING so any consumer (combat lines, HUD
-# panels, character-info tables) gets a striking, consistently-styled
+# ASCII hazard tags, pre-colored WARNING so any consumer (combat lines,
+# HUD panels, character-info tables) gets a striking, consistently-styled
 # status tag just by dropping the label in — no extra markup needed.
+# Plain ASCII on purpose, no emoji: this is meant to read like text a
+# cracked street terminal would actually render, not an iOS keyboard.
 EFFECT_LABELS: dict[str, str] = {
-    "bleed": f"[{WARNING}][🩸 BLEED][/{WARNING}]",
-    "stunned": f"[{WARNING}][⚡ STUN][/{WARNING}]",
-    "drunk": f"[{WARNING}][☣ DRUNK][/{WARNING}]",
-    "overclock": f"[{WARNING}][⚡ OVERCLOCK][/{WARNING}]",
+    "bleed": f"[{WARNING}][ /// BLEED ][/{WARNING}]",
+    "stunned": f"[{WARNING}][ !!! STUN ][/{WARNING}]",
+    "drunk": f"[{WARNING}][ ERR: DRUNK ][/{WARNING}]",
+    "overclock": f"[{WARNING}][ >>> OVERCLOCK ][/{WARNING}]",
 }
 
 # Plain adjective form for narration that embeds the effect mid-sentence

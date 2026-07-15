@@ -12,15 +12,45 @@ from __future__ import annotations
 import sys
 
 from rich.console import Console
+from rich.text import Text
 
 from engine.character import hp_style
-from engine.theme import DANGER, DIVIDER, HOTKEY, NOTE, TEXT_DIM
+from engine.theme import DANGER, DIVIDER, DIVIDER_STATIC, DIVIDER_TEAR, HOTKEY, NOTE, TEXT_DIM
 
 HP_BAR_WIDTH = 10
 
 # Vertical partition between options in a hotkey menu row, e.g.
 # "[A]ttack │ [D]efend │ [L]eave" instead of a plain double space.
 OPTION_SEPARATOR = f" [{TEXT_DIM}]{DIVIDER}[/{TEXT_DIM}] "
+
+
+def _tile(unit: str, width: int) -> str:
+    """Repeat `unit` until it covers `width` characters, then trim to
+    exactly `width` — used to stretch a short glitch pattern across the
+    full console width the same way console.rule() stretches a line."""
+    if not unit or width <= 0:
+        return ""
+    return (unit * (width // len(unit) + 1))[:width]
+
+
+def glitch_rule(console: Console, style: str = TEXT_DIM, unit: str = DIVIDER_STATIC) -> None:
+    """A screen-tear/static ASCII divider instead of Rich's pristine
+    console.rule() line — Neo Meridian's terminals don't render clean
+    horizontal rules. Use in place of a bare console.rule()."""
+    console.print(f"[{style}]{_tile(unit, console.width)}[/{style}]")
+
+
+def glitch_title_rule(console: Console, title: str, style: str = TEXT_DIM, unit: str = DIVIDER_TEAR) -> None:
+    """A screen-tear ASCII divider with a title spliced into the middle,
+    e.g. `///===== Neo Meridian =====///` — the titled equivalent of
+    console.rule(title). `title` should already carry its own markup,
+    same convention as console.rule()."""
+    label = f" {title} "
+    plain_len = len(Text.from_markup(label).plain)
+    fill = max(0, console.width - plain_len)
+    left = fill // 2
+    right = fill - left
+    console.print(f"[{style}]{_tile(unit, left)}[/{style}]{label}[{style}]{_tile(unit, right)}[/{style}]")
 
 
 def make_hp_bar(hp: int, max_hp: int) -> str:
@@ -127,11 +157,11 @@ def hotkey_prompt(console: Console, options: list[tuple[str, str]], prompt: str 
     if prompt:
         text = f"{prompt}\n{text}"
     choice = read_choice(console, [key for key, _ in options], prompt=text)
-    console.rule(style=TEXT_DIM)
+    glitch_rule(console, style=TEXT_DIM)
     return choice
 
 
-def press_any_key(console: Console, message: str = "Press any key to continue...") -> None:
+def press_any_key(console: Console, message: str = "[SYS] STANDBY // PRESS ANY KEY_") -> None:
     """Show a dim prompt and block on a single keypress before clearing the
     screen. Since menu input is unbuffered elsewhere, important narration
     (victory/defeat text, contract rewards, a combat round's outcome)

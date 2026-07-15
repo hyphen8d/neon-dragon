@@ -59,14 +59,14 @@ def save_slug_index(name: str) -> str:
     return str(slugs.index(target_slug) + 1)
 
 
-ANCHOR_HUB_RETURN = r"Press any key to return to the central hub"
-ANCHOR_NEXT_ROUND = r"Press any key for the next round"
+ANCHOR_HUB_RETURN = r"UPLINK IDLE"
+ANCHOR_NEXT_ROUND = r"NEXT ROUND QUEUED"
 ANCHOR_LEVELUP = r"Put a bonus point somewhere"
 ANCHOR_VICTORY = r"goes down\."
 ANCHOR_DEFEAT = r"You go down hard"
 ANCHOR_FLEE = r"(You slip into the shadows|You break line of sight|A sharp turn down an alley)"
 ANCHOR_RECHARGE = r"is still recharging"
-ANCHOR_WHERE_TO = r"Where to\?"
+ANCHOR_WHERE_TO = r"SELECT ROUTING"
 ANCHOR_NEW_MERC = r"ew Merc"  # "[N]ew Merc" -- the literal bracket breaks up "New"
 ANCHOR_LEAVE_CONFIRM = r"Head back to the safehouse"
 ANCHOR_NAME_PROMPT = r"What do they call you on the street\?"
@@ -369,7 +369,7 @@ def visit_robodojo(
     s: Session, choice: str, combat_actions: list[str], level_up_pick: str, ability_index: str | None
 ) -> str | None:
     s.send("R")
-    s.expect_any([r"What'll it be\?"])
+    s.expect_any([r"AWAITING INPUT"])
     s.send(choice)
     if choice == "L":
         s.expect_any([ANCHOR_HUB_RETURN])

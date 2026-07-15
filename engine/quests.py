@@ -10,6 +10,7 @@ from rich.console import Console
 
 from engine.character import Character
 from engine.leveling import check_level_up
+from engine.shop import format_credits
 from engine.theme import ACCENT, LABEL
 from engine.ui import press_any_key
 
@@ -161,7 +162,7 @@ def print_quest_result(console: Console, character: Character, result: dict[str,
         console.print(f"\n[{ACCENT}]Contract complete:[/{ACCENT}] {quest['title']}")
         console.print(f"  {quest['complete_text']}")
         console.print(
-            f"  +{reward['credits']} credits, +{reward['xp']} XP, +{reward['reputation']} reputation."
+            f"  +{format_credits(reward['credits'])}, +{reward['xp']} XP, +{reward['reputation']} reputation."
         )
         check_level_up(character, console)
         press_any_key(console)

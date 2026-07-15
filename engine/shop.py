@@ -89,10 +89,22 @@ def currency_of(item: dict[str, Any]) -> str:
     return item.get("currency", "credits")
 
 
+# Dark-web-ledger currency symbol — every raw credit figure in the UI
+# renders as "¤150" instead of "150 credits", a stark abbreviation instead
+# of a spelled-out noun. Quantum Cores keep their own spelled-out format
+# since they're the rare, unexplained secondary currency, not a ledger
+# balance.
+CREDIT_SYMBOL = "¤"
+
+
+def format_credits(amount: int) -> str:
+    return f"{CREDIT_SYMBOL}{amount}"
+
+
 def format_price(item: dict[str, Any], amount: int) -> str:
     if currency_of(item) == "quantum_core":
         return f"{amount} Quantum Core{'s' if amount != 1 else ''}"
-    return f"{amount} credits"
+    return format_credits(amount)
 
 
 def _apply_bonus(character: Character, item: dict[str, Any], sign: int) -> None:

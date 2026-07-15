@@ -41,6 +41,7 @@ from engine.shop import (
     currency_of,
     describe_market_modifier,
     discounted_cost,
+    format_credits,
     format_price,
     get_daily_catalog,
     get_item,
@@ -72,7 +73,16 @@ from engine.theme import (
     TEXT_PLAIN,
     WARNING,
 )
-from engine.ui import OPTION_SEPARATOR, hotkey_bracket, hotkey_prompt, make_hp_bar, press_any_key, read_choice
+from engine.ui import (
+    OPTION_SEPARATOR,
+    glitch_rule,
+    glitch_title_rule,
+    hotkey_bracket,
+    hotkey_prompt,
+    make_hp_bar,
+    press_any_key,
+    read_choice,
+)
 
 console = Console(width=120, highlight=False)
 
@@ -221,8 +231,8 @@ def print_status(character: Character) -> Table:
         str(character.defense),
         str(character.tech),
         str(character.charisma),
-        str(character.credits),
-        str(character.banked_credits),
+        format_credits(character.credits),
+        format_credits(character.banked_credits),
     )
 
     console.print(hud)
@@ -230,7 +240,7 @@ def print_status(character: Character) -> Table:
 
 
 def print_hub_menu(character: Character) -> None:
-    console.rule(f"[{LABEL}]Neo Meridian[/{LABEL}]")
+    glitch_title_rule(console, f"[{LABEL}]Neo Meridian[/{LABEL}]")
     print_status(character)
     console.print()
 
@@ -281,7 +291,7 @@ def print_menu_divider(label: str) -> None:
     """Visually separate in-character scene/dialogue above from the
     out-of-character menu/mechanics below."""
     console.print()
-    console.rule(f"[{TEXT_DIM}]{label}[/{TEXT_DIM}]", style=TEXT_DIM)
+    glitch_title_rule(console, f"[{TEXT_DIM}]{label}[/{TEXT_DIM}]", style=TEXT_DIM)
 
 
 def _npc_panel(npc: dict, character: Character) -> Panel:
@@ -347,7 +357,7 @@ def _jack_in(character: Character) -> None:
         character.credits += amount
         console.print(
             f"[{LABEL}]Click. The internal magnetic latch fires and the reinforced hopper drops "
-            f"open.[/{LABEL}] You skim a hot corporate credit-chip off the tray! +{amount} credits."
+            f"open.[/{LABEL}] You skim a hot corporate credit-chip off the tray! +{format_credits(amount)}."
         )
         if random.random() < QUANTUM_CORE_DROP_CHANCE:
             character.quantum_cores += 1
@@ -411,7 +421,7 @@ def _scavenge(character: Character) -> None:
         low, high = encounter["credits"]
         amount = random.randint(low, high)
         character.credits += amount
-        console.print(f"\n[{ACCENT}]Score![/{ACCENT}] +{amount} credits.")
+        console.print(f"\n[{ACCENT}]Score![/{ACCENT}] +{format_credits(amount)}.")
     # "nothing" encounters just print their flavor line above.
 
 
@@ -468,7 +478,7 @@ def _deposit(character: Character) -> None:
     if character.credits <= 0:
         console.print(f"[{TEXT_DIM}]Nothing on hand to deposit.[/{TEXT_DIM}]")
         return
-    amount = IntPrompt.ask(f"Deposit how much? (0 to cancel, up to {character.credits})")
+    amount = IntPrompt.ask(f"Deposit how much? (0 to cancel, up to {format_credits(character.credits)})")
     if amount <= 0:
         return
     if amount > character.credits:
@@ -476,14 +486,14 @@ def _deposit(character: Character) -> None:
         return
     character.credits -= amount
     character.banked_credits += amount
-    console.print(f"[{CREDITS}]{amount} credits deposited.[/{CREDITS}] Banked: {character.banked_credits}")
+    console.print(f"[{CREDITS}]{format_credits(amount)} deposited.[/{CREDITS}] Banked: {format_credits(character.banked_credits)}")
 
 
 def _withdraw(character: Character) -> None:
     if character.banked_credits <= 0:
         console.print(f"[{TEXT_DIM}]Nothing banked to withdraw.[/{TEXT_DIM}]")
         return
-    amount = IntPrompt.ask(f"Withdraw how much? (0 to cancel, up to {character.banked_credits})")
+    amount = IntPrompt.ask(f"Withdraw how much? (0 to cancel, up to {format_credits(character.banked_credits)})")
     if amount <= 0:
         return
     if amount > character.banked_credits:
@@ -491,7 +501,7 @@ def _withdraw(character: Character) -> None:
         return
     character.banked_credits -= amount
     character.credits += amount
-    console.print(f"[{CREDITS}]{amount} credits withdrawn.[/{CREDITS}] On hand: {character.credits}")
+    console.print(f"[{CREDITS}]{format_credits(amount)} withdrawn.[/{CREDITS}] On hand: {format_credits(character.credits)}")
 
 
 def visit_netvault(character: Character) -> None:
@@ -505,14 +515,15 @@ def visit_netvault(character: Character) -> None:
     right_panel = _station_data_panel(
         "VAULT LEDGER",
         [
-            ("On Hand", f"[{CREDITS}]{character.credits}[/{CREDITS}]"),
-            ("Banked", f"[{CREDITS}]{character.banked_credits}[/{CREDITS}]"),
+            ("On Hand", f"[{CREDITS}]{format_credits(character.credits)}[/{CREDITS}]"),
+            ("Banked", f"[{CREDITS}]{format_credits(character.banked_credits)}[/{CREDITS}]"),
             ("Safety", f"[{TEXT_DIM}]Banked credits are safe from death-loss[/{TEXT_DIM}]"),
             ("Security", "Agent Parker + K9 unit on the floor"),
         ],
     )
     _interaction_deck(npc_at("NetVault"), right_panel, character)
     console.print(_npc_panel(get_npc("agent_parker"), character))
+    glitch_rule(console, style=TEXT_DIM)
 
     action = hotkey_prompt(console, [("D", "Deposit"), ("W", "Withdraw"), ("L", "Leave")])
     if action == "D":
@@ -550,14 +561,14 @@ def _heal(character: Character) -> None:
     character.credits -= cost
     console.print(
         f"[{ACCENT}]Patched up.[/{ACCENT}] "
-        f"HP {character.hp}/{character.max_hp}. -{cost} credits."
+        f"HP {character.hp}/{character.max_hp}. -{format_credits(cost)}."
     )
 
 
 def _buy_supplies(character: Character) -> None:
     catalog = load_usable_items()
 
-    console.print(f"\n[{INFO}]Credits on hand:[/{INFO}] [{CREDITS}]{character.credits}[/{CREDITS}]")
+    console.print(f"\n[{INFO}]Credits on hand:[/{INFO}] [{CREDITS}]{format_credits(character.credits)}[/{CREDITS}]")
     table = Table(border_style=BORDER)
     table.add_column("#", justify="right", style=LABEL)
     table.add_column("Item", style=TEXT)
@@ -582,7 +593,7 @@ def _buy_supplies(character: Character) -> None:
         return
 
     buy_item(character, item["id"])
-    console.print(f"[{ACCENT}]Bought:[/{ACCENT}] {item['name']}. -{item['cost']} credits.")
+    console.print(f"[{ACCENT}]Bought:[/{ACCENT}] {item['name']}. -{format_credits(item['cost'])}.")
 
 
 def _cure(character: Character) -> None:
@@ -591,7 +602,7 @@ def _cure(character: Character) -> None:
         return
 
     action = hotkey_prompt(
-        console, [("Y", "Yes"), ("N", "No")], prompt=f"Clear those for {CURE_COST} credits?"
+        console, [("Y", "Yes"), ("N", "No")], prompt=f"Clear those for {format_credits(CURE_COST)}?"
     )
     if action != "Y":
         return
@@ -601,7 +612,7 @@ def _cure(character: Character) -> None:
 
     character.credits -= CURE_COST
     cured = cure_all(character)
-    console.print(f"[{ACCENT}]Cleared {cured} status effect(s).[/{ACCENT}] -{CURE_COST} credits.")
+    console.print(f"[{ACCENT}]Cleared {cured} status effect(s).[/{ACCENT}] -{format_credits(CURE_COST)}.")
 
 
 def visit_doc_wires_clinic(character: Character) -> None:
@@ -622,12 +633,13 @@ def visit_doc_wires_clinic(character: Character) -> None:
         "MEDBAY STATUS",
         [
             ("HP", f"[{hp_color}]{character.hp}/{character.max_hp}[/{hp_color}]"),
-            ("Patch-up Rate", f"{HEAL_COST_PER_HP} credits/HP"),
-            ("Cure Cost", f"{CURE_COST} credits flat"),
+            ("Patch-up Rate", f"{format_credits(HEAL_COST_PER_HP)}/HP"),
+            ("Cure Cost", f"{format_credits(CURE_COST)} flat"),
             ("Active Effects", effects_text),
         ],
     )
     _interaction_deck(npc_at("Doc Wire's Clinic"), right_panel, character)
+    glitch_rule(console, style=TEXT_DIM)
 
     can_afford_heal = character.credits >= HEAL_COST_PER_HP
     can_afford_cure = character.credits >= CURE_COST
@@ -639,7 +651,7 @@ def visit_doc_wires_clinic(character: Character) -> None:
     ]
     menu_text = OPTION_SEPARATOR.join(hotkey_bracket(key, label, affordable) for key, label, affordable in options)
     action = read_choice(console, [key for key, _, _ in options], prompt=menu_text)
-    console.rule(style=TEXT_DIM)
+    glitch_rule(console, style=TEXT_DIM)
     if action == "H":
         _heal(character)
     elif action == "C":
@@ -696,12 +708,13 @@ def visit_robodojo(character: Character) -> None:
     right_panel = _station_data_panel(
         "TRAINING LOG",
         [
-            ("Credits", f"[{CREDITS}]{character.credits}[/{CREDITS}]"),
+            ("Credits", f"[{CREDITS}]{format_credits(character.credits)}[/{CREDITS}]"),
             ("Bouts left today", f"{max(0, attempts_left)}/{TRAINING_ATTEMPTS_PER_DAY}"),
         ],
         extra=table,
     )
     _interaction_deck(npc_at("RoboDOJO"), right_panel, character)
+    glitch_rule(console, style=TEXT_DIM)
     if can_train:
         console.print(
             f"[{TEXT_DIM}]A training drone powers up, servos whirring, waiting for you to pick a discipline. "
@@ -732,8 +745,8 @@ def visit_robodojo(character: Character) -> None:
     menu_text = OPTION_SEPARATOR.join(
         hotkey_bracket(key, label, affordable, reason="Capped Today") for key, label, affordable in options
     )
-    choice = read_choice(console, [k for k, _, _ in options], prompt=f"What'll it be?\n{menu_text}")
-    console.rule(style=TEXT_DIM)
+    choice = read_choice(console, [k for k, _, _ in options], prompt=f"[SYS] AWAITING INPUT>\n{menu_text}")
+    glitch_rule(console, style=TEXT_DIM)
     if choice == "L":
         return
     if choice == "B":
@@ -768,7 +781,7 @@ def _spar(character: Character, choice: str) -> None:
     setattr(character, attr, getattr(character, attr) + 1)
     console.print(
         f"\n[{ACCENT}]Training paid off.[/{ACCENT}] {label} increased to {getattr(character, attr)}. "
-        f"-{cost} credits."
+        f"-{format_credits(cost)}."
     )
 
 
@@ -804,7 +817,7 @@ def _learn_ability(character: Character) -> None:
 
     character.credits -= ability["cost"]
     character.learned_abilities.append(ability_id)
-    console.print(f"[{ACCENT}]Learned:[/{ACCENT}] {ability['name']}. -{ability['cost']} credits.")
+    console.print(f"[{ACCENT}]Learned:[/{ACCENT}] {ability['name']}. -{format_credits(ability['cost'])}.")
 
 
 def visit_the_pit(character: Character) -> None:
@@ -826,7 +839,7 @@ def visit_the_pit(character: Character) -> None:
     table.add_column("HP", justify="right")
     table.add_column("Reward", justify="right")
     for i, g in enumerate(gladiators, start=1):
-        table.add_row(str(i), g["name"], str(g["hp"]), f"{g['credits_reward']}cr / {g['reputation_reward']}rep")
+        table.add_row(str(i), g["name"], str(g["hp"]), f"{format_credits(g['credits_reward'])} / {g['reputation_reward']}rep")
     console.print(table)
 
     choice = read_choice(
@@ -880,7 +893,7 @@ def visit_chrome_noodle_bar(character: Character) -> None:
         quest_id for quest_id in character.active_quests if get_quest(quest_id).get("board", "Fixer Board") == "Chrome Noodle Bar"
     ]
     round_status = (
-        f"[{TEXT_DIM}]Already had one today[/{TEXT_DIM}]" if character.bought_round_today else f"{BUY_ROUND_COST} credits"
+        f"[{TEXT_DIM}]Already had one today[/{TEXT_DIM}]" if character.bought_round_today else format_credits(BUY_ROUND_COST)
     )
     right_panel = _station_data_panel(
         "BAR TAB",
@@ -891,6 +904,7 @@ def visit_chrome_noodle_bar(character: Character) -> None:
         ],
     )
     _interaction_deck(npc_at("Chrome Noodle Bar"), right_panel, character)
+    glitch_rule(console, style=TEXT_DIM)
 
     choice = hotkey_prompt(
         console,
@@ -929,7 +943,7 @@ def _buy_a_round(character: Character) -> None:
         )
     else:
         character.credits -= BUY_ROUND_COST
-        console.print(f"\n[{TEXT_DIM}]You slap {BUY_ROUND_COST} credits on the bar. Rin pours.[/{TEXT_DIM}]")
+        console.print(f"\n[{TEXT_DIM}]You slap {format_credits(BUY_ROUND_COST)} on the bar. Rin pours.[/{TEXT_DIM}]")
 
     _resolve_round_encounter(character)
 
@@ -1036,6 +1050,7 @@ def _visit_endr3am(character: Character) -> None:
         ],
     )
     _interaction_deck(get_npc("endr3am"), right_panel, character)
+    glitch_rule(console, style=TEXT_DIM)
     _browse_contract_board(character, "Chrome Noodle Bar")
 
 
@@ -1145,14 +1160,14 @@ def _check_deliver_and_pay(character: Character, location: str) -> None:
         if character.credits < amount:
             shortfall = amount - character.credits
             console.print(
-                f"\n[{TEXT_DIM}]{quest['title']}: you need {shortfall} more credits to pay this off "
+                f"\n[{TEXT_DIM}]{quest['title']}: you need {format_credits(shortfall)} more to pay this off "
                 f"({amount} total).[/{TEXT_DIM}]"
             )
         else:
             confirm = hotkey_prompt(
                 console,
                 [("Y", "Yes"), ("N", "No")],
-                prompt=f"Pay off {amount} credits to complete '{quest['title']}'?",
+                prompt=f"Pay off {format_credits(amount)} to complete '{quest['title']}'?",
             )
             if confirm == "Y":
                 character.credits -= amount
@@ -1190,6 +1205,7 @@ def visit_fixer_board(character: Character) -> None:
         ],
     )
     _interaction_deck(npc_at("Fixer Board"), right_panel, character)
+    glitch_rule(console, style=TEXT_DIM)
     _browse_contract_board(character, "Fixer Board")
 
 
@@ -1226,7 +1242,11 @@ def build_catalog_table(catalog: list[dict], character: Character) -> Table:
             special = EFFECT_LABELS.get(item["inflict_effect"], item["inflict_effect"])
         price = discounted_cost(character, item)
         affordable = character.credits >= price
-        cost_text = str(price) if price == item["cost"] else f"[{CREDITS}]{price}[/{CREDITS}] [{TEXT_DIM}]({item['cost']})[/{TEXT_DIM}]"
+        cost_text = (
+            format_credits(price)
+            if price == item["cost"]
+            else f"[{CREDITS}]{format_credits(price)}[/{CREDITS}] [{TEXT_DIM}]({format_credits(item['cost'])})[/{TEXT_DIM}]"
+        )
         if not affordable:
             cost_text = f"[{TEXT_DIM}]{cost_text}[/{TEXT_DIM}] [{NOTE}]✗[/{NOTE}]"
         index_text = str(i) if affordable else f"[{TEXT_DIM}]{i}[/{TEXT_DIM}]"
@@ -1259,7 +1279,7 @@ def build_catalog_table(catalog: list[dict], character: Character) -> Table:
 def _print_shop_dashboard(character: Character, catalog: list[dict]) -> None:
     """Side-by-side gear-deck view — what's equipped next to what's for
     sale — so a player can compare without scrolling between two screens."""
-    console.print(f"\n[{INFO}]Credits on hand:[/{INFO}] [{CREDITS}]{character.credits}[/{CREDITS}]")
+    console.print(f"\n[{INFO}]Credits on hand:[/{INFO}] [{CREDITS}]{format_credits(character.credits)}[/{CREDITS}]")
     loadout_table = build_loadout_table(character, title=f"[{LABEL}]Your Chrome[/{LABEL}]")
     catalog_table = build_catalog_table(catalog, character)
 
@@ -1295,7 +1315,7 @@ def _buy_cyberware(character: Character, catalog: list[dict]) -> None:
         console.print(f"[{TEXT_DIM}]{get_item(old_id)['name']} pulled and sold back for parts.[/{TEXT_DIM}]")
     console.print(
         f"[{ACCENT}]Installed:[/{ACCENT}] {item['name']} "
-        f"(+{item['bonus']} {item['stat']}) for {price} credits."
+        f"(+{item['bonus']} {item['stat']}) for {format_credits(price)}."
     )
 
     for result in check_fetch_steps(character):
@@ -1333,7 +1353,7 @@ def _sell_cyberware(character: Character) -> None:
 def _visit_black_market(character: Character) -> None:
     catalog = load_black_market()
 
-    console.rule(f"[{RARE}]Black Market[/{RARE}]")
+    glitch_title_rule(console, f"[{RARE}]Black Market[/{RARE}]")
     console.print(
         f"[{TEXT_DIM}]Hyphen8d pulls a panel out of the wall. \"Didn't think you had these on you. "
         f"This stuff doesn't officially exist, choom.\"[/{TEXT_DIM}]\n"
@@ -1400,7 +1420,7 @@ def _visit_street_stash(character: Character) -> None:
 
     catalog = load_street_modded()
 
-    console.rule(f"[{ACCENT}]Hyphen8d's Stash[/{ACCENT}]")
+    glitch_title_rule(console, f"[{ACCENT}]Hyphen8d's Stash[/{ACCENT}]")
     console.print(
         f"[{TEXT_DIM}]Hyphen8d reaches under the counter without being asked. \"You've earned this, choom. "
         f"Gang crews stopped sending people my way after what you did to their guys.\"[/{TEXT_DIM}]\n"
@@ -1452,7 +1472,7 @@ def _visit_street_stash(character: Character) -> None:
         console.print(f"[{TEXT_DIM}]{get_item(old_id)['name']} pulled and sold back for parts.[/{TEXT_DIM}]")
     console.print(
         f"[{ACCENT}]Installed:[/{ACCENT}] {item['name']} "
-        f"(+{item['bonus']} {item['stat']}) for {price} credits."
+        f"(+{item['bonus']} {item['stat']}) for {format_credits(price)}."
     )
 
 
@@ -1472,6 +1492,7 @@ def visit_hyphen8ds_hut(character: Character) -> None:
         [("Today's Event", describe_market_modifier(character))],
     )
     _interaction_deck(npc_at("Hyphen8d's Hut"), right_panel, character)
+    glitch_rule(console, style=TEXT_DIM)
 
     catalog = get_daily_catalog(character)
     _print_shop_dashboard(character, catalog)
@@ -1484,7 +1505,7 @@ def visit_hyphen8ds_hut(character: Character) -> None:
     visible = [("B", "Buy"), ("S", "Sell"), ("L", "Leave")]
     menu_text = OPTION_SEPARATOR.join(hotkey_bracket(key, label) for key, label in visible)
     action = read_choice(console, [key for key, _ in visible] + ["M", "K"], prompt=menu_text)
-    console.rule(style=TEXT_DIM)
+    glitch_rule(console, style=TEXT_DIM)
     if action == "B":
         _buy_cyberware(character, catalog)
     elif action == "S":
@@ -1504,7 +1525,7 @@ def _themed_table(title: str) -> Table:
 
 def show_character_info(character: Character) -> None:
     console.print()
-    console.rule(f"[{ACCENT}]{character.name}[/{ACCENT}] [{TEXT_DIM}]— {character.char_class}[/{TEXT_DIM}]")
+    glitch_title_rule(console, f"[{ACCENT}]{character.name}[/{ACCENT}] [{TEXT_DIM}]— {character.char_class}[/{TEXT_DIM}]")
     console.print()
 
     attributes = _themed_table("Attributes")
@@ -1519,8 +1540,8 @@ def show_character_info(character: Character) -> None:
     attributes.add_row("Charisma", str(character.charisma))
 
     economy = _themed_table("Economy")
-    economy.add_row("Credits", str(character.credits))
-    economy.add_row("Banked", str(character.banked_credits))
+    economy.add_row("Credits", format_credits(character.credits))
+    economy.add_row("Banked", format_credits(character.banked_credits))
     economy.add_row("Quantum Cores", str(character.quantum_cores))
 
     contracts = _themed_table("Reputation & Contracts")
@@ -1557,7 +1578,7 @@ def show_character_info(character: Character) -> None:
 
     lifetime = _themed_table("Lifetime Record")
     lifetime.add_row("Total Days", str(character.total_days))
-    lifetime.add_row("Total Credits Earned", str(character.total_credits_earned))
+    lifetime.add_row("Total Credits Earned", format_credits(character.total_credits_earned))
     lifetime.add_row("Total Fights Won", str(character.total_fights_won))
 
     grid = Table.grid(padding=(0, 2))
@@ -1638,7 +1659,7 @@ def _sleep_and_advance_day(character: Character) -> None:
     body.add_row("Weather", f"[{TEXT_DIM} italic]{random_weather()}[/{TEXT_DIM} italic]")
     body.add_row("Headline", f"[{TEXT_DIM} italic]{random_headline()}[/{TEXT_DIM} italic]")
     body.add_row("Level", str(character.level))
-    body.add_row("Credits", f"{character.credits} ({character.banked_credits} banked)")
+    body.add_row("Credits", f"{format_credits(character.credits)} ({format_credits(character.banked_credits)} banked)")
     body.add_row("Reputation", str(character.reputation))
     body.add_row("HP", f"Fully restored (+{healed})" if healed > 0 else "Already full")
     if ambushed:
@@ -1664,7 +1685,9 @@ def enter_hub(character: Character) -> None:
         console.clear()
         console.print()
         print_hub_menu(character)
-        choice = read_choice(console, [*LOCATION_HOTKEYS.keys(), "I", "L", "?"], prompt="Where to?")
+        choice = read_choice(
+            console, [*LOCATION_HOTKEYS.keys(), "I", "L", "?"], prompt="meridianOS v2.5 // SELECT ROUTING:"
+        )
         if choice == "L":
             confirm = hotkey_prompt(
                 console,
@@ -1677,11 +1700,11 @@ def enter_hub(character: Character) -> None:
             return
         if choice == "?":
             show_help(console)
-            press_any_key(console, "Press any key to return to the central hub...")
+            press_any_key(console, "[SYS] UPLINK IDLE // PRESS ANY KEY TO RETURN_")
             continue
         if choice == "I":
             show_character_info(character)
-            press_any_key(console, "Press any key to return to the central hub...")
+            press_any_key(console, "[SYS] UPLINK IDLE // PRESS ANY KEY TO RETURN_")
             continue
 
         chosen = LOCATION_HOTKEYS[choice]
@@ -1705,4 +1728,4 @@ def enter_hub(character: Character) -> None:
         else:
             raise ValueError(f"No hub handler wired up for location: {chosen!r}")
 
-        press_any_key(console, "Press any key to return to the central hub...")
+        press_any_key(console, "[SYS] UPLINK IDLE // PRESS ANY KEY TO RETURN_")

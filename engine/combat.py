@@ -123,7 +123,7 @@ def _show_combat_log(console: Console) -> None:
     'V' handling in run_combat's action loop."""
     body = "\n".join(_combat_log)
     console.print(Panel(body, title=f"[{LABEL}]Action Log[/{LABEL}]", border_style=BORDER, padding=(1, 2)))
-    press_any_key(console, "Press any key to return to combat...")
+    press_any_key(console, "[SYS] COMBAT LINK PAUSED // PRESS ANY KEY_")
 
 
 CRIT_CHANCE = 0.2
@@ -676,7 +676,7 @@ def run_combat(character: Character, enemy_data: dict) -> bool:
         # actually gets to read what just happened before the next round's
         # clear() wipes it. Without this, narration flashes and vanishes.
         if character.hp > 0 and enemy.alive:
-            press_any_key(console, "Press any key for the next round...")
+            press_any_key(console, "[SYS] NEXT ROUND QUEUED // PRESS ANY KEY_")
 
     if character.hp <= 0:
         _handle_defeat(character)

@@ -209,9 +209,9 @@ Defined in `engine/status_effects.py`.
 
 | Effect | Badge | Mechanic |
 |---|---|---|
-| Bleed | 🩸 BLEED | 3 damage/round (`BLEED_DAMAGE`) at the start of the bleeding combatant's round. Droids (`is_droid: true`) are immune. |
-| Stunned | ⚡ STUN | Skips the stunned combatant's action that round. |
-| Drunk | ☣ DRUNK | Player-only (from Buy a Round). `-3` (`DRUNK_STAT_PENALTY`) to Attack/Tech rolls in combat. |
+| Bleed | `[ /// BLEED ]` | 3 damage/round (`BLEED_DAMAGE`) at the start of the bleeding combatant's round. Droids (`is_droid: true`) are immune. |
+| Stunned | `[ !!! STUN ]` | Skips the stunned combatant's action that round. |
+| Drunk | `[ ERR: DRUNK ]` | Player-only (from Buy a Round). `-3` (`DRUNK_STAT_PENALTY`) to Attack/Tech rolls in combat. |
 
 Effects tick down once per round and don't clear on leaving combat (carry into the next fight) unless cured at Doc Wire's Clinic or the character sleeps.
 

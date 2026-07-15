@@ -226,9 +226,12 @@ action) and Bleeding (damage over time), inflicted by specific
 enemies. Droid enemies (`is_droid: true` in encounter data — currently
 just Rogue Drone) are immune to Bleed from any source, enforced
 centrally in `status_effects.apply_effect`. `EFFECT_LABELS` in
-`status_effects.py` bakes in a colored glyph badge per effect (e.g.
-`[🩸 BLEED]`), pre-wrapped in the WARNING theme color, so every
-consumer gets the same styled badge for free.
+`status_effects.py` bakes in an ASCII hazard-tag badge per effect (e.g.
+`[ /// BLEED ]`), pre-wrapped in the WARNING theme color, so every
+consumer gets the same styled badge for free. Deliberately plain ASCII,
+no emoji — a cracked street terminal shouldn't render iOS glyphs; the
+tags are meant to read like something a flickering CRT would actually
+display.
 
 Two usable-item effect types beyond heal/stun: `attack_buff` (a temporary
 Attack boost — see `OVERCLOCK_ATTACK_BONUS` in `combat.py`, shared by the

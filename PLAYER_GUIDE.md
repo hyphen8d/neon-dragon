@@ -301,10 +301,10 @@ level scaling. Banked credits at NetVault are never touched by this.
 
 ### Status effects
 
-Status effects show up everywhere as a colored glyph badge — `[🩸
-BLEED]`, `[⚡ STUN]`, `[☣ DRUNK]` — in the combat HUD, your Character
-Info screen, and anywhere else they're listed, so they're easy to spot
-at a glance. Status effects go both ways:
+Status effects show up everywhere as a colored hazard-tag badge —
+`[ /// BLEED ]`, `[ !!! STUN ]`, `[ ERR: DRUNK ]` — in the combat HUD,
+your Character Info screen, and anywhere else they're listed, so
+they're easy to spot at a glance. Status effects go both ways:
 
 - **Bleeding** — 3 damage at the start of the affected side's turn,
   for the effect's duration. Droids (Rogue Drone) have no blood to

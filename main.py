@@ -2,6 +2,9 @@
 
 from __future__ import annotations
 
+import sys
+import time
+
 from rich.console import Console, Group
 from rich.panel import Panel
 from rich.prompt import Prompt
@@ -13,7 +16,7 @@ from engine.help import show_help
 from engine.hub import enter_hub
 from engine.leveling import xp_for_next_level
 from engine.save import delete_save, list_saves, load_character, save_character, save_exists
-from engine.theme import ACCENT, ACCENT_SOFT, BORDER, BORDER_ACCENT, DANGER, ITALIC, LABEL, NAME, RARE, SUBTITLE, TEXT, TEXT_DIM
+from engine.theme import ACCENT, ACCENT_SOFT, BORDER, BORDER_ACCENT, DANGER, ITALIC, LABEL, NAME, RARE, SUBTITLE, TEXT, TEXT_DIM, WARNING
 from engine.ui import hotkey_bracket, hotkey_prompt, read_choice
 
 console = Console(width=120, highlight=False)
@@ -26,6 +29,31 @@ LORE = (
     "it just changes color under the neon. Chrome is cheap. Everything else "
     "costs more than you think."
 )
+
+# Fake boot checks printed before the title screen and before a merc drops
+# back into the hub — a bootleg deck powering on, not a narrator welcoming
+# the player in. Tag/line/style triples; style picks OK vs WARN coloring.
+BOOT_SEQUENCE: list[tuple[str, str, str]] = [
+    ("OK", "MEMORY ALLOCATED...", ACCENT_SOFT),
+    ("OK", "MOUNTING LOCAL FILESYSTEM...", ACCENT_SOFT),
+    ("WARN", "UNLICENSED CYBERNETIC HARDWARE DETECTED...", WARNING),
+    ("OK", "LINKING TO MERIDIAN GRID...", ACCENT_SOFT),
+    ("OK", "DECK HANDSHAKE COMPLETE.", ACCENT_SOFT),
+]
+
+BOOT_LINE_DELAY = 0.15  # seconds between boot lines on a real terminal
+
+
+def _boot_sequence() -> None:
+    """Fake system-check printout — skipped instantly when stdin isn't a
+    real terminal (piped input, the scripted playtest driver) so it never
+    slows down anything but an actual interactive session."""
+    interactive = sys.stdin.isatty()
+    for tag, line, style in BOOT_SEQUENCE:
+        console.print(f"[{style}][ {tag} ][/{style}] {line}")
+        if interactive:
+            time.sleep(BOOT_LINE_DELAY)
+    console.print()
 
 # Hand-built 5-row block font. Every letter is 5 rows tall; row widths within
 # a word are kept equal so per-line Rich coloring/centering stays aligned.
@@ -208,6 +236,7 @@ def delete_character() -> None:
 
 
 def main() -> None:
+    _boot_sequence()
     print_title()
     while True:
         console.print()
@@ -233,6 +262,8 @@ def main() -> None:
             console.print(f"[{TEXT_DIM}]Stay chrome.[/{TEXT_DIM}]")
             break
 
+        console.print()
+        _boot_sequence()
         try:
             enter_hub(character)
         finally:
