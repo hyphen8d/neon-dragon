@@ -1311,6 +1311,18 @@ def build_loadout_table(character: Character, title: str | None = None) -> Table
     return table
 
 
+def _active_fetch_targets(character: Character) -> set[str]:
+    """Item ids that satisfy an active "fetch" quest step right now — so
+    the shop can flag them instead of the player having to cross-reference
+    their quest log against the catalog by hand."""
+    targets = set()
+    for quest_id in character.active_quests:
+        step = current_step(character, quest_id)
+        if step["type"] == "fetch":
+            targets.add(step["target"])
+    return targets
+
+
 def build_catalog_table(catalog: list[dict], character: Character) -> Table:
     table = Table(title=f"[{LABEL}]Today's Stock[/{LABEL}]", border_style=BORDER)
     table.add_column("#", justify="right", style=LABEL)
@@ -1319,6 +1331,7 @@ def build_catalog_table(catalog: list[dict], character: Character) -> Table:
     table.add_column("Bonus")
     table.add_column("Special", style=WARNING)
     table.add_column("Cost", justify="right", no_wrap=True)
+    fetch_targets = _active_fetch_targets(character)
     for i, item in enumerate(catalog, start=1):
         special = ""
         if item.get("inflict_effect"):
@@ -1334,6 +1347,8 @@ def build_catalog_table(catalog: list[dict], character: Character) -> Table:
             cost_text = f"[{TEXT_DIM}]{cost_text}[/{TEXT_DIM}] [{NOTE}]✗[/{NOTE}]"
         index_text = str(i) if affordable else f"[{TEXT_DIM}]{i}[/{TEXT_DIM}]"
         name_text = item["name"] if affordable else f"[{TEXT_DIM}]{item['name']}[/{TEXT_DIM}]"
+        if item["id"] in fetch_targets:
+            name_text += f"\n[{RARE}][QUEST TARGET][/{RARE}]"
 
         bonus_text = f"+{item['bonus']} {item['stat']}"
         equipped_id = character.cyberware.get(item["slot"])

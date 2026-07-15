@@ -347,7 +347,9 @@ Bleeding and Target-Lock Eyes causes Stunned.
 20 contracts total across two boards — the Fixer Board and Endr3am's
 board at the Chrome Noodle Bar. Contracts chain steps — "talk" (visit a
 location), "kill" (defeat a named enemy), "fetch" (buy a specific
-cyberware item from Hyphen8d's Hut), "deliver" (hand a fetched item over
+cyberware item from Hyphen8d's Hut — if it's in today's stock, look for
+a bright `[QUEST TARGET]` tag on it so you don't have to cross-reference
+your quest log by hand), "deliver" (hand a fetched item over
 to whoever asked for it — no trade-in refund, it's a gift, not a sale),
 "pay" (pay a flat credit amount at a location), and "coerce" (talk your
 way past a target instead of fighting them — see Charisma and dialogue,
