@@ -6,6 +6,8 @@ A single-player, terminal-based RPG set in a cyberpunk vaporwave city —
 Neo Meridian. No server, no accounts, no web frontend. Just a Python
 CLI you run in a terminal, with a local JSON save file per character.
 
+![Neon Dragon title screen](docs/images/title-screen.png)
+
 ## Requirements
 
 - Python 3.11+
