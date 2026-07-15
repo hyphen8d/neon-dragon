@@ -16,7 +16,17 @@ reintroduce them:
    splitting "New" across a literal "]". Anchors below match the text
    *after* the bracket (e.g. "ew Merc"), or plain narration text that was
    never hotkey-bracketed in the first place (arrival flavor paragraphs,
-   custom prompt strings), never the raw label.
+   custom prompt strings), never the raw label. This isn't just for
+   anchors matched via expect_any() -- a plain containment check (`"x" in
+   buffer`) is just as vulnerable, and the bracket can land *inside* a
+   label instead of at the front: "Intimidate"'s hotkey is "N", which
+   sits at index 1, so the rendered text is "I[N]timidate" -- checking
+   for the substring "Intimidate" (see _fight_or_intimidate below) always
+   fails silently, no exception, it just never matches. Both this and the
+   "Slice Drop Box" -> "[S]lice Drop Box" version of the same trap
+   (visit_undercity's coerce handling) shipped broken once each before
+   being caught, so don't assume a literal label string is safe to search
+   for anywhere in this file without checking how it actually renders.
 
 2. read_key() used to -- on a real terminal *and* in the piped fallback --
    only ever consume a single character of input, discarding the rest of
@@ -69,6 +79,15 @@ ANCHOR_RECHARGE = r"is still recharging"
 ANCHOR_WHERE_TO = r"SELECT ROUTING"
 ANCHOR_NEW_MERC = r"ew Merc"  # "[N]ew Merc" -- the literal bracket breaks up "New"
 ANCHOR_LEAVE_CONFIRM = r"Head back to the safehouse"
+# Every press_any_key() call in the game (engine/ui.py) uses a message
+# ending in this phrase, regardless of context -- a "talk"-type contract
+# auto-completing/advancing on arrival (notify_step, called by nearly every
+# non-Undercity/Pit location before its own menu) prints one of these gates
+# an unpredictable number of times, so any visit_* helper that sends its
+# real menu choice immediately after the arrival text -- without accounting
+# for this -- risks that choice being silently swallowed as the answer to
+# a notification gate instead of the intended menu selection.
+ANCHOR_PRESS_ANY_KEY = r"PRESS ANY KEY"
 ANCHOR_NAME_PROMPT = r"What do they call you on the street\?"
 ANCHOR_CHOOSE_PATH = r"Choose your path"
 # engine/prologue.py's four press_any_key beats plus its forced tutorial
@@ -274,6 +293,20 @@ def _run_prologue(s: Session) -> None:
 
 
 def create_character(s: Session, name: str, class_key: str) -> None:
+    """A leftover save from a *previous, failed* run under this persona's
+    name (e.g. this driver's own subprocess got killed mid-session) makes
+    "New Merc" reject the name as a duplicate and silently re-prompt --
+    every subsequent send() in this function would then land on the wrong
+    prompt, desyncing the whole session in a way that's very confusing to
+    debug from a transcript alone. Deleting any pre-existing save for this
+    exact name first makes every run self-cleaning regardless of how the
+    last one ended."""
+    from engine.save import _save_path, delete_save, list_saves
+
+    slug = _save_path(name).stem
+    if slug in list_saves():
+        delete_save(slug)
+
     s.expect_any([ANCHOR_NEW_MERC])
     s.send("N")
     s.expect_any([ANCHOR_NAME_PROMPT])
@@ -305,8 +338,30 @@ def resume_character(s: Session, slug_index: str) -> None:
 
 
 def visit_undercity(s: Session, choice: str, combat_actions: list[str], level_up_pick: str) -> str | None:
+    """A "coerce" quest step pending against this location (see
+    engine/hub.py's _check_coerce_step) prints a Y/N prompt *before* the
+    normal arrival text's "Slice Drop Box" menu -- speculatively check for
+    it with a short timeout first (most visits won't have one pending, so
+    this is a fast no-op almost every time) and resolve it (always saying
+    Y) before falling through to the normal menu wait."""
     s.send("U")
-    s.expect_any([r"Slice Drop Box"])
+    reached_menu = False
+    try:
+        s.expect_any([r"Attempt to coerce the target"], timeout=0.5)
+        s.send("Y")
+        # Past this point we're waiting for the real hotkey menu, not the
+        # arrival flavor text's plain mention of "Slice Drop Box" (already
+        # behind us) -- the rendered menu option is hotkey-bracketed as
+        # "[S]lice Drop Box", so the matchable substring is "lice Drop Box"
+        # (same convention as ANCHOR_NEW_MERC's "ew Merc" for "[N]ew Merc").
+        idx = s.expect_any([ANCHOR_COMBAT_STARTED, r"lice Drop Box"], timeout=DEFAULT_TIMEOUT)
+        if idx == 0:
+            run_combat_loop(s, combat_actions, level_up_pick, final_anchor=r"lice Drop Box", ack_final=False)
+        reached_menu = True
+    except RuntimeError:
+        pass
+    if not reached_menu:
+        s.expect_any([r"Slice Drop Box"])
     s.send(choice)
     if choice == "L":
         s.expect_any([ANCHOR_HUB_RETURN])
@@ -316,12 +371,75 @@ def visit_undercity(s: Session, choice: str, combat_actions: list[str], level_up
     if idx == 1:
         s.ack()
         return None
+    return _fight_or_intimidate(s, combat_actions, level_up_pick)
+
+
+ANCHOR_ATTACK_OPTION = r"\[A\]ttack"
+
+
+def _fight_or_intimidate(s: Session, combat_actions: list[str], level_up_pick: str) -> str:
+    """Call right after ANCHOR_COMBAT_STARTED matches for a fight that
+    *could* offer Intimidate (i.e. a random Undercity encounter -- Pit/
+    RoboDOJO fights never do, see Enemy.min_level in engine/combat.py).
+    "[A]ttack" and "I[N]timidate" are both printed as part of the *same*
+    single options line (run_combat's `OPTION_SEPARATOR.join(...)`), with
+    Attack always first -- so racing the two against each other via
+    expect_any() (an earlier version of this helper's mistake) is wrong,
+    not just imprecise: Attack, being first in reading order, always
+    "wins" the race regardless of whether Intimidate is also present
+    later on the very same line. What's actually needed is a containment
+    check, not a race. expect_any([ANCHOR_ATTACK_OPTION]) first
+    guarantees the whole options line has landed in the buffer (it's one
+    atomic console.print() call, so if "[A]ttack" is visible the rest of
+    the same line already is too) -- only then is peeking the remaining
+    buffer for Intimidate reliable, no sleep/timing guess involved.
+
+    The containment check itself has to look for "timidate", not
+    "Intimidate" -- hotkey_bracket() splits the label around its hotkey
+    letter, and "N" sits at index 1 of "Intimidate", so the rendered text
+    is literally "I[N]timidate". The contiguous substring "Intimidate"
+    never actually appears (a second version of this helper's mistake,
+    the same bracket-splitting trap as ANCHOR_NEW_MERC's "ew Merc")."""
+    s.expect_any([ANCHOR_ATTACK_OPTION], timeout=DEFAULT_TIMEOUT)
+    with s.lock:
+        unseen = s.buffer[s.pos :]
+    if "timidate" in unseen:
+        s.send("N")
+        s.expect_any([ANCHOR_HUB_RETURN], timeout=DEFAULT_TIMEOUT)
+        s.ack()
+        return "intimidated"
     return run_combat_loop(s, combat_actions, level_up_pick)
+
+
+def _settle_notifications(s: Session, ready_anchor: str) -> None:
+    """After a location's arrival text, an unpredictable number of "talk"
+    contract notifications (Contract updated/complete) can each print
+    their own press_any_key gate before the location's real menu appears
+    -- and a completing contract can itself push the character over a
+    level threshold, which prints its own "Put a bonus point somewhere"
+    prompt (engine/leveling.py's check_level_up, called *before*
+    print_quest_result's own press_any_key) that needs a real letter
+    answer, not a blank ack. Always answers "A" (Attack) for one of these
+    -- always a valid choice for every class -- rather than threading each
+    persona's preferred pick through every location helper for what's a
+    rare, incidental level-up outside of combat. Loops until `ready_anchor`
+    -- text that only appears once the real per-location menu/Interaction
+    Deck is on screen -- shows up, so the caller's next s.send(choice)
+    always lands on the intended prompt instead of an interstitial one."""
+    while True:
+        idx = s.expect_any([ANCHOR_PRESS_ANY_KEY, ANCHOR_LEVELUP, ready_anchor], timeout=DEFAULT_TIMEOUT)
+        if idx == 2:
+            return
+        if idx == 1:
+            s.send("A")
+        else:
+            s.ack()
 
 
 def visit_chrome_noodle_bar(s: Session, choice: str, contract_index: str | None) -> None:
     s.send("C")
     s.expect_any([ARRIVE_CHROME_BAR])
+    _settle_notifications(s, r"uy a round")
     s.send(choice)
     if choice in ("L", "B"):
         s.expect_any([ANCHOR_HUB_RETURN])
@@ -338,6 +456,7 @@ def visit_chrome_noodle_bar(s: Session, choice: str, contract_index: str | None)
 def visit_netvault(s: Session, choice: str, amount: str | None) -> None:
     s.send("N")
     s.expect_any([ARRIVE_NETVAULT])
+    _settle_notifications(s, r"Banking")
     s.send(choice)
     if choice == "L":
         s.expect_any([ANCHOR_HUB_RETURN])
@@ -353,6 +472,7 @@ def visit_netvault(s: Session, choice: str, amount: str | None) -> None:
 def visit_hyphen8d(s: Session, choice: str, item_index: str | None) -> None:
     s.send("H")
     s.expect_any([ARRIVE_HYPHEN8D])
+    _settle_notifications(s, r"Shop Menu")
     s.send(choice)
     if choice == "L":
         s.expect_any([ANCHOR_HUB_RETURN])
@@ -381,6 +501,7 @@ def visit_hyphen8d(s: Session, choice: str, item_index: str | None) -> None:
 def visit_doc_wire(s: Session, choice: str, amount: str | None) -> None:
     s.send("D")
     s.expect_any([ARRIVE_DOC_WIRE])
+    _settle_notifications(s, r"Clinic Menu")
     s.send(choice)
     if choice == "L":
         s.expect_any([ANCHOR_HUB_RETURN])
@@ -411,7 +532,7 @@ def visit_robodojo(
     s: Session, choice: str, combat_actions: list[str], level_up_pick: str, ability_index: str | None
 ) -> str | None:
     s.send("R")
-    s.expect_any([r"AWAITING INPUT"])
+    _settle_notifications(s, r"AWAITING INPUT")
     s.send(choice)
     if choice == "L":
         s.expect_any([ANCHOR_HUB_RETURN])
@@ -446,6 +567,7 @@ def visit_the_pit(s: Session, gladiator_index: str, combat_actions: list[str], l
 
 def visit_fixer_board(s: Session, contract_index: str | None) -> None:
     s.send("F")
+    _settle_notifications(s, r"Contract Board")
     idx = s.expect_any([r"Take a contract\? \(0 to cancel\)", ANCHOR_HUB_RETURN])
     if idx == 0:
         s.send(contract_index or "0")
@@ -463,3 +585,49 @@ def check_help(s: Session) -> None:
     s.send("?")
     s.expect_any([ANCHOR_HUB_RETURN])
     s.ack()
+
+
+def check_archives(s: Session) -> None:
+    """Visits the [A]rchives Datashard screen and immediately backs out
+    (0 to cancel) regardless of how many shards have been found."""
+    s.send("A")
+    idx = s.expect_any([r"Read which fragment\? \(0 to cancel\)", ANCHOR_HUB_RETURN])
+    if idx == 0:
+        s.send("0")
+        s.expect_any([ANCHOR_HUB_RETURN])
+    s.ack()
+
+
+# Cycled across Undercity actions inside grind_day rather than always
+# "F" (Find a Fight) -- Slice Drop Box and Hunt Cache are the only two
+# ways a Datashard can turn up (engine/datashards.py's
+# maybe_find_datashard), so a grind that never visits them will never
+# find one no matter how many fights it plays.
+_UNDERCITY_ACTION_CYCLE = ["S", "F", "H"]
+
+
+def grind_day(
+    s: Session,
+    combat_actions: list[str],
+    level_up_pick: str,
+    fights: int = 3,
+    actions: list[str] | None = None,
+) -> None:
+    """One day of repeatable, level-agnostic play: a fixed number of
+    Undercity actions (by default cycling Slice Drop Box / Find a Fight /
+    Hunt Cache, so a coerce prompt pending on a Chrome Noodle Bar contract
+    also gets a chance to fire, since visit_undercity's ARRIVE text prints
+    every visit, and Datashards get a real shot at turning up), then
+    sleep. Pass `actions=["F"]` for guaranteed-combat days instead -- the
+    default rotation trades some XP volume for Slice Drop Box/Hunt Cache
+    coverage, since only Find a Fight guarantees a fight (a clean Slice
+    Drop Box crack or a quiet Hunt Cache sweep earns no XP at all), which
+    matters if a persona specifically needs to level up quickly (e.g. to
+    reliably clear a stat threshold within a bounded number of days).
+    Used to grind a persona from early-game into a genuinely advanced
+    state without hand-writing dozens of unique days."""
+    cycle = actions or _UNDERCITY_ACTION_CYCLE
+    for i in range(fights):
+        action = cycle[i % len(cycle)]
+        visit_undercity(s, action, combat_actions, level_up_pick)
+    leave_and_sleep(s, combat_actions, level_up_pick)
