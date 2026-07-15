@@ -5,11 +5,12 @@ from __future__ import annotations
 import random
 
 from rich import box
-from rich.console import Console
+from rich.console import Console, Group
 from rich.panel import Panel
 from rich.prompt import IntPrompt
 from rich.rule import Rule
 from rich.table import Table
+from rich.text import Text
 
 from engine.achievements import check_achievements, load_achievements
 from engine.bestiary import TRAINING_DRONES, enemy_faction
@@ -1521,7 +1522,15 @@ def visit_hyphen8ds_hut(character: Character) -> None:
 
 
 def _themed_table(title: str) -> Table:
-    table = Table(title=f"[{ACCENT}]{title}[/{ACCENT}]", border_style=BORDER, show_header=False)
+    # min_width keeps the title from wrapping onto two lines when the row
+    # content is narrower than the title itself (e.g. a "Kills by Faction"
+    # table with one short faction/count row).
+    table = Table(
+        title=f"[{ACCENT}]{title}[/{ACCENT}]",
+        border_style=BORDER,
+        show_header=False,
+        min_width=len(title) + 2,
+    )
     table.add_column("Label", style=ACCENT_SOFT)
     table.add_column("Value", style=TEXT)
     return table
@@ -1669,21 +1678,44 @@ def _sleep_and_advance_day(character: Character) -> None:
     if ambushed:
         heat_text += f" [{TEXT_DIM}](ambushed on waking)[/{TEXT_DIM}]"
 
-    body = Table.grid(padding=(0, 2))
-    body.add_column(style=ACCENT_SOFT)
-    body.add_column(style=TEXT)
-    body.add_row("Weather", f"[{TEXT_DIM} italic]{random_weather()}[/{TEXT_DIM} italic]")
-    body.add_row("Headline", f"[{TEXT_DIM} italic]{random_headline()}[/{TEXT_DIM} italic]")
-    body.add_row("Level", str(character.level))
-    body.add_row("Credits", f"{format_credits(character.credits)} ({format_credits(character.banked_credits)} banked)")
-    body.add_row("Reputation", str(character.reputation))
-    body.add_row("HP", f"Fully restored (+{healed})" if healed > 0 else "Already full")
+    # City Conditions read as an ambient news ticker, not a stat row — kept
+    # visually separate from the character stats below instead of sharing
+    # the same label/value table (previously every row, flavor and stats
+    # alike, rendered in the same cyan-label style and blurred together).
+    conditions = Text.from_markup(
+        f"[{TEXT_DIM} italic]{random_weather()}[/{TEXT_DIM} italic]\n"
+        f"[{TEXT_DIM} italic]{random_headline()}[/{TEXT_DIM} italic]"
+    )
+
+    standing = _themed_table("Standing")
+    standing.add_row("Level", str(character.level))
+    standing.add_row("Credits", format_credits(character.credits))
+    standing.add_row("Banked", format_credits(character.banked_credits))
+    standing.add_row("Reputation", str(character.reputation))
+
+    overnight = _themed_table("Overnight Report")
+    overnight.add_row("HP", f"Fully restored (+{healed})" if healed > 0 else "Already full")
     if ambushed:
-        body.add_row("HP now", f"{character.hp}/{character.max_hp}")
-    body.add_row("Status effects cleared", str(cured))
-    body.add_row("Heat yesterday", heat_text)
-    body.add_row("Kills by faction", kills_text)
-    body.add_row("Hyphen8d's Hut", describe_market_modifier(character))
+        overnight.add_row("HP now", f"{character.hp}/{character.max_hp}")
+    overnight.add_row("Effects cleared", str(cured))
+    overnight.add_row("Heat", heat_text)
+
+    kills = _themed_table("Kills by Faction")
+    if faction_totals:
+        for faction, count in sorted(faction_totals.items()):
+            kills.add_row(faction, str(count))
+    else:
+        kills.add_row("No kills yet", "")
+
+    grid = Table.grid(padding=(0, 2))
+    grid.add_column()
+    grid.add_column()
+    grid.add_column()
+    grid.add_row(standing, overnight, kills)
+
+    market_note = Text.from_markup(f"[{ACCENT_SOFT}]Hyphen8d's Hut:[/{ACCENT_SOFT}] [{TEXT_DIM}]{describe_market_modifier(character)}[/{TEXT_DIM}]")
+
+    body = Group(conditions, Text(""), grid, Text(""), market_note)
 
     console.print(
         Panel(
