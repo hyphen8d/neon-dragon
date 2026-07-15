@@ -57,7 +57,7 @@ laid out for lookup rather than narrative reading.
 | Achievements | 5 |
 | Datashards | 4 |
 | Status effects | 3 (Bleed, Stunned, Drunk) |
-| City Conditions flavor entries | 12 weather + 17 headlines |
+| City Conditions entries | 12 weather (3 `tech_interference`) + 18 headlines (4 `market_surge`, 2 `market_discount`) |
 | Save format | one JSON file per character under `saves/`, gitignored |
 
 ---
@@ -193,6 +193,7 @@ Turn-based, resolved in `engine/combat.py`'s `run_combat`. Core actions every fi
 - **Critical hit**: 20% chance (`CRIT_CHANCE`), ×1.5 damage (`CRIT_MULTIPLIER`).
 - **Dodge**: some enemies have `dodge_chance` — a miss deals no damage and doesn't trigger gear on-hit effects.
 - **Gear-aware flavor**: hit narration depends on what's equipped in the relevant slot (arm for Attack, eyes for Tech); higher-tier gear can also inflict a status effect on-hit (`inflict_effect`/`inflict_chance`/`inflict_duration` on the item).
+- **Tech Interference weather**: when `Character.current_weather.get("type") == "tech_interference"` (rolled once per sleep, see [Daily cycle](#daily-cycle)), every Tech/Hack-type action has a flat 10% chance to fizzle for 0 damage (`TECH_INTERFERENCE_FIZZLE_CHANCE`) but +2 flat damage on a connect (`TECH_INTERFERENCE_BONUS_DAMAGE`) — covers the player's Tech action and a droid enemy's attack (`enemy.is_droid`, the closest analog to an enemy "tech" action this engine has). `_print_combat_hud` shows a `[ /// WEATHER: TECH INTERFERENCE ]` warning tag above the HUD panels whenever it's active.
 
 ### Moves (class specials + RoboDOJO abilities)
 
@@ -399,6 +400,7 @@ Items are only consumed on an actual effect — a heal at full HP or a faction-m
 - **Corp kills → free drinks**: at 15+ `corp_kills` (`CORP_HERO_KILL_THRESHOLD`), Buy a Round waives its 25cr cost — Static Rin treats the player as a local hero.
 - **Reputation**: earned from Fixer Board contracts and Pit wins (`reputation_reward`). Gates Fixer Board contracts.
 - **Banked credits** (NetVault): immune to trauma-bill loss on defeat — only credits on hand are at risk.
+- **City Conditions → forced market event**: `content/city_conditions.json`'s headlines carry an optional `type` of `market_surge` or `market_discount`; when today's rolled headline (`Character.current_headline`) has one, `engine/shop.py`'s `roll_daily_market` forces that event instead of the usual coin flip (`HEADLINE_MARKET_EVENT` dict). 4 of 18 headlines are `market_surge`, 2 are `market_discount`; the rest carry no `type` and leave the roll random.
 
 ---
 
@@ -408,8 +410,9 @@ Leaving the hub (`L`, with Yes/No confirmation) triggers `_sleep_and_advance_day
 
 - Day counter +1, full HP heal, all status effects cleared.
 - **Resets**: `bought_round_today`, `rested_today`, `training_attempts_today`, `daily_kills` (Faction Heat), Hyphen8d's daily stock + market event (`roll_daily_market`).
+- Rolls and stores today's City Conditions (`engine/city.py`'s `roll_weather()`/`roll_headline()`, stored on `Character.current_weather`/`current_headline`) **before** `roll_daily_market`, so a `market_surge`/`market_discount` headline can steer that roll — see [Economy](#economy).
 - Faction Heat resolves: if any faction is hot, a 15% (`AMBUSH_CHANCE`) chance of a waking ambush.
-- Prints the "Daily Data Feed" summary panel — now leads with two **City Conditions** rows (`engine/city.py`'s `random_weather()`/`random_headline()`, pulled from `content/city_conditions.json`: 12 weather lines, 17 fake headlines) before level, credits, reputation, HP, cleared effects, heat, kills by faction, and today's market event. Purely cosmetic — no mechanical effect, re-rolled fresh every sleep.
+- Prints the "Daily Data Feed" summary panel — leads with two **City Conditions** rows (today's stored weather/headline text) before level, credits, reputation, HP, cleared effects, heat, kills by faction, and today's market event.
 
 ---
 

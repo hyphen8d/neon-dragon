@@ -15,7 +15,7 @@ from rich.text import Text
 from engine.achievements import check_achievements, load_achievements
 from engine.bestiary import TRAINING_DRONES, enemy_faction
 from engine.character import CYBERWARE_SLOTS, Character, hp_style
-from engine.city import random_headline, random_weather
+from engine.city import roll_headline, roll_weather
 from engine.combat import ABILITIES, run_combat
 from engine.datashards import get_datashard, load_datashards, maybe_find_datashard
 from engine.encounters import get_enemy_by_name, roll_combat_encounter, roll_scavenge_encounter
@@ -1785,6 +1785,11 @@ def _sleep_and_advance_day(character: Character) -> None:
     character.total_days += 1
     hot = hot_factions(character)
     reset_daily_kills(character)
+    # Roll and store today's City Conditions before the market roll, so a
+    # market_surge/market_discount headline can actually steer
+    # roll_daily_market's event instead of the two rolling independently.
+    character.current_weather = roll_weather()
+    character.current_headline = roll_headline()
     roll_daily_market(character)
     character.bought_round_today = False
     character.rested_today = False
@@ -1824,8 +1829,8 @@ def _sleep_and_advance_day(character: Character) -> None:
     # the same label/value table (previously every row, flavor and stats
     # alike, rendered in the same cyan-label style and blurred together).
     conditions = Text.from_markup(
-        f"[{TEXT_DIM} italic]{random_weather()}[/{TEXT_DIM} italic]\n"
-        f"[{TEXT_DIM} italic]{random_headline()}[/{TEXT_DIM} italic]"
+        f"[{TEXT_DIM} italic]{character.current_weather['text']}[/{TEXT_DIM} italic]\n"
+        f"[{TEXT_DIM} italic]{character.current_headline['text']}[/{TEXT_DIM} italic]"
     )
 
     standing = _themed_table("Standing")

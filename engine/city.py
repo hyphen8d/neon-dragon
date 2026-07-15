@@ -1,6 +1,10 @@
 """Ambient City Conditions — weather and headline flavor for the Daily Data
-Feed. Pure worldbuilding, no mechanical effect: the city moving and
-breathing while the player sleeps."""
+Feed. Rolled once per sleep and stored on the Character (current_weather,
+current_headline) so they persist for the whole day rather than being
+re-rolled on every read. Most entries are pure worldbuilding, but a
+`type` field on some marks a real mechanical effect elsewhere in the
+engine: weather's "tech_interference" (engine/combat.py) and headlines'
+"market_surge"/"market_discount" (engine/shop.py's roll_daily_market)."""
 
 from __future__ import annotations
 
@@ -16,9 +20,9 @@ def load_city_conditions() -> dict[str, Any]:
     return json.loads(CONTENT_PATH.read_text())
 
 
-def random_weather() -> str:
+def roll_weather() -> dict[str, Any]:
     return random.choice(load_city_conditions()["weather"])
 
 
-def random_headline() -> str:
+def roll_headline() -> dict[str, Any]:
     return random.choice(load_city_conditions()["headlines"])

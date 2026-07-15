@@ -165,6 +165,20 @@ def _effective_defense(character: Character) -> int:
     return character.defense + bonus
 
 
+# A "tech_interference" City Condition (engine/city.py, rolled once per
+# sleep and stored on Character.current_weather) makes every Tech/Hack-type
+# action riskier but harder-hitting when it connects -- the player's Tech
+# action, and a droid enemy's attack (the closest thing this engine has to
+# an enemy-side "tech" action, since enemies don't have a separate action
+# type of their own).
+TECH_INTERFERENCE_FIZZLE_CHANCE = 0.10
+TECH_INTERFERENCE_BONUS_DAMAGE = 2
+
+
+def _tech_interference_active(character: Character) -> bool:
+    return character.current_weather.get("type") == "tech_interference"
+
+
 def roll_damage(attack: int, defense: int) -> tuple[int, bool]:
     """Returns (damage, was_critical)."""
     base = max(1, attack + random.randint(1, 6) - defense)
@@ -477,6 +491,11 @@ def _print_combat_hud(
 ) -> None:
     """The persistent combat dashboard — player status on the left, enemy
     vitals on the right — redrawn fresh at the top of every round."""
+    if _tech_interference_active(character):
+        console.print(
+            f"[{WARNING}][ /// WEATHER: TECH INTERFERENCE ][/{WARNING}]",
+            justify="center",
+        )
     player_rows = [
         ("Class", character.char_class),
         ("Attack", str(character.attack)),
@@ -643,8 +662,16 @@ def run_combat(character: Character, enemy_data: dict) -> bool:
                     _gear_inflict(character, enemy, "arm", console)
             elif action == "T":
                 stat_value = max(0, character.tech - drunk_penalty)
-                if _player_hit(character, enemy, stat_value, "tech", console) and enemy.alive:
-                    _gear_inflict(character, enemy, "eyes", console)
+                interference = _tech_interference_active(character)
+                if interference and random.random() < TECH_INTERFERENCE_FIZZLE_CHANCE:
+                    console.print(_player_line(
+                        f"[{WARNING}]The static storm eats your signal — the hack fizzles completely.[/{WARNING}]"
+                    ))
+                else:
+                    if interference:
+                        stat_value += TECH_INTERFERENCE_BONUS_DAMAGE
+                    if _player_hit(character, enemy, stat_value, "tech", console) and enemy.alive:
+                        _gear_inflict(character, enemy, "eyes", console)
             elif action == "D":
                 defending = True
                 brace = random.choice(DEFEND_FLAVOR)
@@ -673,25 +700,33 @@ def run_combat(character: Character, enemy_data: dict) -> bool:
         if enemy_stunned:
             console.print(_enemy_line(f"[{WARNING}]{enemy.name} is stunned and can't act![/{WARNING}]"))
         else:
-            old_hp = character.hp
-            dmg, crit = roll_damage(enemy.attack, _effective_defense(character))
-            bypassed = defending and enemy.ignores_defend
-            if defending and not enemy.ignores_defend:
-                dmg = max(0, dmg // 2)
-            character.hp = max(0, character.hp - dmg)
-            new_hp = character.hp
-            prefix = f"[{CREDITS}]CRITICAL![/{CREDITS}] " if crit else ""
-            suffix = " Your guard didn't matter." if bypassed else ""
-            line = random.choice(ENEMY_ATTACK_FLAVOR).format(enemy=enemy.name, dmg=dmg, verb=_impact_verb(dmg))
-            console.print(_enemy_line(
-                f"{prefix}[{DANGER}]{line}{suffix}[/{DANGER}] "
-                f"[{TEXT_DIM}](Your HP: {old_hp} -> {new_hp})[/{TEXT_DIM}]"
-            ))
+            enemy_interference = enemy.is_droid and _tech_interference_active(character)
+            if enemy_interference and random.random() < TECH_INTERFERENCE_FIZZLE_CHANCE:
+                console.print(_enemy_line(
+                    f"[{WARNING}]{enemy.name}'s targeting glitches out in the interference — the attack "
+                    f"fizzles completely.[/{WARNING}]"
+                ))
+            else:
+                old_hp = character.hp
+                enemy_attack_stat = enemy.attack + (TECH_INTERFERENCE_BONUS_DAMAGE if enemy_interference else 0)
+                dmg, crit = roll_damage(enemy_attack_stat, _effective_defense(character))
+                bypassed = defending and enemy.ignores_defend
+                if defending and not enemy.ignores_defend:
+                    dmg = max(0, dmg // 2)
+                character.hp = max(0, character.hp - dmg)
+                new_hp = character.hp
+                prefix = f"[{CREDITS}]CRITICAL![/{CREDITS}] " if crit else ""
+                suffix = " Your guard didn't matter." if bypassed else ""
+                line = random.choice(ENEMY_ATTACK_FLAVOR).format(enemy=enemy.name, dmg=dmg, verb=_impact_verb(dmg))
+                console.print(_enemy_line(
+                    f"{prefix}[{DANGER}]{line}{suffix}[/{DANGER}] "
+                    f"[{TEXT_DIM}](Your HP: {old_hp} -> {new_hp})[/{TEXT_DIM}]"
+                ))
 
-            if enemy.inflict_effect and random.random() < enemy.inflict_chance:
-                apply_effect(character, enemy.inflict_effect, enemy.inflict_duration)
-                adjective = EFFECT_ADJECTIVES.get(enemy.inflict_effect, enemy.inflict_effect)
-                console.print(_enemy_line(f"[{WARNING}]The hit leaves you {adjective}![/{WARNING}]"))
+                if enemy.inflict_effect and random.random() < enemy.inflict_chance:
+                    apply_effect(character, enemy.inflict_effect, enemy.inflict_duration)
+                    adjective = EFFECT_ADJECTIVES.get(enemy.inflict_effect, enemy.inflict_effect)
+                    console.print(_enemy_line(f"[{WARNING}]The hit leaves you {adjective}![/{WARNING}]"))
 
         # The round's over but the fight isn't — pause here so the player
         # actually gets to read what just happened before the next round's

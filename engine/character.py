@@ -69,6 +69,8 @@ class Character:
     total_fights_won: int = 0  # lifetime combat wins — see combat.py's _handle_victory
     achievements: list = field(default_factory=list)  # unlocked achievement ids, see engine/achievements.py
     datashards: list = field(default_factory=list)  # unlocked Datashard lore ids, see engine/datashards.py
+    current_weather: dict = field(default_factory=dict)  # today's City Condition, see engine/city.py + engine/combat.py
+    current_headline: dict = field(default_factory=dict)  # today's City Condition, see engine/city.py + engine/shop.py
 
     @classmethod
     def new(cls, name: str, char_class: str) -> "Character":

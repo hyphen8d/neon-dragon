@@ -44,12 +44,17 @@ A menu of locations the player travels between:
    restores, status effects clear, and a "Daily Data Feed" panel
    summarizes standing. This is also when Faction Heat (section 8)
    resolves and daily kill counts reset. The feed also leads with two
-   **City Conditions** rows — a random weather line and a random fake
-   news headline, both pulled from `content/city_conditions.json` via
-   `engine/city.py`'s `random_weather()`/`random_headline()`. Pure
-   worldbuilding, no mechanical effect: the point is that Neo Meridian
-   is visibly still moving while the player sleeps, not that the
-   weather does anything.
+   **City Conditions** rows — a weather line and a fake news headline,
+   both rolled from `content/city_conditions.json` via
+   `engine/city.py`'s `roll_weather()`/`roll_headline()` and stored on
+   `Character.current_weather`/`current_headline` so they persist for
+   the whole day rather than being re-rolled every time they're
+   displayed. No longer purely cosmetic: some conditions carry a `type`
+   field that has a real mechanical effect elsewhere — see section 6
+   (market-moving headlines) and section 7 (Tech Interference weather).
+   Most entries still have no `type` and stay pure worldbuilding, so
+   the city keeps feeling alive even on the days nothing mechanically
+   happens.
 6. Save file persists between sessions.
 
 ## 4. Character
@@ -182,7 +187,13 @@ random price event — a 10-30% discount or surge — that stacks with the
 Charisma discount rather than replacing it. Both are stored on
 `Character` (`market_stock`, `market_modifier`) and re-roll on sleep;
 `get_daily_catalog`/`discounted_cost` are the read paths the shop UI
-uses, so nothing else needs to know the roll happened.
+uses, so nothing else needs to know the roll happened. The event type
+isn't always a coin flip: if today's headline (`Character.current_headline`,
+rolled just before the market — see section 3) carries a `market_surge`
+or `market_discount` type, that forces the event instead
+(`HEADLINE_MARKET_EVENT` in `engine/shop.py`) — a corp crackdown or
+supply-crunch headline actually drives the price spike it's describing,
+rather than the news and the economy rolling independently.
 
 **Quantum Cores** (`Character.quantum_cores`): a rare secondary
 currency, LORD-gem-style. 4% drop chance (`QUANTUM_CORE_DROP_CHANCE`
@@ -350,6 +361,19 @@ narrative-table treatment later.
 Charisma talks down the trauma bill from a lost fight: 3% off per
 point, capped at 45%. A high-Charisma build still goes down in a
 fight the same as anyone else, but pays less to get patched up.
+
+**Tech Interference weather** (`Character.current_weather`, rolled once
+per sleep — see section 3): when today's weather carries the
+`tech_interference` type (a static storm, a solar flare, ash and ozone
+in the air), every Tech/Hack-type action in the fight has a flat 10%
+chance to fizzle completely, but deals +2 damage if it connects. This
+covers the player's Tech action and a droid enemy's attack (`is_droid`
+being the closest thing the engine has to an enemy-side "tech" action,
+since enemies don't otherwise carry a distinct action type). An active
+interference weather shows a `WEATHER: TECH INTERFERENCE` warning tag
+at the top of the combat HUD (`_print_combat_hud` in `engine/combat.py`)
+so the risk/reward is visible before committing to an action, not a
+surprise after the fact.
 
 ## 8. Achievements & Milestones
 

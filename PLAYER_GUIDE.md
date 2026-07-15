@@ -413,10 +413,34 @@ and market event), and prints a "Daily Data Feed" panel summarizing
 where you stand — level, credits, reputation, kills by faction, and
 today's Hyphen8d's Hut pricing. The feed leads with a bit of city
 color first: a weather line and a fake news headline, different every
-morning. Purely cosmetic — Neo Meridian keeps existing while you're
-asleep, none of it changes your stats. Your day only advances when you
-choose to leave; there's still no limit on how much you do at the hub
-before then.
+morning and locked in for the whole day. These aren't just flavor
+anymore — see City Conditions below for what they actually do. Your
+day only advances when you choose to leave; there's still no limit on
+how much you do at the hub before then.
+
+## City Conditions
+
+Today's weather and headline (rolled fresh each sleep, shown at the top
+of the Daily Data Feed) can steer the day's mechanics, not just narrate
+it:
+
+- **Tech Interference weather** — a static storm, a solar flare, or a
+  night of ash and ozone in the air messes with anything digital. Every
+  Tech/Hack action in combat (yours, and a droid enemy's attack) has a
+  flat 10% chance to fizzle completely, but deals +2 damage if it
+  connects instead. An active interference weather shows a
+  `WEATHER: TECH INTERFERENCE` warning tag at the top of the combat
+  HUD, so you know it's in play before you commit to an action.
+- **Market-moving headlines** — a headline about a corp crackdown, a
+  supply crunch, or a shipment delay forces today's Hyphen8d's Hut
+  price event to a surge; one about a stock plunge or a cyberware
+  recall forces a discount instead. Check the headline before you go
+  shopping.
+
+Most weather and headlines are still pure flavor — only some carry a
+mechanical type, and there's no in-game list of which; part of the
+appeal is reading the news and figuring out what today's actually going
+to cost you.
 
 ## Saving
 

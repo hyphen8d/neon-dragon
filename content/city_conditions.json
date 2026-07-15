@@ -1,35 +1,135 @@
 {
   "weather": [
-    "Acid rain is washing the neon into the gutters today.",
-    "Massive static storms in the upper atmosphere — the grid's flickering across three districts.",
-    "Smog's sitting low tonight, thick enough to taste the copper in it.",
-    "A rare clear sky. The stars are out, which nobody in the Undercity knows what to do with.",
-    "Ash is falling again — nobody's confirmed which factory, or if it's even a factory.",
-    "Humidity's spiking. Every chrome surface in the city is sweating condensation.",
-    "The rain's warm tonight, which everyone agrees is worse than cold rain.",
-    "Dust storms rolling in off the dead zone are painting the skyline the color of rust.",
-    "Solar flare warnings have half the corp towers running on backup power.",
-    "Fog's rolled in so thick the streetlights are just smears of pink and blue.",
-    "A light drizzle of something that isn't quite rain is beading on every window in the district.",
-    "The wind's carrying ash and ozone tonight — somewhere, something big got fried."
+    {
+      "id": "acid_rain",
+      "text": "Acid rain is washing the neon into the gutters today."
+    },
+    {
+      "id": "static_storm",
+      "type": "tech_interference",
+      "text": "Massive static storms in the upper atmosphere — the grid's flickering across three districts."
+    },
+    {
+      "id": "low_smog",
+      "text": "Smog's sitting low tonight, thick enough to taste the copper in it."
+    },
+    {
+      "id": "clear_sky",
+      "text": "A rare clear sky. The stars are out, which nobody in the Undercity knows what to do with."
+    },
+    {
+      "id": "ash_fall",
+      "text": "Ash is falling again — nobody's confirmed which factory, or if it's even a factory."
+    },
+    {
+      "id": "humidity_spike",
+      "text": "Humidity's spiking. Every chrome surface in the city is sweating condensation."
+    },
+    {
+      "id": "warm_rain",
+      "text": "The rain's warm tonight, which everyone agrees is worse than cold rain."
+    },
+    {
+      "id": "dust_storm",
+      "text": "Dust storms rolling in off the dead zone are painting the skyline the color of rust."
+    },
+    {
+      "id": "solar_flare",
+      "type": "tech_interference",
+      "text": "Solar flare warnings have half the corp towers running on backup power."
+    },
+    {
+      "id": "thick_fog",
+      "text": "Fog's rolled in so thick the streetlights are just smears of pink and blue."
+    },
+    {
+      "id": "odd_drizzle",
+      "text": "A light drizzle of something that isn't quite rain is beading on every window in the district."
+    },
+    {
+      "id": "ash_and_ozone",
+      "type": "tech_interference",
+      "text": "The wind's carrying ash and ozone tonight — somewhere, something big got fried."
+    }
   ],
   "headlines": [
-    "Corp CEO Assassinated, Stock Plummets.",
-    "Sewer Mutants Claim Another Maintenance Crew.",
-    "NetVault Denies Data Breach Amid Rumors of Vault-Wide Lockdown.",
-    "Underground Cage Fights Linked to Three Missing Persons Cases.",
-    "City Council Approves New Surveillance Drone Contract, Citizens Not Consulted.",
-    "Black Market Cyberware Recall Ignored by Everyone Who Actually Bought It.",
-    "Local Fixer Board Legend Retires, Successor Unknown.",
-    "Rogue AI Rumors Resurface After Blackout in the Financial District.",
-    "Gang War Truce Brokered by Bartender, City Officials Reportedly Baffled.",
-    "Quantum Core Black Market Price Spikes After Latest 'Recovery'.",
-    "Chrome Beast Sightings Triple Near the Undercity Rail Line.",
-    "Anonymous Tip Leads Corp Security to Empty Warehouse, Again.",
-    "NetVault Teller Wins Employee of the Month, Says She 'Feels Nothing'.",
-    "RoboDOJO Drone Malfunctions Mid-Sparring Match, Front Desk Blames Waiver.",
-    "Static Storms Delay Corp Shipments, Street Prices Climb Overnight.",
-    "Missing Fixer's Terminal Found Still Broadcasting Job Postings.",
-    "Pit Champion Dethroned, Betting Odds Thrown Into Chaos."
+    {
+      "id": "ceo_assassinated",
+      "type": "market_discount",
+      "text": "Corp CEO Assassinated, Stock Plummets."
+    },
+    {
+      "id": "sewer_mutants",
+      "text": "Sewer Mutants Claim Another Maintenance Crew."
+    },
+    {
+      "id": "netvault_breach_denial",
+      "text": "NetVault Denies Data Breach Amid Rumors of Vault-Wide Lockdown."
+    },
+    {
+      "id": "cage_fights_missing",
+      "text": "Underground Cage Fights Linked to Three Missing Persons Cases."
+    },
+    {
+      "id": "surveillance_contract",
+      "type": "market_surge",
+      "text": "City Council Approves New Surveillance Drone Contract, Citizens Not Consulted."
+    },
+    {
+      "id": "cyberware_recall",
+      "type": "market_discount",
+      "text": "Black Market Cyberware Recall Ignored by Everyone Who Actually Bought It."
+    },
+    {
+      "id": "fixer_legend_retires",
+      "text": "Local Fixer Board Legend Retires, Successor Unknown."
+    },
+    {
+      "id": "rogue_ai_rumors",
+      "text": "Rogue AI Rumors Resurface After Blackout in the Financial District."
+    },
+    {
+      "id": "gang_war_truce",
+      "text": "Gang War Truce Brokered by Bartender, City Officials Reportedly Baffled."
+    },
+    {
+      "id": "quantum_core_price_spike",
+      "type": "market_surge",
+      "text": "Quantum Core Black Market Price Spikes After Latest 'Recovery'."
+    },
+    {
+      "id": "chrome_beast_sightings",
+      "text": "Chrome Beast Sightings Triple Near the Undercity Rail Line."
+    },
+    {
+      "id": "warehouse_tip",
+      "text": "Anonymous Tip Leads Corp Security to Empty Warehouse, Again."
+    },
+    {
+      "id": "netvault_employee_month",
+      "text": "NetVault Teller Wins Employee of the Month, Says She 'Feels Nothing'."
+    },
+    {
+      "id": "robodojo_malfunction",
+      "text": "RoboDOJO Drone Malfunctions Mid-Sparring Match, Front Desk Blames Waiver."
+    },
+    {
+      "id": "static_storm_shipments",
+      "type": "market_surge",
+      "text": "Static Storms Delay Corp Shipments, Street Prices Climb Overnight."
+    },
+    {
+      "id": "fixer_terminal_broadcasting",
+      "text": "Missing Fixer's Terminal Found Still Broadcasting Job Postings."
+    },
+    {
+      "id": "pit_champion_dethroned",
+      "text": "Pit Champion Dethroned, Betting Odds Thrown Into Chaos."
+    },
+    {
+      "id": "corp_crackdown",
+      "type": "market_surge",
+      "text": "Corp Security Sweeps the District, Cyberware Dealers Go Quiet as Prices Spike."
+    }
   ]
 }

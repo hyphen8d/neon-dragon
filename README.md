@@ -46,9 +46,11 @@ python3 -m venv .venv
   your merc home to sleep: full heal, status effects cleared, daily
   caps reset (RoboDOJO sparring, Buy a Round, Chrome Noodle Bar's free
   rest), and a "Daily Data Feed" panel summarizing where you stand,
-  led by a random **City Conditions** weather line and fake news
-  headline — pure worldbuilding, the city visibly still moving while
-  you sleep
+  led by a **City Conditions** weather line and fake news headline that
+  stick for the whole day — mostly worldbuilding, but some conditions
+  actually move the needle: a Tech Interference weather makes Tech/Hack
+  actions riskier-but-harder-hitting in combat, and certain headlines
+  force Hyphen8d's Hut into a price surge or discount
 - **JSON save/load** — one file per character, autosaved whenever you
   leave the hub *and* on a crash or interrupt mid-session
 

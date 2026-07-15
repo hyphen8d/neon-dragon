@@ -134,12 +134,28 @@ def discounted_cost(character: Character, item: dict[str, Any]) -> int:
     return max(1, int(price))
 
 
+# Headline -> forced market event type. Set by engine/city.py's roll_headline
+# and stored on Character.current_headline before roll_daily_market runs
+# (see hub.py's _sleep_and_advance_day), so a headline about a supply
+# crunch or a cyberware recall actually moves the price instead of just
+# reading that way.
+HEADLINE_MARKET_EVENT: dict[str, str] = {
+    "market_surge": "surge",
+    "market_discount": "discount",
+}
+
+
 def roll_daily_market(character: Character) -> None:
     """Roll a fresh economic modifier and restock Hyphen8d's Hut for the
-    day. Called once per day, when the player sleeps."""
+    day. Called once per day, when the player sleeps. If today's headline
+    (character.current_headline) carries a market_surge/market_discount
+    type, that forces the event type instead of a coin flip — the news
+    ticker actually driving the economy, not just narrating it."""
     catalog = load_cyberware()
     slot = random.choice(sorted({item["slot"] for item in catalog}))
-    event_type = random.choice(MARKET_EVENT_TYPES)
+    headline_type = character.current_headline.get("type")
+    forced_event = HEADLINE_MARKET_EVENT.get(headline_type)
+    event_type = forced_event or random.choice(MARKET_EVENT_TYPES)
     percent = round(random.uniform(MARKET_EVENT_MIN_PERCENT, MARKET_EVENT_MAX_PERCENT), 2)
     flavor = random.choice(DISCOUNT_FLAVOR if event_type == "discount" else SURGE_FLAVOR)
     character.market_modifier = {"slot": slot, "type": event_type, "percent": percent, "flavor": flavor}
