@@ -11,18 +11,25 @@ from engine.ui import hotkey_prompt
 
 XP_STEP = 50
 
-# Flat stat growth applied per level gained. Charisma is left out —
-# it has no mechanical effect anywhere yet, so growing it would be noise.
+# Flat stat growth applied per level gained. Charisma is left out of the
+# automatic growth (it stays an opt-in build choice via
+# LEVEL_UP_BONUS_STATS below, plus Buy a Round) rather than growing on
+# every level regardless of build, the way combat stats do.
 STAT_GROWTH = {"max_hp": 3, "attack": 1, "defense": 1, "tech": 1}
 
 # On top of the flat STAT_GROWTH, the player picks one of these to bump an
 # extra point — the one build-crafting decision in an otherwise fully
 # deterministic level-up, so Street Samurai vs. Netrunner can diverge
-# further than their starting templates over a playthrough.
+# further than their starting templates over a playthrough. Charisma is
+# included here (not in STAT_GROWTH) specifically so it has a genuine,
+# level-up-paced growth path instead of being locked entirely behind
+# skin-slot cyberware (Synth-Derm/Mirrorskin) — see also Buy a Round's
+# stat encounters in engine/hub.py.
 LEVEL_UP_BONUS_STATS: dict[str, tuple[str, str]] = {
     "A": ("attack", "Attack"),
     "D": ("defense", "Defense"),
     "T": ("tech", "Tech"),
+    "C": ("charisma", "Charisma"),
 }
 
 

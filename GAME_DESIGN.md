@@ -74,11 +74,19 @@ The player is a cyber mercenary (**merc**) working Neo Meridian's edges.
   skin) — each grants a stat bonus, sourced from Hyphen8d's Hut.
 - Leveling up is no longer fully deterministic: on top of the flat
   `STAT_GROWTH` (+3 Max HP, +1 Attack, +1 Defense, +1 Tech, full heal),
-  the player picks one of Attack/Defense/Tech to bump an extra point
-  (`engine/leveling.py`'s `LEVEL_UP_BONUS_STATS`, prompted via
-  `hotkey_prompt`) — the one build-crafting decision between character
-  creation and cyberware, so two Street Samurai builds can diverge over
-  a playthrough instead of following an identical curve.
+  the player picks one of Attack/Defense/Tech/**Charisma** to bump an
+  extra point (`engine/leveling.py`'s `LEVEL_UP_BONUS_STATS`, prompted
+  via `hotkey_prompt`) — the one build-crafting decision between
+  character creation and cyberware, so two Street Samurai builds can
+  diverge over a playthrough instead of following an identical curve.
+  Charisma is deliberately left out of the automatic `STAT_GROWTH` (it
+  stays opt-in rather than growing on every level regardless of build)
+  but was previously missing an organic growth path entirely — its only
+  source was skin-slot cyberware (Synth-Derm/Mirrorskin, and only one
+  at a time). It now also grows via this level-up choice and via one of
+  Buy a Round's stat outcomes (section 7), so a Charisma build is a real
+  investment over time instead of being capped by whichever skin item
+  you happened to buy.
 
 ## 5. NPCs
 
@@ -348,11 +356,12 @@ action.
 
 **Buy a Round** (`engine/hub.py`'s `ROUND_ENCOUNTERS`/`_resolve_round_encounter`)
 is a weighted micro-encounter table, not a flat three-way roll —
-8 flavored narratives (a Scav pickpocket, a rambling netrunner, a
-synth-arm-wrestling ganger, a war-story veteran, two gossip variants,
-two drunk variants) each precede their own mechanical payoff (+1
-permanent stat, +2 reputation, or the `drunk` status effect), weighted
-to land close to the old flat 12%/58%/30% split. The arm-wrestling win
+9 flavored narratives (a Scav pickpocket, a rambling netrunner, a
+synth-arm-wrestling ganger, a war-story veteran, a smooth-talking fixer,
+two gossip variants, two drunk variants) each precede their own
+mechanical payoff (+1 permanent stat — Attack, Tech, Defense, or
+Charisma — +2 reputation, or the `drunk` status effect), weighted to
+land close to the old flat 12%/58%/30% split. The arm-wrestling win
 also carries its own 10% downside roll (5 damage on top of the stat
 gain) — a self-contained example of a narrative outcome with a nested
 risk, worth reusing if other flat-roll mechanics get the same
@@ -412,13 +421,20 @@ meant to stand out from ordinary narration. `show_character_info` lists
 everything unlocked so far in its own Achievements table.
 
 This is also where the previously-floated **RoboDOJO belt ranks** idea
-landed: reaching 10 base Attack or Defense unlocks "Black Belt (Attack)"
-/ "Black Belt (Defense)", each granting a small permanent combat bonus
-(`BLACK_BELT_ATTACK_BONUS` / `BLACK_BELT_DEFENSE_BONUS` in
-`engine/combat.py`, applied in `_effective_attack` / `_effective_defense`)
-on top of whatever the raw stat happens to be — the achievement is the
-belt, the bonus doesn't disappear even if gear or effects change the
-stat later.
+landed: gaining 6 Attack or Defense over your class's starting value
+unlocks "Black Belt (Attack)" / "Black Belt (Defense)", each granting a
+small permanent combat bonus (`BLACK_BELT_ATTACK_BONUS` /
+`BLACK_BELT_DEFENSE_BONUS` in `engine/combat.py`, applied in
+`_effective_attack` / `_effective_defense`) on top of whatever the raw
+stat happens to be — the achievement is the belt, the bonus doesn't
+disappear even if gear or effects change the stat later. Originally a
+flat "reach 10" threshold, which was trivial for Street Samurai
+(starting Attack 8, +2 away) and a much bigger ask for Netrunner
+(starting Attack 3, +7 away) — the `stat_gain` condition type
+(`engine/achievements.py`'s `_condition_met`, reading each class's
+baseline from `engine.character.CLASSES`) measures the gain instead of
+an absolute number, so both classes need the same amount of real
+investment regardless of their starting spread.
 
 Other achievements shipped as a first pass: **King Slayer** (defeat
 Kingpin Draxx), **Street Sweeper** (15 Street Gang kills — reuses
@@ -447,7 +463,23 @@ most-repeated fights don't all read the same) plus level-gated tiers
 above that (Ganger Boss L4+, Ronin Netrunner L3+, Corp Strike Team
 L5+, Chrome Beast L7+, Corp Blacksite Enforcer L9+) so difficulty
 keeps rising instead of flattening out once a player out-levels
-Chrome Beast. Hunt Cache's loot/nothing pool is six entries (three
+Chrome Beast.
+
+Higher tiers stack on top of the L1 pool rather than replacing it, so
+without a counterbalance the original five low-tier enemies would stay
+in the pick weight forever — by level 9 they made up roughly 59% of
+`roll_combat_encounter`'s total weight, meaning most "endgame" Undercity
+fights were still trash mobs. `engine/encounters.py`'s
+`_combat_weight`/`OUTLEVEL_GRACE`/`OUTLEVEL_HALVING_CAP` fixes this by
+halving an encounter's weight for every level the player is past a
+2-level grace window above its `min_level` (floored at 1, capped at 4
+halvings) — tapering instead of hard-excluding, so low-tier enemies
+still turn up occasionally rather than vanishing outright (which is
+also exactly what Intimidate, section 7, is for). `requires_kill`
+encounters (the Draxx grudge match) are exempt from decay — they're
+meant to persist as a callback fight, not fade out.
+
+Hunt Cache's loot/nothing pool is six entries (three
 loot, three nothing) for the same reason — no single flavor line
 repeating every single low-risk sweep. `roll_combat_encounter`/
 `roll_scavenge_encounter` take the full `Character` (not just level)

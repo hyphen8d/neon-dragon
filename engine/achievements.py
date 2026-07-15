@@ -13,7 +13,7 @@ from pathlib import Path
 from rich.console import Console
 from rich.panel import Panel
 
-from engine.character import CYBERWARE_SLOTS, Character
+from engine.character import CLASSES, CYBERWARE_SLOTS, Character
 from engine.theme import ACCENT, BORDER_RARE, RARE, TEXT_DIM
 
 CONTENT_PATH = Path(__file__).resolve().parent.parent / "content" / "achievements.json"
@@ -44,6 +44,14 @@ def _condition_met(character: Character, condition: dict) -> bool:
         return _equipped_count(character) >= condition["min"]
     if kind == "stat":
         return getattr(character, condition["stat"], 0) >= condition["min"]
+    if kind == "stat_gain":
+        # Measured relative to the character's class starting value, not
+        # an absolute number -- a flat threshold (e.g. "Attack >= 10")
+        # was trivial for a class whose starting stat was already close
+        # to it and a much bigger ask for a class starting far below it.
+        stat = condition["stat"]
+        baseline = CLASSES[character.char_class][stat]
+        return getattr(character, stat, 0) - baseline >= condition["min_gain"]
     return False
 
 

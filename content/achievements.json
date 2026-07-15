@@ -24,16 +24,16 @@
     {
       "id": "black_belt_attack",
       "name": "Black Belt (Attack)",
-      "description": "Reach 10 base Attack stat.",
+      "description": "Gain 6 Attack over your starting value.",
       "category": "belt_rank",
-      "condition": {"type": "stat", "stat": "attack", "min": 10}
+      "condition": {"type": "stat_gain", "stat": "attack", "min_gain": 6}
     },
     {
       "id": "black_belt_defense",
       "name": "Black Belt (Defense)",
-      "description": "Reach 10 base Defense stat.",
+      "description": "Gain 6 Defense over your starting value.",
       "category": "belt_rank",
-      "condition": {"type": "stat", "stat": "defense", "min": 10}
+      "condition": {"type": "stat_gain", "stat": "defense", "min_gain": 6}
     }
   ]
 }

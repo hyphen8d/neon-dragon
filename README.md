@@ -85,9 +85,9 @@ python3 -m venv .venv
   itself acknowledges you as reigning champion, while he starts
   occasionally ambushing you out in the Undercity to reclaim his honor
 - **Buy a Round micro-encounters** at the Chrome Noodle Bar — not a
-  flat dice roll, but 8 flavored mini-narratives (pickpocket Scavs,
-  rambling netrunners, synth-arm-wrestling gangers) each precede their
-  own stat/reputation/status payoff
+  flat dice roll, but 9 flavored mini-narratives (pickpocket Scavs,
+  rambling netrunners, synth-arm-wrestling gangers, smooth-talking
+  fixers) each precede their own stat/reputation/status payoff
 - **Faction Heat** — rack up too many kills against Corp or Street
   Gang in one day and you risk a retaliatory ambush, mid-Scavenge or
   the moment you wake up
@@ -105,7 +105,9 @@ python3 -m venv .venv
   it shapes actual dialogue and outcomes: several NPCs unlock warmer,
   secret-revealing lines at high Charisma, and some contracts let you
   talk your way past a target instead of fighting them (the **coerce**
-  step — fail the check and you're in a fight instead)
+  step — fail the check and you're in a fight instead). Grows like any
+  other stat too, via a level-up bonus point or Buy a Round, instead of
+  being capped by whichever skin-slot cyberware you happen to own
 - **A rare, eerie secondary currency** (Quantum Cores — "grown, not
   manufactured") and two black-market economies built around it and
   around Street Gang kills, for players who go looking
@@ -116,8 +118,10 @@ python3 -m venv .venv
 - **Achievements & Milestones** — data-driven unlocks (`content/achievements.json`)
   for combat, cyberware, and stat milestones, announced with a styled
   panel the moment they're earned. Includes **RoboDOJO belt ranks**:
-  hitting 10 base Attack or Defense unlocks a Black Belt achievement
-  that grants a small permanent combat bonus on top of the stat itself
+  gaining 6 Attack or Defense over your class's starting value unlocks
+  a Black Belt achievement that grants a small permanent combat bonus
+  on top of the stat itself — measured as a gain, not a flat number,
+  so it takes the same real investment for every class
 - **Datashards** — corrupted lore fragments (`content/datashards.json`)
   hinting at a rogue AI on the grid, purged corporate archives, and the
   unsettling truth behind Quantum Cores. A rare find on a clean Slice

@@ -1001,6 +1001,14 @@ ROUND_ENCOUNTERS: list[dict] = [
     },
     {
         "weight": 4,
+        "kind": "stat",
+        "stat": "charisma",
+        "intro": "A washed-up fixer, three drinks past honest, walks you through reading a room before you've even "
+        "opened your mouth — who's bluffing, who's desperate, who already decided the answer's yes.",
+        "outcome": "+1 Charisma, permanently.",
+    },
+    {
+        "weight": 4,
         "kind": "rep_scav",
         "intro": "A Scav's fingers brush your pocket mid-toast. You catch his wrist before the credits move an inch. "
         "He goes pale, then buys the whole bar a round to make it disappear.",

@@ -45,12 +45,13 @@ third, charisma-focused class is pulled pending a redesign):
   Each level costs more than the last (level 2 needs 50 total XP,
   level 3 needs 150, level 4 needs 300 — 50 more per level than the
   one before). Every level grants +3 Max HP, +1 Attack, +1 Defense,
-  +1 Tech, and a full heal — **plus you pick one of Attack/Defense/Tech
-  to bump an extra point**, the one build-crafting choice you get
-  outside of gear. A single big XP reward can trigger multiple
+  +1 Tech, and a full heal — **plus you pick one of Attack/Defense/Tech/
+  Charisma to bump an extra point**, the one build-crafting choice you
+  get outside of gear. A single big XP reward can trigger multiple
   level-ups at once, prompting you for a bonus point each time.
-  Charisma doesn't grow on level-up — it comes from cyberware, not
-  training (RoboDOJO doesn't offer it).
+  Charisma doesn't grow automatically like the other three, but it's
+  no longer locked to cyberware either — pick it at level-up, or catch
+  the right Buy a Round outcome at the Chrome Noodle Bar (see below).
 
 ## The Hub — Neo Meridian
 
@@ -80,15 +81,16 @@ From there you pick one thing to do:
 - **Buy a round** (25 credits) — not a flat dice roll, a little
   narrative each time. Something happens first — a Scav tries to
   pick your pocket, a jittery netrunner rambles about ghosts in the
-  subnet, a ganger challenges you to synth-arm wrestling — and *then*
-  the payoff lands: most of the time it's gossip (+2 reputation),
-  sometimes a permanent +1 to Attack, Defense, or Tech, and sometimes
-  you get thrown out **Drunk** — a status effect that weakens your
-  next fight's Attack/Tech rolls until it wears off or you pay Doc
-  Wire to cure it. (The arm-wrestling win has its own downside risk —
-  read the flavor text before you celebrate.) Rin only pours you one
-  round a day — the option resets when you sleep. Put in enough work
-  against Corp targets and she starts comping it outright.
+  subnet, a ganger challenges you to synth-arm wrestling, a washed-up
+  fixer teaches you to read a room — and *then* the payoff lands:
+  most of the time it's gossip (+2 reputation), sometimes a permanent
+  +1 to Attack, Defense, Tech, or Charisma, and sometimes you get
+  thrown out **Drunk** — a status effect that weakens your next
+  fight's Attack/Tech rolls until it wears off or you pay Doc Wire to
+  cure it. (The arm-wrestling win has its own downside risk — read the
+  flavor text before you celebrate.) Rin only pours you one round a
+  day — the option resets when you sleep. Put in enough work against
+  Corp targets and she starts comping it outright.
 - **Check the shady booth in the back** — Endr3am, a tall merc, runs
   his own contract board here, separate from the Fixer Board and
   gated by **Charisma** instead of Reputation. Charisma only comes
@@ -127,7 +129,10 @@ you're leveled enough to meet them: a **Ronin Netrunner** (level 3+,
 dodges some hits), a **Corp Strike Team** (level 5+, ignores your
 Defend), and a **Chrome Beast** (level 7+, heavy Bleed). The Undercity
 keeps getting more dangerous instead of staying exactly as easy as it
-was at level 1.
+was at level 1 — the odds also shift toward whatever's actually your
+tier as you level, so the original level-1 enemies stop dominating
+every fight you get into (they still show up sometimes; that's what
+Intimidate, covered in Combat below, is for).
 
 A clean Slice Drop Box crack or a Hunt Cache sweep that doesn't end in
 a fight also has a small chance to turn up a **Datashard** — a
@@ -467,11 +472,15 @@ enough — unlock a permanent Achievement, announced with a styled panel
 the moment you earn it. Unlocked achievements are listed on your
 Character Info (`[I]`) screen.
 
-**RoboDOJO belt ranks** are part of this system: train Attack or
-Defense up to 10 through RoboDOJO sparring (or any other means) and you
+**RoboDOJO belt ranks** are part of this system: gain 6 Attack or
+Defense over your class's *starting* value in that stat (through
+RoboDOJO sparring, leveling, gear, or any mix of the three) and you
 unlock "Black Belt (Attack)" / "Black Belt (Defense)", each of which
 grants a small permanent bonus in combat on top of the stat itself —
-it doesn't go away even if the stat changes later.
+it doesn't go away even if the stat changes later. It's measured as a
+gain from your class's own baseline rather than a flat number, so it
+takes about the same amount of real investment whether you started
+high (Street Samurai's Attack) or low (Netrunner's).
 
 ## Datashards
 

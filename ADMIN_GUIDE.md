@@ -52,7 +52,7 @@ laid out for lookup rather than narrative reading.
 | Cyberware (normal) | 8, across 4 slots |
 | Cyberware (Black Market) | 4, one per slot |
 | Cyberware (Street-Modded) | 1 (arm slot, credits, kill-gated) |
-| Buy a Round micro-encounters | 8 (weighted; 3 stat, 2 rep, 2 drunk, 1 rep-scav) |
+| Buy a Round micro-encounters | 9 (weighted; 4 stat incl. Charisma, 2 rep, 2 drunk, 1 rep-scav) |
 | Usable/consumable items | 2 |
 | Achievements | 5 |
 | Datashards | 4 |
@@ -80,7 +80,7 @@ Charisma remains a fully live stat regardless of class — see [Economy](#econom
 
 - XP curve (`engine/leveling.py`): `xp_for_level(level) = 50 * level * (level - 1) / 2`. Level 2 = 50 XP, level 3 = 150, level 4 = 300 (each level costs 50 more than the last step).
 - Per level: `STAT_GROWTH = {max_hp: +3, attack: +1, defense: +1, tech: +1}`, plus a full heal. Charisma does **not** grow on level-up.
-- **Player choice on level-up**: on top of the flat `STAT_GROWTH`, the player picks one of Attack/Defense/Tech via `hotkey_prompt` to get an extra +1 (`LEVEL_UP_BONUS_STATS` in `engine/leveling.py`). This is the only build-crafting decision in the leveling system — everything else is deterministic. Prompted once per level gained, so a multi-level XP jump asks once per level in the loop.
+- **Player choice on level-up**: on top of the flat `STAT_GROWTH`, the player picks one of Attack/Defense/Tech/Charisma via `hotkey_prompt` to get an extra +1 (`LEVEL_UP_BONUS_STATS` in `engine/leveling.py`). This is the only build-crafting decision in the leveling system — everything else is deterministic. Prompted once per level gained, so a multi-level XP jump asks once per level in the loop. Charisma is excluded from `STAT_GROWTH` itself (no automatic per-level gain) but is included here and in one Buy a Round outcome — its only growth paths before this were the skin-slot cyberware items (Synth-Derm/Mirrorskin), only one of which can be equipped at a time.
 - A single large XP reward can trigger multiple level-ups at once (`check_level_up` loops).
 - XP sources: combat kills (`enemy_data["xp_reward"]`) and contract completion (`quest["reward"]["xp"]`).
 
@@ -236,7 +236,9 @@ Effects tick down once per round and don't clear on leaving combat (carry into t
 
 ## Bestiary — Undercity
 
-`content/encounters.json`. `min_level` gates eligibility; `weight` is relative pick chance among eligible entries at the player's current level (via `roll_combat_encounter`).
+`content/encounters.json`. `min_level` gates eligibility; `weight` is the base relative pick chance among eligible entries at the player's current level (via `roll_combat_encounter`).
+
+**Trash-mob fatigue decay**: the table below shows each entry's *base* weight, not what actually gets used once a player has leveled past it. `engine/encounters.py`'s `_combat_weight` halves an encounter's effective weight for every level past a 2-level grace window above its `min_level` (`OUTLEVEL_GRACE`), capped at 4 halvings (`OUTLEVEL_HALVING_CAP`) and floored at 1 so a pick is never fully excluded. Without this, the five `min_level: 1` enemies stayed at full weight forever while tougher tiers were only ever added on top — by level 9 they made up ~59% of the total pick weight regardless of how leveled a character was. `requires_kill` encounters (Kingpin Draxx) are exempt — they're meant to persist as a callback fight, not decay away. This is also why Intimidate (see [Combat system](#combat-system)) exists: decay tapers the *frequency* of low-tier fights, Intimidate lets the player skip the ones that still come up.
 
 | Enemy | Faction | Min Lvl | Weight | HP | ATK | DEF | Credits | XP | Gimmick |
 |---|---|---|---|---|---|---|---|---|---|
@@ -434,7 +436,7 @@ Leaving the hub (`L`, with Yes/No confirmation) triggers `_sleep_and_advance_day
 
 ## Achievements
 
-`content/achievements.json`, checked by `engine/achievements.py`'s `check_achievements(character, console)`. Each entry is `{id, name, description, category, condition}`; `condition.type` currently supports `kill` (a specific enemy name, e.g. Kingpin Draxx), `faction_kills` (min kills against a faction), `cyberware_equipped` (min slots filled at once), and `stat` (min base stat value). Unlocked ids are appended to `Character.achievements` (saved, permanent) and announced with a `RARE`-styled panel the moment they unlock.
+`content/achievements.json`, checked by `engine/achievements.py`'s `check_achievements(character, console)`. Each entry is `{id, name, description, category, condition}`; `condition.type` currently supports `kill` (a specific enemy name, e.g. Kingpin Draxx), `faction_kills` (min kills against a faction), `cyberware_equipped` (min slots filled at once), `stat` (min base stat value), and `stat_gain` (min gain over the character's class starting value for that stat, reading the baseline from `engine.character.CLASSES` — used by the belt-rank achievements below so a flat threshold doesn't favor whichever class starts closer to it). Unlocked ids are appended to `Character.achievements` (saved, permanent) and announced with a `RARE`-styled panel the moment they unlock.
 
 Called after anything that could plausibly unlock one: `combat._handle_victory` (kill/faction achievements), `leveling.check_level_up` (stat achievements, since level-ups grow stats), `hub._buy_cyberware`/`hub._visit_black_market` (cyberware-equipped achievements), and `hub._spar` (stat achievements from training).
 
@@ -445,8 +447,8 @@ Called after anything that could plausibly unlock one: `combat._handle_victory` 
 | `king_slayer` | King Slayer | Defeat Kingpin Draxx |
 | `street_sweeper` | Street Sweeper | 15 Street Gang kills |
 | `chrome_junkie` | Chrome Junkie | 4 cyberware slots filled at once |
-| `black_belt_attack` | Black Belt (Attack) | Base Attack ≥ 10 |
-| `black_belt_defense` | Black Belt (Defense) | Base Defense ≥ 10 |
+| `black_belt_attack` | Black Belt (Attack) | Attack gained ≥ 6 over class starting value |
+| `black_belt_defense` | Black Belt (Defense) | Defense gained ≥ 6 over class starting value |
 
 **Belt-rank passives**: unlocking `black_belt_attack`/`black_belt_defense` isn't purely cosmetic — `engine/combat.py`'s `_effective_attack`/`_effective_defense` add a flat `BLACK_BELT_ATTACK_BONUS`/`BLACK_BELT_DEFENSE_BONUS` (2 each) on top of the raw stat whenever the achievement is present on `Character.achievements`, permanently, regardless of whether the underlying stat later changes.
 
