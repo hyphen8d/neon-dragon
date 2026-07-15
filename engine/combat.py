@@ -17,7 +17,7 @@ from engine.heat import record_kill
 from engine.inventory import describe_effect, get_usable_item, use_item
 from engine.leveling import check_level_up
 from engine.quests import notify_step, print_quest_result
-from engine.shop import get_item
+from engine.shop import format_credits, get_item
 from engine.status_effects import (
     DRUNK_STAT_PENALTY,
     EFFECT_ADJECTIVES,
@@ -69,6 +69,14 @@ class Enemy:
     is_droid: bool = False  # no blood to bleed — immune to the Bleed effect
     scan_desc: str = "No scan data available."  # flavor text shown in the enemy HUD panel
     status_effects: dict = field(default_factory=dict)
+    # The encounter table's min_level (see content/encounters.json) --
+    # the level a player needs to be to run into this enemy at random.
+    # Only set for enemies sourced from the random Undercity/ambush pools
+    # (see engine/hub.py); left None for Pit gladiators, RoboDOJO drones,
+    # scripted fights, and quest-triggered fights, which have no such
+    # concept and would otherwise become a risk-free Intimidate farm.
+    # None means "not eligible for Intimidate" -- see INTIMIDATE_LEVEL_GAP.
+    min_level: int | None = None
 
     @property
     def alive(self) -> bool:
@@ -273,6 +281,20 @@ FLEE_FAIL_FLAVOR = [
     "You can't shake them — they block your escape.",
     "No clean angle — you're boxed in.",
     "They anticipate the move and cut you off.",
+]
+
+# Intimidate: a guaranteed, no-risk way to skip a fight that's beneath a
+# leveled-up character, instead of grinding through it. Only offered when
+# the player is INTIMIDATE_LEVEL_GAP+ levels above the enemy's min_level
+# (see Enemy.min_level) -- unlike Flee, it can't fail and the enemy gets
+# no counter-attack, but it forfeits XP and reputation, only handing over
+# the credits the enemy was carrying.
+INTIMIDATE_LEVEL_GAP = 3
+
+INTIMIDATE_FLAVOR = [
+    "One look at you and {enemy} decides this isn't worth it, bolting and dropping {dropped} in the process.",
+    "{enemy} sizes you up, thinks better of it, and runs, {dropped} spilling out of a torn pocket.",
+    "You don't even have to say anything -- {enemy} is already gone, leaving {dropped} behind.",
 ]
 
 # Class -> (hotkey, label) for each class's signature combat move.
@@ -626,6 +648,11 @@ def run_combat(character: Character, enemy_data: dict) -> bool:
                 options.append((move.key, label))
             if character.inventory:
                 options.append(("I", "Items"))
+            can_intimidate = (
+                enemy.min_level is not None and character.level - enemy.min_level >= INTIMIDATE_LEVEL_GAP
+            )
+            if can_intimidate:
+                options.append(("N", "Intimidate"))
             if _combat_log:
                 options.append(("V", "View Log"))
 
@@ -652,6 +679,18 @@ def run_combat(character: Character, enemy_data: dict) -> bool:
                         # fight on the spot -- same as a successful Flee,
                         # no enemy turn.
                         return False
+                if action == "N":
+                    # Deterministic and immediate, unlike Flee -- being this
+                    # far above the enemy's level means there's no real
+                    # chance it turns the tables, so no counter-attack and
+                    # no coin flip. Skips the fight's real payout (XP,
+                    # reputation) entirely; only the credits carry over.
+                    character.credits += enemy.credits_reward
+                    line = random.choice(INTIMIDATE_FLAVOR).format(
+                        enemy=enemy.name, dropped=format_credits(enemy.credits_reward)
+                    )
+                    console.print(_player_line(f"[{ACCENT}]{line}[/{ACCENT}]"))
+                    return False
                 break
 
             drunk_penalty = DRUNK_STAT_PENALTY if has_effect(character, "drunk") else 0

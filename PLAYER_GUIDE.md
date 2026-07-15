@@ -252,6 +252,15 @@ Each round you pick:
 - **Tech/Hack** — damage based on your Tech stat.
 - **Defend** — halves incoming damage that round.
 - **Flee** — coin-flip chance to escape with no reward either way.
+- **I[N]timidate** — only shows up against a random Undercity enemy
+  you've badly outleveled (3+ levels above what it takes to run into
+  them). Unlike Flee, it can't fail and the enemy doesn't get a
+  counter-attack — they just run, dropping their credits on the way
+  out. No XP or reputation, though: it's a way to skip a fight that's
+  beneath you, not a better version of winning it. Doesn't appear
+  against Pit gladiators, RoboDOJO sparring drones, or quest-triggered
+  fights — those don't work the same way and stay full fights
+  regardless of level.
 
 Attack and Tech/Hack narration is gear-aware — a bare fist reads
 nothing like a Chrome Arm punch or Razor Claws. The verb itself also

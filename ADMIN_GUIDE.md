@@ -187,13 +187,21 @@ Supported `condition` keys (add more by extending `_condition_value` — no new 
 
 ## Combat system
 
-Turn-based, resolved in `engine/combat.py`'s `run_combat`. Core actions every fight: **Attack** (stat: Attack), **Tech/Hack** (stat: Tech), **Defend** (halves incoming damage, unless the enemy `ignores_defend`), **Flee** (50/50, no reward either way), plus **Items** whenever inventory is non-empty.
+Turn-based, resolved in `engine/combat.py`'s `run_combat`. Core actions every fight: **Attack** (stat: Attack), **Tech/Hack** (stat: Tech), **Defend** (halves incoming damage, unless the enemy `ignores_defend`), **Flee** (50/50, no reward either way), plus **Items** whenever inventory is non-empty, plus **Intimidate** whenever eligible (below).
 
 - **Damage formula**: `max(1, stat + random(1,6) - enemy_defense)`.
 - **Critical hit**: 20% chance (`CRIT_CHANCE`), ×1.5 damage (`CRIT_MULTIPLIER`).
 - **Dodge**: some enemies have `dodge_chance` — a miss deals no damage and doesn't trigger gear on-hit effects.
 - **Gear-aware flavor**: hit narration depends on what's equipped in the relevant slot (arm for Attack, eyes for Tech); higher-tier gear can also inflict a status effect on-hit (`inflict_effect`/`inflict_chance`/`inflict_duration` on the item).
 - **Tech Interference weather**: when `Character.current_weather.get("type") == "tech_interference"` (rolled once per sleep, see [Daily cycle](#daily-cycle)), every Tech/Hack-type action has a flat 10% chance to fizzle for 0 damage (`TECH_INTERFERENCE_FIZZLE_CHANCE`) but +2 flat damage on a connect (`TECH_INTERFERENCE_BONUS_DAMAGE`) — covers the player's Tech action and a droid enemy's attack (`enemy.is_droid`, the closest analog to an enemy "tech" action this engine has). `_print_combat_hud` shows a `[ /// WEATHER: TECH INTERFERENCE ]` warning tag above the HUD panels whenever it's active.
+
+### Intimidate
+
+Hotkey `N` (label "Intimidate", `I` was already taken by Items). Offered only when `enemy.min_level is not None and character.level - enemy.min_level >= INTIMIDATE_LEVEL_GAP` (3). Guaranteed and immediate — no roll, no enemy counter-attack, `return False` on use just like a successful Flee — but grants only `enemy.credits_reward`, no XP or reputation.
+
+`Enemy.min_level` defaults to `None`, meaning "not eligible." It's only populated where the fight comes from a random, freely-repeatable Undercity/ambush encounter — `engine/hub.py`'s `_enemy_with_min_level(encounter)` merges `encounter["min_level"]` (from `content/encounters.json`) into the enemy dict before it reaches `run_combat`, used by `_find_a_fight`, `_jack_in`'s Corp ambush, both of `_scavenge`'s ambush branches, and `_sleep_and_advance_day`'s waking ambush.
+
+**Deliberately excluded** (stay `min_level=None`, no Intimidate option ever): Pit gladiators (`visit_the_pit`), RoboDOJO sparring drones (`_spar`, `TRAINING_DRONES`), the prologue's scripted tutorial fight, and quest-triggered fights — most notably a "coerce" step's `fail_enemy` (`engine/quests.py`/`_check_coerce_step`), which is built via `engine.encounters.get_enemy_by_name` and deliberately *not* run through `_enemy_with_min_level`. All four of these are either always available at the player's own initiative (Pit, RoboDOJO) or would otherwise let a leveled-up player re-trigger the same quest step repeatedly (coerce) for a risk-free credit farm — Intimidate only makes sense against the encounter pools the player doesn't control the pacing of.
 
 ### Moves (class specials + RoboDOJO abilities)
 

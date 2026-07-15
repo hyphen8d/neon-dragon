@@ -351,6 +351,17 @@ JACK_IN_MAX_CHANCE = 0.85
 JACK_IN_CREDIT_RANGE = (15, 35)
 
 
+def _enemy_with_min_level(encounter: dict) -> dict:
+    """An encounter's enemy dict, tagged with the encounter's min_level so
+    engine.combat.run_combat can offer Intimidate once a character has
+    outleveled it. Only used for the random Undercity/ambush pools —
+    Pit gladiators, RoboDOJO drones, and quest-triggered fights are built
+    elsewhere and deliberately left without a min_level (see Enemy.min_level
+    in engine/combat.py), so Intimidate can't turn into a free, no-risk
+    repeat-farm against a fight the player can revisit at will."""
+    return {**encounter["enemy"], "min_level": encounter.get("min_level")}
+
+
 def _jack_in(character: Character) -> None:
     console.print(
         f"[{TEXT_DIM}]You locate a matte-black corporate drop box bolted to a wet brick wall, its "
@@ -386,13 +397,13 @@ def _jack_in(character: Character) -> None:
     )
     encounter = roll_combat_encounter(character, faction="Corp")
     console.print(f"[{TEXT_DIM}]{encounter['intro']}[/{TEXT_DIM}]")
-    run_combat(character, encounter["enemy"])
+    run_combat(character, _enemy_with_min_level(encounter))
 
 
 def _find_a_fight(character: Character) -> None:
     encounter = roll_combat_encounter(character)
     console.print(f"[{TEXT_DIM}]{encounter['intro']}[/{TEXT_DIM}]")
-    run_combat(character, encounter["enemy"])
+    run_combat(character, _enemy_with_min_level(encounter))
 
 
 CACHE_BASE_RISK_CHANCE = 0.10  # flat per-attempt risk, independent of Faction Heat
@@ -408,7 +419,7 @@ def _scavenge(character: Character) -> None:
         )
         encounter = roll_combat_encounter(character, faction=faction)
         console.print(f"[{TEXT_DIM}]{encounter['intro']}[/{TEXT_DIM}]")
-        run_combat(character, encounter["enemy"])
+        run_combat(character, _enemy_with_min_level(encounter))
         return
 
     # Even at zero Heat, sweeping for caches isn't risk-free — otherwise
@@ -420,7 +431,7 @@ def _scavenge(character: Character) -> None:
         )
         encounter = roll_combat_encounter(character)
         console.print(f"[{TEXT_DIM}]{encounter['intro']}[/{TEXT_DIM}]")
-        run_combat(character, encounter["enemy"])
+        run_combat(character, _enemy_with_min_level(encounter))
         return
 
     encounter = roll_scavenge_encounter(character)
@@ -1832,7 +1843,7 @@ def _sleep_and_advance_day(character: Character) -> None:
         )
         encounter = roll_combat_encounter(character, faction=faction)
         console.print(f"[{TEXT_DIM}]{encounter['intro']}[/{TEXT_DIM}]")
-        run_combat(character, encounter["enemy"])
+        run_combat(character, _enemy_with_min_level(encounter))
 
     faction_totals: dict[str, int] = {}
     for name, count in character.kills.items():

@@ -68,6 +68,11 @@ python3 -m venv .venv
   System) plus two more class-independent combat abilities
   purchasable at RoboDOJO (Adrenal Surge, Kill Switch), each stacking
   on top of a class special with its own cooldown
+- **Intimidate** — once you've badly outleveled a random Undercity
+  enemy, a guaranteed, no-risk option to scare it off for its credits
+  instead of grinding through another trash-mob fight; skipped reward
+  is XP and reputation, not the fight itself, and it never shows up
+  against Pit gladiators or other fights you can pace yourself
 
 ### A living city
 

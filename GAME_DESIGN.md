@@ -362,6 +362,26 @@ Charisma talks down the trauma bill from a lost fight: 3% off per
 point, capped at 45%. A high-Charisma build still goes down in a
 fight the same as anyone else, but pays less to get patched up.
 
+**Intimidate**: a fifth action, `I[N]timidate`, that only appears once
+`character.level - enemy.min_level >= INTIMIDATE_LEVEL_GAP` (3).
+Deliberately reuses `min_level` — the level a player needs to be to
+randomly run into a given enemy — as that enemy's difficulty tier,
+rather than adding a parallel "enemy level" concept that Enemy didn't
+otherwise need. Unlike Flee it's guaranteed and draws no counter-attack,
+but only hands over the enemy's `credits_reward`; XP and reputation are
+skipped entirely, so it's a way to skip tedious rematches against
+low-level trash mobs once a character has badly outgrown them, not a
+strictly-better Attack. `Enemy.min_level` defaults to `None` ("not
+eligible") and is only populated for enemies pulled from the random
+Undercity/ambush encounter pools (`engine/hub.py`'s
+`_enemy_with_min_level`) — Pit gladiators, RoboDOJO sparring drones,
+and quest-triggered fights (e.g. a "coerce" step's fail state) are all
+freely repeatable at the player's own initiative, so leaving them
+without a `min_level` was a deliberate exploit guard: without it, a
+leveled-up character could Intimidate a low-tier Pit gladiator or a
+pending coerce fight over and over for a risk-free credit farm, since
+neither is gated the way Undercity's random encounters are.
+
 **Tech Interference weather** (`Character.current_weather`, rolled once
 per sleep — see section 3): when today's weather carries the
 `tech_interference` type (a static storm, a solar flare, ash and ozone
