@@ -3,7 +3,7 @@
 A single-file reference wiki for whoever's running/editing this game, as
 opposed to `PLAYER_GUIDE.md` (in-character, player-facing, also readable
 in-game via `?`). This doc pulls every number and gate from the actual
-`content/*.json` files and `engine/*.py` constants as of **Alpha 2.6** —
+`content/*.json` files and `engine/*.py` constants as of **Alpha 3.0** —
 if a number here ever disagrees with the code, the code wins; update this
 file to match rather than the other way around.
 
@@ -39,7 +39,7 @@ laid out for lookup rather than narrative reading.
 
 | | |
 |---|---|
-| Version | Alpha 2.6 |
+| Version | Alpha 3.0 |
 | Classes | 2 (Street Samurai, Netrunner) — third charisma-focused class pulled, pending redesign |
 | Hub locations | 8 |
 | NPCs | 8 |
@@ -72,14 +72,14 @@ Defined in `engine/character.py`'s `CLASSES` dict.
 | Netrunner | 22 | 3 | 3 | 9 | 4 | Tech-focused. Special: Override System |
 | ~~Grifter~~ | 24 | 4 | 4 | 4 | 9 | **Pulled.** Was charisma-focused; no combat special existed for it. A redesigned third class is pending — see `GAME_DESIGN.md` §4 |
 
-Charisma remains a fully live stat regardless of class — see [Economy](#economy). It is **not** grown by leveling (`STAT_GROWTH` in `engine/leveling.py` omits it); the "Buy a Round" stat-gain outcomes only touch Attack/Defense/Tech (`ROUND_ENCOUNTERS` in `engine/hub.py`), so **cyberware is the only way to raise Charisma after character creation.**
+Charisma remains a fully live stat regardless of class — see [Economy](#economy). It is excluded from the automatic `STAT_GROWTH` per level (`engine/leveling.py`), but it's a `LEVEL_UP_BONUS_STATS` choice and one of the "Buy a Round" stat outcomes (`ROUND_ENCOUNTERS` in `engine/hub.py`) — see [Progression](#progression). Skin-slot cyberware (Synth-Derm/Mirrorskin) is no longer its only growth path.
 
 ---
 
 ## Progression
 
 - XP curve (`engine/leveling.py`): `xp_for_level(level) = 50 * level * (level - 1) / 2`. Level 2 = 50 XP, level 3 = 150, level 4 = 300 (each level costs 50 more than the last step).
-- Per level: `STAT_GROWTH = {max_hp: +3, attack: +1, defense: +1, tech: +1}`, plus a full heal. Charisma does **not** grow on level-up.
+- Per level: `STAT_GROWTH = {max_hp: +3, attack: +1, defense: +1, tech: +1}`, plus a full heal. Charisma is excluded from this automatic growth (see next bullet for why).
 - **Player choice on level-up**: on top of the flat `STAT_GROWTH`, the player picks one of Attack/Defense/Tech/Charisma via `hotkey_prompt` to get an extra +1 (`LEVEL_UP_BONUS_STATS` in `engine/leveling.py`). This is the only build-crafting decision in the leveling system — everything else is deterministic. Prompted once per level gained, so a multi-level XP jump asks once per level in the loop. Charisma is excluded from `STAT_GROWTH` itself (no automatic per-level gain) but is included here and in one Buy a Round outcome — its only growth paths before this were the skin-slot cyberware items (Synth-Derm/Mirrorskin), only one of which can be equipped at a time.
 - A single large XP reward can trigger multiple level-ups at once (`check_level_up` loops).
 - XP sources: combat kills (`enemy_data["xp_reward"]`) and contract completion (`quest["reward"]["xp"]`).
@@ -107,7 +107,7 @@ The main hub menu's Character Info action row shows a live `len(character.active
 
 ### Chrome Noodle Bar
 - **Free rest**: tops HP to `REST_THRESHOLD` (50%) of max, once per day (`Character.rested_today`). No-op if already at/above the floor.
-- **Buy a Round** (`BUY_ROUND_COST` = 25cr, once/day via `bought_round_today`; free if `corp_kills >= CORP_HERO_KILL_THRESHOLD` (15) — Static Rin comps "local hero" mercs): rolls a weighted micro-encounter table, `ROUND_ENCOUNTERS`/`_resolve_round_encounter` in `engine/hub.py` — 8 flavored outcomes, weighted to land close to the old flat split (~12% stat / ~58% rep / ~28% drunk): 3 stat entries (+1 permanent Attack/Defense/Tech each, weight 4 each — the Attack one also has a 10% chance of an extra 5 damage on top), 1 "Scav pickpocket" rep entry (weight 4, +2 rep), 2 generic gossip rep entries (weight 28 each, +2 rep), 2 drunk entries (weight 14 each, **Drunk** status, 3 rounds).
+- **Buy a Round** (`BUY_ROUND_COST` = 25cr, once/day via `bought_round_today`; free if `corp_kills >= CORP_HERO_KILL_THRESHOLD` (15) — Static Rin comps "local hero" mercs): rolls a weighted micro-encounter table, `ROUND_ENCOUNTERS`/`_resolve_round_encounter` in `engine/hub.py` — 9 flavored outcomes, weighted to land close to the old flat split (~12% stat / ~58% rep / ~28% drunk): 4 stat entries (+1 permanent Attack/Defense/Tech/**Charisma** each, weight 4 each — the Attack one also has a 10% chance of an extra 5 damage on top), 1 "Scav pickpocket" rep entry (weight 4, +2 rep), 2 generic gossip rep entries (weight 28 each, +2 rep), 2 drunk entries (weight 14 each, **Drunk** status, 3 rounds).
 - **Contract Booth** (`[C]`, `_visit_endr3am`): Endr3am's charisma-gated board (see [Contracts](#contracts)), reached via the back-booth sub-screen, not a separate hub location. Uses the same Interaction Deck treatment as every other primary-NPC screen (right panel: Charisma, Contracts Active/Completed for this board) — labeled "Check the shady booth in the back" and printed as plain unbordered text before this pass; both fixed for consistency with the rest of the hub.
 
 ### Undercity
@@ -471,7 +471,7 @@ Called after anything that could plausibly unlock one: `combat._handle_victory` 
 
 **Autosave triggers**: on returning to the main menu after Leave (normal path), and via a `try/finally` around the hub loop in `main.py` — so a crash or Ctrl+C mid-session also saves whatever state existed at that point, not just clean exits.
 
-**Known limitation**: `engine/ui.py`'s `read_choice` only ever reads a single keystroke, so numbered lists (Load Merc, Delete Merc, etc.) with 10+ entries can't select past position 9 through the normal UI. Tracked as a follow-up; not yet fixed as of Alpha 2.6.
+**Resolved**: `engine/ui.py`'s `read_choice` used to only ever read a single keystroke, so numbered lists (Load Merc, Delete Merc, etc.) with 10+ entries couldn't select past position 9. Fixed — `read_choice` now falls back to a full Enter-confirmed `read_line()` whenever any choice in the set is more than one character long (i.e. a two-digit index), while single-key hotkey menus (combat, hub nav, Y/N) are untouched. See `tools/playtest/driver.py`'s module docstring for the QA-tooling side of this fix.
 
 ---
 

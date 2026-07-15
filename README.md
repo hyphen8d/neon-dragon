@@ -1,12 +1,12 @@
 # Neon Dragon
 
-**Alpha 2.6**
+**Alpha 3.0**
 
 A single-player, terminal-based RPG set in a cyberpunk vaporwave city —
 Neo Meridian. No server, no accounts, no web frontend. Just a Python
 CLI you run in a terminal, with a local JSON save file per character.
 
-![Neon Dragon title screen](docs/images/title-screen.png)
+![Neon Dragon title screen](docs/images/title-screen.svg)
 
 ## Requirements
 
@@ -165,7 +165,7 @@ are the deliberate exceptions — see `ADMIN_GUIDE.md`'s content map.)
 
 ## Status
 
-Alpha 2.6. Every hub location has real mechanics; RoboDOJO trains
+Alpha 3.0. Every hub location has real mechanics; RoboDOJO trains
 stats through actual sparring fights and sells permanent combat
 abilities; the current "end game" is working through Fixer Board and
 Chrome Noodle Bar contracts (20 across both boards), with a

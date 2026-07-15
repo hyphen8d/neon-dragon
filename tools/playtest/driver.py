@@ -71,6 +71,16 @@ ANCHOR_NEW_MERC = r"ew Merc"  # "[N]ew Merc" -- the literal bracket breaks up "N
 ANCHOR_LEAVE_CONFIRM = r"Head back to the safehouse"
 ANCHOR_NAME_PROMPT = r"What do they call you on the street\?"
 ANCHOR_CHOOSE_PATH = r"Choose your path"
+# engine/prologue.py's four press_any_key beats plus its forced tutorial
+# fight, run once for every new merc between class selection and the first
+# hub screen. ANCHOR_PROLOGUE_STABILIZED only prints on a loss; the
+# PROLOGUE COMPLETE gate always prints regardless of outcome.
+ANCHOR_PROLOGUE_WAKE = r"REGAINING CONSCIOUSNESS"
+ANCHOR_PROLOGUE_DEBT = r"DEBT LOGGED"
+ANCHOR_PROLOGUE_CHROME = r"CHROME LINKED"
+ANCHOR_PROLOGUE_THREAT = r"THREAT DETECTED"
+ANCHOR_PROLOGUE_STABILIZED = r"STABILIZED"
+ANCHOR_PROLOGUE_COMPLETE = r"PROLOGUE COMPLETE"
 # Printed in the enemy panel of the combat HUD every round -- the earliest
 # reliable sign combat has actually started, as opposed to a non-combat
 # resolution (a clean Slice Drop Box crack, a Hunt Cache dead sector, a
@@ -232,6 +242,37 @@ def run_combat_loop(
             return "fled"
 
 
+def _run_prologue(s: Session) -> None:
+    """Walks the new-merc prologue (engine/prologue.py): four press_any_key
+    beats, then a forced tutorial fight against a fixed, 0 credit/0 XP
+    "Malfunctioning Med-Drone" -- weak enough, and reward-less enough, that
+    a flat "always Attack" script is fine regardless of which persona is
+    being created. Only called from create_character(); personas don't
+    need to know this scene exists."""
+    s.expect_any([ANCHOR_PROLOGUE_WAKE])
+    s.ack()
+    s.expect_any([ANCHOR_PROLOGUE_DEBT])
+    s.ack()
+    s.expect_any([ANCHOR_PROLOGUE_CHROME])
+    s.ack()
+    s.expect_any([ANCHOR_PROLOGUE_THREAT])
+    s.ack()
+    s.expect_any([ANCHOR_COMBAT_STARTED])
+    result = run_combat_loop(
+        s,
+        ["A"],
+        "A",
+        final_anchor=rf"({ANCHOR_PROLOGUE_STABILIZED}|{ANCHOR_PROLOGUE_COMPLETE})",
+        ack_final=False,
+    )
+    s.ack()  # answers whichever gate run_combat_loop stopped at
+    if result == "lost":
+        # STABILIZED fires first on a loss -- PROLOGUE COMPLETE always
+        # follows it, and still needs its own ack.
+        s.expect_any([ANCHOR_PROLOGUE_COMPLETE])
+        s.ack()
+
+
 def create_character(s: Session, name: str, class_key: str) -> None:
     s.expect_any([ANCHOR_NEW_MERC])
     s.send("N")
@@ -239,6 +280,7 @@ def create_character(s: Session, name: str, class_key: str) -> None:
     s.send(name)
     s.expect_any([ANCHOR_CHOOSE_PATH])
     s.send(class_key)
+    _run_prologue(s)
     s.expect_any([ANCHOR_WHERE_TO])
 
 
