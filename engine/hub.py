@@ -17,7 +17,7 @@ from engine.bestiary import TRAINING_DRONES, enemy_faction
 from engine.character import CYBERWARE_SLOTS, Character, hp_style
 from engine.city import random_headline, random_weather
 from engine.combat import ABILITIES, run_combat
-from engine.encounters import roll_combat_encounter, roll_scavenge_encounter
+from engine.encounters import get_enemy_by_name, roll_combat_encounter, roll_scavenge_encounter
 from engine.heat import AMBUSH_CHANCE, HEAT_FACTIONS, hot_factions, reset_daily_kills
 from engine.help import show_help
 from engine.inventory import buy_item, describe_effect, get_usable_item, load_usable_items
@@ -33,6 +33,7 @@ from engine.quests import (
     get_quest,
     locked_quests,
     notify_step,
+    pending_coerce_step,
     pending_deliver_step,
     pending_pay_step,
     print_quest_result,
@@ -457,6 +458,7 @@ def visit_undercity(character: Character) -> None:
     print_arrival(character, "Undercity")
     for warning in _heat_warnings(character):
         console.print(f"[italic {WARNING}]{warning}[/italic {WARNING}]")
+    _check_coerce_step(character, "Undercity")
 
     print_menu_divider("The Streets")
     choice = hotkey_prompt(
@@ -1066,7 +1068,13 @@ def _browse_contract_board(character: Character, board: str) -> None:
         for quest_id in active_ids:
             quest = get_quest(quest_id)
             step = current_step(character, quest_id)
-            console.print(f"  [bold]{quest['title']}[/bold] — {step['description']}")
+            line = f"  [bold]{quest['title']}[/bold] — {step['description']}"
+            if step["type"] == "coerce":
+                line += (
+                    f" [{WARNING}](Requires Charisma {step['min_charisma']}, have {character.charisma} — "
+                    f"failing means a fight with {step['fail_enemy']})[/{WARNING}]"
+                )
+            console.print(line)
 
     locked = locked_quests(character, board)
     if locked:
@@ -1094,8 +1102,16 @@ def _browse_contract_board(character: Character, board: str) -> None:
     table.add_column("#", justify="right", style=LABEL)
     table.add_column("Title", style=TEXT)
     table.add_column("Hook", style=TEXT_DIM)
+    table.add_column("Risk", style=WARNING)
     for i, quest in enumerate(open_quests, start=1):
-        table.add_row(str(i), quest["title"], quest["hook"])
+        coerce_step = next((s for s in quest["steps"] if s["type"] == "coerce"), None)
+        risk = (
+            f"Coerce check: Charisma {coerce_step['min_charisma']}+, "
+            f"or fight {coerce_step['fail_enemy']}"
+            if coerce_step
+            else ""
+        )
+        table.add_row(str(i), quest["title"], quest["hook"], risk)
     console.print(table)
 
     choice = read_choice(
@@ -1183,6 +1199,64 @@ def _check_deliver_and_pay(character: Character, location: str) -> None:
                         character,
                         {"quest": quest, "completed": False, "next_step": current_step(character, quest_id)},
                     )
+
+
+def _check_coerce_step(character: Character, location: str) -> None:
+    """Check for an active "coerce" step targeting this location and, if
+    found, offer the Charisma-gated attempt — modeled on
+    _check_deliver_and_pay: a real, consequential choice needs a
+    confirmation, not a silent auto-advance from notify_step. Meeting the
+    Charisma requirement advances the quest outright; falling short drops
+    the target's guard and triggers a fight against the step's fail_enemy
+    instead — winning that fight gets the job done the hard way and still
+    advances the quest, losing just costs the usual trauma bill and leaves
+    the step pending for another attempt."""
+    coerce = pending_coerce_step(character, location)
+    if coerce is None:
+        return
+    quest_id, step = coerce
+    quest = get_quest(quest_id)
+    min_charisma = step["min_charisma"]
+
+    confirm = hotkey_prompt(
+        console,
+        [("Y", "Yes"), ("N", "No")],
+        prompt=f"Attempt to coerce the target? (Requires Charisma {min_charisma}) — '{quest['title']}'",
+    )
+    if confirm != "Y":
+        return
+
+    if character.charisma >= min_charisma:
+        console.print(f"\n[{ACCENT}]Your words land clean.[/{ACCENT}] They hand it over without another word.")
+        completed_quest = advance_quest(character, quest_id)
+        if completed_quest is not None:
+            print_quest_result(console, character, {"quest": completed_quest, "completed": True})
+        else:
+            print_quest_result(
+                console,
+                character,
+                {"quest": quest, "completed": False, "next_step": current_step(character, quest_id)},
+            )
+        return
+
+    console.print(
+        f"\n[{DANGER}]Your charm falls flat.[/{DANGER}] The words come out wrong, and things turn violent fast."
+    )
+    enemy = get_enemy_by_name(step["fail_enemy"])
+    won = run_combat(character, dict(enemy))
+    if won:
+        console.print(f"[{TEXT_DIM}]Not the smooth way, but the job's done — you walk away with it regardless.[/{TEXT_DIM}]")
+        completed_quest = advance_quest(character, quest_id)
+        if completed_quest is not None:
+            print_quest_result(console, character, {"quest": completed_quest, "completed": True})
+        else:
+            print_quest_result(
+                console,
+                character,
+                {"quest": quest, "completed": False, "next_step": current_step(character, quest_id)},
+            )
+    else:
+        console.print(f"[{TEXT_DIM}]No dice this time — the contract's still open if you want another shot.[/{TEXT_DIM}]")
 
 
 def visit_fixer_board(character: Character) -> None:

@@ -47,7 +47,7 @@ laid out for lookup rather than narrative reading.
 | Pit gladiators | 5 (2 Tier 1, 1 Tier 2, 1 Tier 3, 1 Tier 4) |
 | RoboDOJO sparring drones | 3 (one per trainable stat) |
 | RoboDOJO purchasable abilities | 2 (Adrenal Surge, Kill Switch) |
-| Contracts | 16 (9 Fixer Board, 7 Chrome Noodle Bar) |
+| Contracts | 20 (11 Fixer Board, 9 Chrome Noodle Bar) |
 | Cyberware (normal) | 8, across 4 slots |
 | Cyberware (Black Market) | 4, one per slot |
 | Cyberware (Street-Modded) | 1 (arm slot, credits, kill-gated) |
@@ -174,7 +174,7 @@ Supported `condition` keys (add more by extending `_condition_value` — no new 
 | `total_kills` | Sum of all `character.kills` values | Agent Parker, min 10 |
 | `quantum_cores` | `character.quantum_cores` | Hyphen8d, min 1 |
 | `completed_quests` | `len(character.completed_quests)` | The Fixer, min 3 |
-| `charisma` | `character.charisma` | Endr3am, min 9 |
+| `charisma` | `character.charisma` | Endr3am, min 9; Static Rin, The Fixer, Hyphen8d, min 8 |
 | `banked_credits` | `character.banked_credits` | Ms. Kessler, min 500 |
 | `in_debt` | `1` if `character.credits < 0` else `0` | Doc Wire, min 1 |
 | `learned_abilities` | `len(character.learned_abilities)` | Daryl, min 2 |
@@ -290,7 +290,7 @@ Faction: all `Gladiator` — never builds Faction Heat.
 
 ## Contracts
 
-`content/quests.json`. Two boards, gated independently by Reputation (Fixer Board), Charisma (Chrome Noodle Bar/Endr3am), and Level (both boards). Each contract is a "talk"/"kill" step chain; `notify_step` advances any active contract whose current step matches, regardless of where the step happens, and multiple active contracts can share a kill/talk target and all advance off one action.
+`content/quests.json`. Two boards, gated independently by Reputation (Fixer Board), Charisma (Chrome Noodle Bar/Endr3am), and Level (both boards). Most contracts are a "talk"/"kill" step chain; `notify_step` advances any active contract whose current step matches, regardless of where the step happens, and multiple active contracts can share a kill/talk target and all advance off one action. Five step types total — see [Step types](#step-types) below.
 
 ### Fixer Board (9, gated by Reputation)
 
@@ -306,7 +306,7 @@ Faction: all `Gladiator` — never builds Faction Heat.
 | `somethings_loose` | Something's Loose | kill Chrome Beast → talk Fixer Board | 150/60/30 | 30 | 7 |
 | `blacksite_leak` | Blacksite Leak | kill Corp Blacksite Enforcer → talk Fixer Board | 200/80/40 | 40 | 9 |
 
-### Chrome Noodle Bar (7, gated by Charisma)
+### Chrome Noodle Bar (9, gated by Charisma)
 
 | ID | Title | Steps | Reward (cr/xp/rep) | Min Cha | Min Lvl |
 |---|---|---|---|---|---|
@@ -317,8 +317,21 @@ Faction: all `Gladiator` — never builds Faction Heat.
 | `new_blood` | New Blood | talk NetVault → talk Chrome Noodle Bar | 30/15/6 | 0 | 3 |
 | `friends_in_high_places` | Friends in High Places | kill Corp Patrol Trooper → talk Chrome Noodle Bar | 65/30/12 | 9 | 1 |
 | `steady_hands` | Steady Hands | kill Rogue Drone → talk Chrome Noodle Bar | 55/25/10 | 6 | 5 |
+| `silver_tongue` | Silver Tongue | coerce Undercity (Cha 7, else fight Scav Prowler) → talk Chrome Noodle Bar | 45/20/9 | 5 | 1 |
+| `a_gift_for_endr3am` | A Gift for Endr3am | fetch razor_claws → deliver Chrome Noodle Bar | 100/20/20 | 5 | 1 |
 
 Note: some kill targets are shared across both boards (e.g. Street Ganger, Corp Patrol Trooper, Rogue Drone) — this is intentional; a player with both contracts active advances both from a single kill.
+
+### Step types
+
+| Type | Fields | Advances via | Notes |
+|---|---|---|---|
+| `talk` | `target` (location) | `notify_step` (auto, silent) | |
+| `kill` | `target` (enemy name) | `notify_step` (auto, silent) | |
+| `fetch` | `target` (item id) | `check_fetch_steps` (auto, on purchase or quest accept) | Satisfied by the item currently sitting in any cyberware slot — an ownership check, not a one-off event. |
+| `deliver` | `target` (location), `item` (item id) | Y/N confirm, `_check_deliver_and_pay` | Item is removed with no trade-in refund. |
+| `pay` | `target` (location), `amount` (credits) | Y/N confirm, `_check_deliver_and_pay` | All-or-nothing spend; blocked with a shortfall message if unaffordable. |
+| `coerce` | `target` (location), `min_charisma`, `fail_enemy` (enemy name) | Y/N confirm, `_check_coerce_step` (`engine/hub.py`) | Meeting `min_charisma` advances the quest outright; falling short and attempting anyway triggers `run_combat` against `fail_enemy` — winning still advances the quest, losing leaves the step pending. Enemy data is looked up by name via `engine.encounters.get_enemy_by_name`, reusing existing Undercity encounter definitions rather than duplicating stats in the quest file. |
 
 ---
 

@@ -79,7 +79,9 @@
         {"condition": "quantum_cores", "min": 1, "line": "You're carrying something rare, aren't you. I can always tell. Panel's in the back whenever you're ready to talk business."},
         {"condition": "quantum_cores", "min": 1, "line": "That glow behind your eyes — that's a Quantum Core talking. Don't spend it stupid."},
         {"condition": "equipped_razor_claws", "min": 1, "line": "Those claws still holding an edge? I sold you good chrome. Just don't gesture at me with them, force of habit or not."},
-        {"condition": "equipped_razor_claws", "min": 1, "line": "Illegal in six districts and you're still wearing them into my shop. I respect the confidence. Keep them sheathed near the merchandise."}
+        {"condition": "equipped_razor_claws", "min": 1, "line": "Illegal in six districts and you're still wearing them into my shop. I respect the confidence. Keep them sheathed near the merchandise."},
+        {"condition": "charisma", "min": 8, "line": "Alright, you've earned the real conversation. That 'truck' everything falls off of? It's a decommissioned corp logistics drone I rerouted myself. Don't tell anyone, and don't ask how."},
+        {"condition": "charisma", "min": 8, "line": "You're one of maybe three people I don't pat down before they leave. That's not a small thing, coming from me."}
       ]
     },
     {
@@ -102,7 +104,9 @@
         {"condition": "corp_kills", "min": 15, "line": "You want the real gossip? NetVault's been quietly moving security drones out of the district — word is they're scared of you specifically."},
         {"condition": "corp_kills", "min": 15, "line": "You're not just a regular anymore. Half the Undercity calls you the one who's actually hurting the corps, not just talking about it."},
         {"condition": "equipped_target_lock_eyes", "min": 1, "line": "Can you not lock onto me while I'm pouring? Those eyes of yours are giving me a headache from across the bar."},
-        {"condition": "equipped_target_lock_eyes", "min": 1, "line": "Every time you look my way I feel like I'm being sighted down a scope. Military surplus does something to a stare that regular eyes don't."}
+        {"condition": "equipped_target_lock_eyes", "min": 1, "line": "Every time you look my way I feel like I'm being sighted down a scope. Military surplus does something to a stare that regular eyes don't."},
+        {"condition": "charisma", "min": 8, "line": "Alright, come closer. Off the books — the fixer crew that went dark? They didn't die. They got poached by a corp that pays better than dying does. Don't repeat that."},
+        {"condition": "charisma", "min": 8, "line": "You've got a way of making a room want to talk. I don't usually pour for free, but sit — this one's on the house, and so's whatever you want to ask me tonight."}
       ]
     },
     {
@@ -120,7 +124,9 @@
       ],
       "conditional_lines": [
         {"condition": "completed_quests", "min": 3, "line": "You've cleared enough jobs off my board that I don't double-check your work anymore. That's rare."},
-        {"condition": "completed_quests", "min": 3, "line": "Reliable. That's worth more than talent in this city."}
+        {"condition": "completed_quests", "min": 3, "line": "Reliable. That's worth more than talent in this city."},
+        {"condition": "charisma", "min": 8, "line": "Most mercs read this board like a menu. You read it like you already know who's posting and why. Keep doing that — I'll start routing you the jobs I don't post publicly."},
+        {"condition": "charisma", "min": 8, "line": "You want to know something? Half these contracts have a name attached I never print. Yours is starting to be one people ask about by name, not job number."}
       ]
     },
     {

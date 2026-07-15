@@ -29,9 +29,12 @@ third, charisma-focused class is pulled pending a redesign):
 - **Tech** — damage on the Tech/Hack combat action.
 - **Charisma** — gates the two higher-tier contracts Endr3am offers at
   the Chrome Noodle Bar (see below), knocks the price down at
-  Hyphen8d's Hut (2% off per point, capped at 40%), and talks down
+  Hyphen8d's Hut (2% off per point, capped at 40%), talks down
   your trauma bill if you go down in a fight (3% off per point,
-  capped at 45% — see Combat). Still no effect on dialogue.
+  capped at 45% — see Combat), unlocks warmer/secret-revealing
+  dialogue from several NPCs at 8+ (see Charisma and dialogue, below),
+  and can talk your way past certain contract targets instead of
+  fighting them outright (the **coerce** step type).
 - **Credits** — cash on hand. Spent at Hyphen8d's Hut, the Clinic, and
   RoboDOJO; lost (partially) if you go down in a fight.
 - **Banked Credits** — cash stored at NetVault. Never touched by
@@ -336,20 +339,23 @@ Bleeding and Target-Lock Eyes causes Stunned.
 
 ## Contracts
 
-19 contracts total across two boards — the Fixer Board and Endr3am's
+20 contracts total across two boards — the Fixer Board and Endr3am's
 board at the Chrome Noodle Bar. Contracts chain steps — "talk" (visit a
 location), "kill" (defeat a named enemy), "fetch" (buy a specific
 cyberware item from Hyphen8d's Hut), "deliver" (hand a fetched item over
 to whoever asked for it — no trade-in refund, it's a gift, not a sale),
-and "pay" (pay a flat credit amount at a location) — accepted, tracked,
-and turned in at their own board even if the steps happen elsewhere.
-Completing one pays credits, XP, and reputation.
+"pay" (pay a flat credit amount at a location), and "coerce" (talk your
+way past a target instead of fighting them — see Charisma and dialogue,
+below) — accepted, tracked, and turned in at their own board even if the
+steps happen elsewhere. Completing one pays credits, XP, and reputation.
 
 Talk and kill steps advance the moment you visit the right place or land
-the killing blow. Deliver and pay don't — both take something real from
-you, so both ask you to confirm (Yes/No) before it happens, and both tell
-you exactly what you're still short on if you can't complete them yet
-(how much more you need to pay, or that you haven't bought the item yet).
+the killing blow. Deliver, pay, and coerce don't — all three take
+something real from you (an item, credits, or a shot at avoiding a
+fight), so all three ask you to confirm (Yes/No) before it happens, and
+tell you exactly what you're still short on if you can't complete them
+yet (how much more you need to pay, that you haven't bought the item
+yet, or the Charisma a coerce attempt needs).
 
 Three gates control what's on offer: **Reputation** (Fixer Board),
 **Charisma** (Endr3am's board), and **Level** (both boards, tied to
@@ -426,9 +432,22 @@ unlock "Black Belt (Attack)" / "Black Belt (Defense)", each of which
 grants a small permanent bonus in combat on top of the stat itself —
 it doesn't go away even if the stat changes later.
 
+## Charisma and dialogue
+
+High Charisma doesn't just gate contracts and discount gear — several
+NPCs (Static Rin, The Fixer, Hyphen8d) open up entirely different lines
+at Charisma 8+, more respectful in tone and occasionally letting slip
+something they wouldn't tell just anyone.
+
+Some Chrome Noodle Bar contracts include a **coerce** step: talk your
+way past a target instead of fighting them outright. You'll be asked to
+attempt it, with the Charisma requirement shown up front. Meet it, and
+the job's done clean. Fall short and say yes anyway, and the attempt
+goes sideways into a fight — win that fight and the job still gets
+done, just the hard way.
+
 ## What's not built yet
 
 A few things mentioned in the game's design notes but not implemented:
 
-- Charisma still has no effect on dialogue.
 - A third, charisma-focused class is pulled pending a redesign.

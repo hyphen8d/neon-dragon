@@ -155,6 +155,21 @@ def pending_pay_step(character: Character, location: str) -> tuple[str, dict[str
     return None
 
 
+def pending_coerce_step(character: Character, location: str) -> tuple[str, dict[str, Any]] | None:
+    """The (quest_id, step) for an active quest whose current step is a
+    "coerce" targeting this location, or None. Checked separately from
+    notify_step for the same reason as pending_deliver_step/pending_pay_step
+    — a coerce attempt is a real, consequential choice (a Charisma check
+    that can fail into a fight), not something that should silently
+    auto-resolve just because the player walked in. See engine/hub.py's
+    _check_coerce_step."""
+    for quest_id in character.active_quests:
+        step = current_step(character, quest_id)
+        if step["type"] == "coerce" and step["target"] == location:
+            return quest_id, step
+    return None
+
+
 def print_quest_result(console: Console, character: Character, result: dict[str, Any]) -> None:
     quest = result["quest"]
     if result["completed"]:

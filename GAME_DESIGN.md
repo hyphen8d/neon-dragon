@@ -97,7 +97,12 @@ Data-driven (see CLAUDE.md) — not hardcoded. Each NPC has:
   the higher one's met), so the richer pool of reactions grows instead
   of replacing the earlier one. At 15 Street Gang kills specifically,
   Hyphen8d's line also functions as a hint that his hidden Street-Modded
-  stash (section 6) just unlocked.
+  stash (section 6) just unlocked. `charisma` (a straight read of
+  `character.charisma`) is the one condition several NPCs share at the
+  same threshold — Static Rin, The Fixer, and Hyphen8d all open a
+  noticeably warmer, secret-revealing pool at Charisma 8 — making
+  Charisma feel like a real conversational stat across the roster, not
+  a one-off Endr3am quirk.
 - Optionally: a contract hook, a shop inventory, or a relationship-track flag
 
 Starter NPC roster (flavor only — expand freely):
@@ -122,8 +127,8 @@ contract boards: the **Fixer Board** (gated by Reputation, run by The
 Fixer) and **Endr3am's board** at the Chrome Noodle Bar (gated by
 Charisma). A third gate, **Level**, applies to contracts on either board
 and is tied to the same tiers that unlock Undercity's tougher enemies
-(`min_reputation`, `min_charisma`, `min_level` in the schema). 19
-contracts total as of this pass (11 Fixer Board, 8 Chrome Noodle Bar) —
+(`min_reputation`, `min_charisma`, `min_level` in the schema). 20
+contracts total as of this pass (11 Fixer Board, 9 Chrome Noodle Bar) —
 weighted toward the higher reputation/level end, since that's where a
 repeat player ran out of new contracts first.
 Beyond gating
@@ -133,7 +138,7 @@ lean into, not tied to a specific class right now (see section 4). Some
 contracts unlock new hub locations or NPCs — not used yet, but the hook
 exists.
 
-Four step types now, not just talk/kill: **fetch** (`target` is an item
+Five step types now, not just talk/kill: **fetch** (`target` is an item
 id — checks the item is currently equipped in any cyberware slot, satisfied
 either by buying it or by already owning it when the contract's accepted)
 and **deliver** (`target` is a location, `item` is what's being handed
@@ -150,6 +155,25 @@ accident, so they either auto-advance only on a state the player already
 chose (fetch) or require the Y/N confirm (deliver, pay) — see
 `check_fetch_steps`/`pending_deliver_step`/`pending_pay_step` and
 `engine/hub.py`'s `_check_deliver_and_pay`.
+
+**coerce** (`target` a location, `min_charisma` the check, `fail_enemy`
+the enemy name to fight on failure) is the Charisma-driven step type
+that finally gives the stat real narrative weight beyond gating and
+discounts: visiting the target location with the step active prompts a
+Y/N attempt, showing the Charisma requirement up front so the player
+isn't blindsided (also surfaced early — the contract board lists it as
+a Risk column before the contract's even accepted). Meeting the
+requirement advances the quest with a clean-talk outcome; falling short
+and attempting anyway drops straight into `run_combat` against
+`fail_enemy` — winning that fight still advances the quest (the job
+gets done the hard way instead of the smooth way), losing just costs
+the normal trauma bill and leaves the step pending for another attempt
+later. `engine/quests.py`'s `pending_coerce_step` and
+`engine/hub.py`'s `_check_coerce_step` follow the same
+confirm-before-consequential-action shape as deliver/pay. "Silver
+Tongue" (Chrome Noodle Bar) is the first contract to use it: coerce a
+Scav Prowler in the Undercity out of a stolen datapad, then report back
+to Endr3am.
 
 **Dynamic economy** (`engine/shop.py`, rolled by `roll_daily_market` in
 `_sleep_and_advance_day`): each day, Hyphen8d's Hut restocks to a

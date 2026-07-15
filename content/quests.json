@@ -270,6 +270,21 @@
       "min_level": 1
     },
     {
+      "id": "silver_tongue",
+      "title": "Silver Tongue",
+      "board": "Chrome Noodle Bar",
+      "hook": "\"There's a Scav out in the Undercity sitting on a datapad that isn't his to sell. Don't buy it back — talk him out of it. You've got the mouth for it. If you don't, well... he won't hand it over quietly.\"",
+      "steps": [
+        {"type": "coerce", "target": "Undercity", "min_charisma": 7, "fail_enemy": "Scav Prowler", "description": "Talk the Scav Prowler in the Undercity out of the stolen datapad (Charisma 7+, or fight for it)."},
+        {"type": "talk", "target": "Chrome Noodle Bar", "description": "Bring the datapad back to Endr3am."}
+      ],
+      "reward": {"credits": 45, "xp": 20, "reputation": 9},
+      "complete_text": "\"Didn't even have to raise your voice, did you? That's the job, choom.\"",
+      "min_reputation": 0,
+      "min_charisma": 5,
+      "min_level": 1
+    },
+    {
       "id": "a_gift_for_endr3am",
       "title": "A Gift for Endr3am",
       "board": "Chrome Noodle Bar",

@@ -94,12 +94,16 @@ python3 -m venv .venv
   more) usable mid-combat without breaking your turn economy, never
   consumed on a no-op use (full-HP heal, faction-mismatched stun)
 - **Charisma has real mechanical weight** — shop discounts, cheaper
-  trauma bills after a lost fight, and gates on higher-tier contracts
+  trauma bills after a lost fight, gates on higher-tier contracts, and
+  it shapes actual dialogue and outcomes: several NPCs unlock warmer,
+  secret-revealing lines at high Charisma, and some contracts let you
+  talk your way past a target instead of fighting them (the **coerce**
+  step — fail the check and you're in a fight instead)
 - **A rare, eerie secondary currency** (Quantum Cores — "grown, not
   manufactured") and two black-market economies built around it and
   around Street Gang kills, for players who go looking
 - **Content depth** — 11 Undercity encounters (including a kill-gated
-  nemesis fight), 5 Pit gladiators, and 16 contracts across two
+  nemesis fight), 5 Pit gladiators, and 20 contracts across two
   boards, enough variety that repeat play doesn't loop the same
   handful of fights
 - **Achievements & Milestones** — data-driven unlocks (`content/achievements.json`)
@@ -148,7 +152,7 @@ are the deliberate exceptions — see `ADMIN_GUIDE.md`'s content map.)
 Alpha 2.6. Every hub location has real mechanics; RoboDOJO trains
 stats through actual sparring fights and sells permanent combat
 abilities; the current "end game" is working through Fixer Board and
-Chrome Noodle Bar contracts (16 across both boards), with a
+Chrome Noodle Bar contracts (20 across both boards), with a
 day-cycle economy layered on top of it. See the "What's not built
 yet" section of `PLAYER_GUIDE.md` for known gaps.
 

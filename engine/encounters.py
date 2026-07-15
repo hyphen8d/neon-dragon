@@ -18,6 +18,17 @@ def load_encounters() -> list[dict[str, Any]]:
     return data["encounters"]
 
 
+def get_enemy_by_name(name: str) -> dict[str, Any]:
+    """Look up a combat encounter's enemy dict by its display name — used
+    by "coerce" quest steps (engine/quests.py) to build the fail-state
+    fight from a plain enemy name in content/quests.json, the same enemy
+    data Undercity random encounters already use."""
+    for encounter in load_encounters():
+        if encounter["type"] == "combat" and encounter["enemy"]["name"] == name:
+            return encounter["enemy"]
+    raise KeyError(name)
+
+
 def _eligible(character: "Character") -> list[dict[str, Any]]:
     """Encounters the player's level qualifies for. A `requires_kill` entry
     (e.g. the Draxx grudge match) only enters the pool once that enemy's
