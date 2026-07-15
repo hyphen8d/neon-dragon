@@ -102,6 +102,11 @@ python3 -m venv .venv
   nemesis fight), 5 Pit gladiators, and 16 contracts across two
   boards, enough variety that repeat play doesn't loop the same
   handful of fights
+- **Achievements & Milestones** — data-driven unlocks (`content/achievements.json`)
+  for combat, cyberware, and stat milestones, announced with a styled
+  panel the moment they're earned. Includes **RoboDOJO belt ranks**:
+  hitting 10 base Attack or Defense unlocks a Black Belt achievement
+  that grants a small permanent combat bonus on top of the stat itself
 
 ### Quality of life
 

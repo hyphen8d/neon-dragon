@@ -412,12 +412,23 @@ One JSON save file per character, named after them. The game saves
 automatically whenever you leave the hub, and also on exit — even an
 unexpected one — so nothing since your last visit is lost.
 
+## Achievements & Milestones
+
+Certain milestones — beating specific enemies, hitting kill-count
+thresholds, equipping enough cyberware at once, or training a stat high
+enough — unlock a permanent Achievement, announced with a styled panel
+the moment you earn it. Unlocked achievements are listed on your
+Character Info (`[I]`) screen.
+
+**RoboDOJO belt ranks** are part of this system: train Attack or
+Defense up to 10 through RoboDOJO sparring (or any other means) and you
+unlock "Black Belt (Attack)" / "Black Belt (Defense)", each of which
+grants a small permanent bonus in combat on top of the stat itself —
+it doesn't go away even if the stat changes later.
+
 ## What's not built yet
 
 A few things mentioned in the game's design notes but not implemented:
 
 - Charisma still has no effect on dialogue.
 - A third, charisma-focused class is pulled pending a redesign.
-- RoboDOJO belt-rank milestones (permanent passives for hitting stat
-  thresholds) are a floated idea, not built — likely folded into a
-  future Achievement system rather than shipped on their own.

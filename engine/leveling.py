@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from rich.console import Console
 
+from engine.achievements import check_achievements
 from engine.character import Character
 from engine.theme import ACCENT
 from engine.ui import hotkey_prompt
@@ -66,3 +67,5 @@ def check_level_up(character: Character, console: Console) -> None:
         attr, label = LEVEL_UP_BONUS_STATS[choice]
         setattr(character, attr, getattr(character, attr) + 1)
         console.print(f"[{ACCENT}]+1 {label}[/{ACCENT}], your call.")
+
+        check_achievements(character, console)

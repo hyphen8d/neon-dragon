@@ -11,6 +11,7 @@ from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
 
+from engine.achievements import check_achievements
 from engine.character import Character, hp_style
 from engine.heat import record_kill
 from engine.inventory import describe_effect, get_usable_item, use_item
@@ -135,13 +136,33 @@ CRIT_MULTIPLIER = 1.5
 OVERCLOCK_ATTACK_BONUS = 12
 
 
+# RoboDOJO belt-rank passives — see engine/achievements.py and the
+# "RoboDOJO belt ranks" idea in GAME_DESIGN.md's Future Ideas section.
+# Reaching 10 base Attack/Defense unlocks the matching Black Belt
+# achievement, which then grants a small permanent combat bonus on top of
+# the stat itself, forever, regardless of whether the stat later changes.
+BLACK_BELT_ATTACK_BONUS = 2
+BLACK_BELT_DEFENSE_BONUS = 2
+
+
 def _effective_attack(character: Character, drunk_penalty: int) -> int:
     """Attack stat as it actually applies this round -- drunk knocks it
     down, an active Overclock Injector buff (see OVERCLOCK_ATTACK_BONUS)
-    bumps it up. Shared by the plain Attack action, Samurai Slash, and
+    bumps it up, and the Black Belt (Attack) achievement adds a small
+    permanent bonus. Shared by the plain Attack action, Samurai Slash, and
     Kill Switch so the buff can't be missed in one of them by accident."""
     bonus = OVERCLOCK_ATTACK_BONUS if has_effect(character, "overclock") else 0
+    if "black_belt_attack" in character.achievements:
+        bonus += BLACK_BELT_ATTACK_BONUS
     return max(0, character.attack - drunk_penalty + bonus)
+
+
+def _effective_defense(character: Character) -> int:
+    """Defense stat as it applies when the player is on the receiving end
+    of an attack -- the Black Belt (Defense) achievement adds a small
+    permanent bonus on top of the raw stat."""
+    bonus = BLACK_BELT_DEFENSE_BONUS if "black_belt_defense" in character.achievements else 0
+    return character.defense + bonus
 
 
 def roll_damage(attack: int, defense: int) -> tuple[int, bool]:
@@ -653,7 +674,7 @@ def run_combat(character: Character, enemy_data: dict) -> bool:
             console.print(_enemy_line(f"[{WARNING}]{enemy.name} is stunned and can't act![/{WARNING}]"))
         else:
             old_hp = character.hp
-            dmg, crit = roll_damage(enemy.attack, character.defense)
+            dmg, crit = roll_damage(enemy.attack, _effective_defense(character))
             bypassed = defending and enemy.ignores_defend
             if defending and not enemy.ignores_defend:
                 dmg = max(0, dmg // 2)
@@ -710,6 +731,7 @@ def _handle_victory(character: Character, enemy: Enemy) -> None:
     check_level_up(character, console)
     for result in notify_step(character, "kill", enemy.name):
         print_quest_result(console, character, result)
+    check_achievements(character, console)
 
 
 TRAUMA_BILL_BASE = 40

@@ -11,6 +11,7 @@ from rich.prompt import IntPrompt
 from rich.rule import Rule
 from rich.table import Table
 
+from engine.achievements import check_achievements, load_achievements
 from engine.bestiary import TRAINING_DRONES, enemy_faction
 from engine.character import CYBERWARE_SLOTS, Character, hp_style
 from engine.city import random_headline, random_weather
@@ -783,6 +784,7 @@ def _spar(character: Character, choice: str) -> None:
         f"\n[{ACCENT}]Training paid off.[/{ACCENT}] {label} increased to {getattr(character, attr)}. "
         f"-{format_credits(cost)}."
     )
+    check_achievements(character, console)
 
 
 def _learn_ability(character: Character) -> None:
@@ -1320,6 +1322,7 @@ def _buy_cyberware(character: Character, catalog: list[dict]) -> None:
 
     for result in check_fetch_steps(character):
         print_quest_result(console, character, result)
+    check_achievements(character, console)
 
 
 def _sell_cyberware(character: Character) -> None:
@@ -1408,6 +1411,7 @@ def _visit_black_market(character: Character) -> None:
         f"[{RARE}]Installed:[/{RARE}] {item['name']} "
         f"(+{item['bonus']} {item['stat']}) for {format_price(item, item['cost'])}."
     )
+    check_achievements(character, console)
 
 
 def _visit_street_stash(character: Character) -> None:
@@ -1581,6 +1585,17 @@ def show_character_info(character: Character) -> None:
     lifetime.add_row("Total Credits Earned", format_credits(character.total_credits_earned))
     lifetime.add_row("Total Fights Won", str(character.total_fights_won))
 
+    achievements = _themed_table("Achievements")
+    all_achievements = {a["id"]: a for a in load_achievements()}
+    if character.achievements:
+        for achievement_id in character.achievements:
+            achievement = all_achievements.get(achievement_id)
+            if achievement is None:
+                continue
+            achievements.add_row(f"[{RARE}]{achievement['name']}[/{RARE}]", achievement["description"])
+    else:
+        achievements.add_row("None unlocked yet", "")
+
     grid = Table.grid(padding=(0, 2))
     grid.add_column()
     grid.add_column()
@@ -1588,6 +1603,7 @@ def show_character_info(character: Character) -> None:
     grid.add_row(contracts, loadout)
     grid.add_row(effects, inventory)
     grid.add_row(abilities, lifetime)
+    grid.add_row(achievements, Table.grid())
     console.print(grid)
 
     kills = _themed_table("Kills by Faction")

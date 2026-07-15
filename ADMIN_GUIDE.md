@@ -28,8 +28,9 @@ laid out for lookup rather than narrative reading.
 13. [Economy](#economy)
 14. [Daily cycle](#daily-cycle)
 15. [Faction Heat](#faction-heat)
-16. [Save files](#save-files)
-17. [Content map — what to edit where](#content-map--what-to-edit-where)
+16. [Achievements](#achievements)
+17. [Save files](#save-files)
+18. [Content map — what to edit where](#content-map--what-to-edit-where)
 
 ---
 
@@ -402,6 +403,26 @@ Leaving the hub (`L`, with Yes/No confirmation) triggers `_sleep_and_advance_day
 
 ---
 
+## Achievements
+
+`content/achievements.json`, checked by `engine/achievements.py`'s `check_achievements(character, console)`. Each entry is `{id, name, description, category, condition}`; `condition.type` currently supports `kill` (a specific enemy name, e.g. Kingpin Draxx), `faction_kills` (min kills against a faction), `cyberware_equipped` (min slots filled at once), and `stat` (min base stat value). Unlocked ids are appended to `Character.achievements` (saved, permanent) and announced with a `RARE`-styled panel the moment they unlock.
+
+Called after anything that could plausibly unlock one: `combat._handle_victory` (kill/faction achievements), `leveling.check_level_up` (stat achievements, since level-ups grow stats), `hub._buy_cyberware`/`hub._visit_black_market` (cyberware-equipped achievements), and `hub._spar` (stat achievements from training).
+
+**Shipped achievements (5):**
+
+| id | Name | Condition |
+|---|---|---|
+| `king_slayer` | King Slayer | Defeat Kingpin Draxx |
+| `street_sweeper` | Street Sweeper | 15 Street Gang kills |
+| `chrome_junkie` | Chrome Junkie | 4 cyberware slots filled at once |
+| `black_belt_attack` | Black Belt (Attack) | Base Attack ≥ 10 |
+| `black_belt_defense` | Black Belt (Defense) | Base Defense ≥ 10 |
+
+**Belt-rank passives**: unlocking `black_belt_attack`/`black_belt_defense` isn't purely cosmetic — `engine/combat.py`'s `_effective_attack`/`_effective_defense` add a flat `BLACK_BELT_ATTACK_BONUS`/`BLACK_BELT_DEFENSE_BONUS` (2 each) on top of the raw stat whenever the achievement is present on `Character.achievements`, permanently, regardless of whether the underlying stat later changes.
+
+---
+
 ## Save files
 
 `engine/save.py`. One JSON file per character under `saves/` (gitignored), named by a sanitized slug of the character name (`re.sub(r"[^a-z0-9]+", "_", name.strip().lower())`, collapsing anything non-alphanumeric — prevents path traversal or crashes from stray characters like `/`).
@@ -425,6 +446,7 @@ Leaving the hub (`L`, with Yes/No confirmation) triggers `_sleep_and_advance_day
 | Cyberware (Street-Modded) | `content/street_modded.json` |
 | City Conditions (weather/headlines) | `content/city_conditions.json` |
 | Consumable items | `content/usable_items.json` |
+| Achievements | `content/achievements.json` |
 | Class base stats/flavor | `engine/character.py` (`CLASSES`) — **not** JSON, unlike the above |
 | Class specials / RoboDOJO abilities | `engine/combat.py` (`CLASS_SPECIALS`, `ABILITIES`) — also Python, not JSON |
 | RoboDOJO sparring drones | `engine/bestiary.py` (`TRAINING_DRONES`) — also Python, not JSON |

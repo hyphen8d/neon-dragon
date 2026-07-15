@@ -308,7 +308,39 @@ Charisma talks down the trauma bill from a lost fight: 3% off per
 point, capped at 45%. A high-Charisma build still goes down in a
 fight the same as anyone else, but pays less to get patched up.
 
-## 8. The Undercity
+## 8. Achievements & Milestones
+
+Data-driven, like everything else — `content/achievements.json` defines
+each achievement as `{id, name, description, category, condition}`, read
+by `engine/achievements.py`'s `check_achievements(character, console)`.
+Unlocked ids live on `Character.achievements` (permanent, saved). Calling
+`check_achievements` is cheap and idempotent, so it's called opportunistically
+after anything that could unlock one: combat victories
+(`combat._handle_victory`), leveling up (`leveling.check_level_up`),
+buying cyberware from Hyphen8d's Hut or the Black Market
+(`hub._buy_cyberware` / `hub._visit_black_market`), and RoboDOJO sparring
+(`hub._spar`). A newly unlocked achievement prints an
+`ACHIEVEMENT UNLOCKED` panel in the Black Market's rare magenta styling —
+meant to stand out from ordinary narration. `show_character_info` lists
+everything unlocked so far in its own Achievements table.
+
+This is also where the previously-floated **RoboDOJO belt ranks** idea
+landed: reaching 10 base Attack or Defense unlocks "Black Belt (Attack)"
+/ "Black Belt (Defense)", each granting a small permanent combat bonus
+(`BLACK_BELT_ATTACK_BONUS` / `BLACK_BELT_DEFENSE_BONUS` in
+`engine/combat.py`, applied in `_effective_attack` / `_effective_defense`)
+on top of whatever the raw stat happens to be — the achievement is the
+belt, the bonus doesn't disappear even if gear or effects change the
+stat later.
+
+Other achievements shipped as a first pass: **King Slayer** (defeat
+Kingpin Draxx), **Street Sweeper** (15 Street Gang kills — reuses
+`shop.street_gang_kills`'s counting logic), and **Chrome Junkie** (4
+cyberware slots filled at once). More condition `type`s can be added to
+`achievements._condition_met` as new milestones come up; nothing about
+the engine assumes only these five.
+
+## 9. The Undercity
 
 Not a single random roll — the player picks an approach, framed as a
 physical street heist rather than an abstract cyberspace dive:
@@ -351,7 +383,7 @@ Heat-triggered ambush misses (or doesn't apply), rolls a
 faction-unlocked `roll_combat_encounter`, and is deliberately flavored
 as opportunistic bad luck rather than a targeted retaliation.
 
-## 9. Aesthetic Rules
+## 10. Aesthetic Rules
 
 - Color palette: magenta/cyan/purple on black, used for headers, NPC
   names, and important numbers — not every line (avoid visual noise).
@@ -384,7 +416,7 @@ as opportunistic bad luck rather than a targeted retaliation.
   that table is reused on every location screen, so adding a column
   there risked the fixed 120-column layout everywhere, not just the hub.
 
-## 10. Build Phases (suggested order)
+## 11. Build Phases (suggested order)
 
 1. Character creation + save/load + main menu skeleton
 2. Hub navigation between locations (no content yet, just movement)
@@ -395,15 +427,14 @@ as opportunistic bad luck rather than a targeted retaliation.
 7. Hyphen8d's Hut economy + cyberware
 8. Polish: color palette, ASCII panels, flavor text pass
 
-## 11. Future Ideas (not built)
+## 12. Future Ideas (not built)
 
-- **RoboDOJO belt ranks**: hitting stat thresholds through training could
-  unlock a small permanent passive (e.g. +crit chance) instead of just
-  more flat stat points — floated alongside the RoboDOJO abilities work
-  in section 7, parked for later rather than built now. Likely makes
-  more sense as part of a broader **Achievement system** (belts, contract
-  streaks, faction standing, etc.) than as a RoboDOJO-only mechanic, so
-  worth revisiting once that idea has more shape.
+- ~~RoboDOJO belt ranks~~ — built, see section 8 (Achievements & Milestones).
+- More achievement condition types beyond the first five shipped
+  (e.g. contract streaks, faction standing, day-count milestones) —
+  the engine (`achievements._condition_met`) already supports adding new
+  `condition.type` values without touching the check/unlock/announce
+  plumbing.
 
 ## Notes
 

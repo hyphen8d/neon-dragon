@@ -67,6 +67,7 @@ class Character:
     total_days: int = 0  # lifetime day count, never resets — see hub.py's _sleep_and_advance_day
     total_credits_earned: int = 0  # lifetime credits from combat victories — see combat.py's _handle_victory
     total_fights_won: int = 0  # lifetime combat wins — see combat.py's _handle_victory
+    achievements: list = field(default_factory=list)  # unlocked achievement ids, see engine/achievements.py
 
     @classmethod
     def new(cls, name: str, char_class: str) -> "Character":

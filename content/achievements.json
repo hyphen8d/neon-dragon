@@ -1,0 +1,39 @@
+{
+  "achievements": [
+    {
+      "id": "king_slayer",
+      "name": "King Slayer",
+      "description": "Defeat Kingpin Draxx.",
+      "category": "combat",
+      "condition": {"type": "kill", "target": "Kingpin Draxx"}
+    },
+    {
+      "id": "street_sweeper",
+      "name": "Street Sweeper",
+      "description": "Reach 15 Street Gang kills.",
+      "category": "combat",
+      "condition": {"type": "faction_kills", "faction": "Street Gang", "min": 15}
+    },
+    {
+      "id": "chrome_junkie",
+      "name": "Chrome Junkie",
+      "description": "Have 4 cyberware items equipped simultaneously.",
+      "category": "cyberware",
+      "condition": {"type": "cyberware_equipped", "min": 4}
+    },
+    {
+      "id": "black_belt_attack",
+      "name": "Black Belt (Attack)",
+      "description": "Reach 10 base Attack stat.",
+      "category": "belt_rank",
+      "condition": {"type": "stat", "stat": "attack", "min": 10}
+    },
+    {
+      "id": "black_belt_defense",
+      "name": "Black Belt (Defense)",
+      "description": "Reach 10 base Defense stat.",
+      "category": "belt_rank",
+      "condition": {"type": "stat", "stat": "defense", "min": 10}
+    }
+  ]
+}
