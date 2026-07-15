@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import random
+import sys
+import time
 from collections import deque
 from dataclasses import dataclass, field
 from typing import Callable
@@ -46,7 +48,7 @@ from engine.theme import (
     TEXT_PLAIN,
     WARNING,
 )
-from engine.ui import hotkey_prompt, make_hp_bar, press_any_key, read_choice
+from engine.ui import glitch_rule, hotkey_prompt, make_hp_bar, press_any_key, read_choice
 
 console = Console(width=120, highlight=False)
 
@@ -125,6 +127,19 @@ def _enemy_line(text: str) -> str:
     line = f"  [{TELEMETRY_ENEMY}]{ENEMY_ARROW}[/{TELEMETRY_ENEMY}] {text}"
     _combat_log.append(line)
     return line
+
+
+COMBAT_BEAT_DELAY = 0.6
+
+
+def _combat_beat() -> None:
+    """A short pause between the player's turn resolving and the enemy's
+    turn starting, so a round reads as two distinct beats instead of a
+    wall of text landing at once. Skipped when stdin isn't a real
+    terminal (scripted-stdin playthroughs, the headless sim) so automated
+    runs aren't slowed down waiting on a delay nothing is watching."""
+    if sys.stdin.isatty():
+        time.sleep(COMBAT_BEAT_DELAY)
 
 
 def _show_combat_log(console: Console) -> None:
@@ -544,7 +559,7 @@ def _print_combat_hud(
     grid.add_column(ratio=1)
     grid.add_row(player_panel, enemy_panel)
     console.print(grid)
-    console.rule(style=BORDER)
+    glitch_rule(console, style=BORDER)
 
 
 def _gear_inflict(character: Character, enemy: Enemy, slot: str, console: Console) -> None:
@@ -732,6 +747,7 @@ def run_combat(character: Character, enemy_data: dict) -> bool:
         if not enemy.alive:
             break
 
+        _combat_beat()
         enemy_stunned = process_round_start(enemy, console)
         if not enemy.alive:
             break

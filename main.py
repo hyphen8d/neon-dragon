@@ -18,7 +18,7 @@ from engine.leveling import xp_for_next_level
 from engine.prologue import run_prologue
 from engine.save import delete_save, list_saves, load_character, save_character, save_exists
 from engine.theme import ACCENT, ACCENT_SOFT, BORDER, BORDER_ACCENT, DANGER, ITALIC, LABEL, NAME, RARE, SUBTITLE, TEXT, TEXT_DIM, WARNING
-from engine.ui import hotkey_bracket, hotkey_prompt, read_choice
+from engine.ui import glitch_title_rule, hotkey_bracket, hotkey_prompt, make_hp_bar, read_choice
 
 console = Console(width=120, highlight=False)
 
@@ -127,7 +127,7 @@ def print_main_menu() -> None:
 
 
 def print_character_sheet(character: Character) -> None:
-    console.rule(f"[{ACCENT}]{character.name}[/{ACCENT}] [{TEXT_DIM}]— {character.char_class}[/{TEXT_DIM}]")
+    glitch_title_rule(console, f"[{ACCENT}]{character.name}[/{ACCENT}] [{TEXT_DIM}]— {character.char_class}[/{TEXT_DIM}]")
     table = Table(border_style=BORDER_ACCENT)
     table.add_column("Stat", style=ACCENT_SOFT)
     table.add_column("Value", style=TEXT)
@@ -135,7 +135,7 @@ def print_character_sheet(character: Character) -> None:
     table.add_row("Day", str(character.day))
     table.add_row("XP", f"{character.xp}/{xp_for_next_level(character)}")
     style = hp_style(character.hp, character.max_hp)
-    table.add_row("HP", f"[{style}]{character.hp}/{character.max_hp}[/{style}]")
+    table.add_row("HP", f"[{style}]{character.hp}/{character.max_hp}[/{style}] {make_hp_bar(character.hp, character.max_hp)}")
     table.add_row("Attack", str(character.attack))
     table.add_row("Defense", str(character.defense))
     table.add_row("Tech", str(character.tech))
@@ -178,7 +178,7 @@ def choose_class() -> str:
 
 
 def create_character() -> Character:
-    console.rule(f"[{LABEL}]New Merc[/{LABEL}]")
+    glitch_title_rule(console, f"[{LABEL}]New Merc[/{LABEL}]")
     while True:
         name = Prompt.ask("What do they call you on the street?").strip()
         if not name:

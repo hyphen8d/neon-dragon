@@ -3,11 +3,12 @@
 from __future__ import annotations
 
 from rich.console import Console
+from rich.panel import Panel
 
 from engine.achievements import check_achievements
 from engine.character import Character
-from engine.theme import ACCENT
-from engine.ui import hotkey_prompt
+from engine.theme import ACCENT, BORDER_ACCENT, TEXT_DIM
+from engine.ui import hotkey_prompt, press_any_key
 
 XP_STEP = 50
 
@@ -61,13 +62,22 @@ def check_level_up(character: Character, console: Console) -> None:
             setattr(character, stat, getattr(character, stat) + amount)
         character.hp = character.max_hp
 
-        console.print(
-            f"\n[{ACCENT}]LEVEL UP![/{ACCENT}] "
-            f"{character.name} reaches level {character.level}. "
-            f"+{STAT_GROWTH['max_hp']} Max HP, +{STAT_GROWTH['attack']} Attack, "
+        body = (
+            f"[{ACCENT}]{character.name} reaches level {character.level}.[/{ACCENT}]\n"
+            f"[{TEXT_DIM}]+{STAT_GROWTH['max_hp']} Max HP, +{STAT_GROWTH['attack']} Attack, "
             f"+{STAT_GROWTH['defense']} Defense, +{STAT_GROWTH['tech']} Tech — "
-            f"and fully healed."
+            f"and fully healed.[/{TEXT_DIM}]"
         )
+        console.print()
+        console.print(
+            Panel(
+                body,
+                title=f"[{ACCENT}]LEVEL UP[/{ACCENT}]",
+                border_style=BORDER_ACCENT,
+                padding=(1, 2),
+            )
+        )
+        press_any_key(console, "[SYS] STANDBY // PRESS ANY KEY TO ALLOCATE STAT_")
 
         options = [(key, label) for key, (_, label) in LEVEL_UP_BONUS_STATS.items()]
         choice = hotkey_prompt(console, options, prompt="Put a bonus point somewhere:")

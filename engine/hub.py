@@ -1729,7 +1729,10 @@ def show_character_info(character: Character) -> None:
     attributes.add_row("Day", str(character.day))
     attributes.add_row("XP", f"{character.xp}/{xp_for_next_level(character)}")
     hp_row_style = hp_style(character.hp, character.max_hp)
-    attributes.add_row("HP", f"[{hp_row_style}]{character.hp}/{character.max_hp}[/{hp_row_style}]")
+    attributes.add_row(
+        "HP",
+        f"[{hp_row_style}]{character.hp}/{character.max_hp}[/{hp_row_style}] {make_hp_bar(character.hp, character.max_hp)}",
+    )
     attributes.add_row("Attack", str(character.attack))
     attributes.add_row("Defense", str(character.defense))
     attributes.add_row("Tech", str(character.tech))

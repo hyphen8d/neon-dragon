@@ -10,7 +10,7 @@ from engine.character import Character
 from engine.combat import run_combat
 from engine.shop import get_item
 from engine.theme import ACCENT, DANGER, INFO, ITALIC, LABEL, NAME, TEXT_DIM, WARNING
-from engine.ui import press_any_key
+from engine.ui import glitch_title_rule, press_any_key
 
 # Debt Doc Wire puts the player in for patching them up — the whole reason
 # they need to hit the Fixer Board or Chrome Noodle Bar once the prologue ends.
@@ -56,7 +56,7 @@ def _equip_starter_gear(character: Character, console: Console) -> None:
 
 
 def run_prologue(character: Character, console: Console) -> None:
-    console.rule(f"[{LABEL}]Prologue[/{LABEL}]")
+    glitch_title_rule(console, f"[{LABEL}]Prologue[/{LABEL}]")
     console.print(
         f"[{ITALIC}]Fluorescent light. The smell of solder and antiseptic. Your last "
         f"memory is a job going sideways in an alley off the Fixer Board's turf — "
