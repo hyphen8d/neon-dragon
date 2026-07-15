@@ -21,6 +21,7 @@ EFFECT_LABELS: dict[str, str] = {
     "bleed": f"[{WARNING}][🩸 BLEED][/{WARNING}]",
     "stunned": f"[{WARNING}][⚡ STUN][/{WARNING}]",
     "drunk": f"[{WARNING}][☣ DRUNK][/{WARNING}]",
+    "overclock": f"[{WARNING}][⚡ OVERCLOCK][/{WARNING}]",
 }
 
 # Plain adjective form for narration that embeds the effect mid-sentence
@@ -30,9 +31,15 @@ EFFECT_ADJECTIVES: dict[str, str] = {
     "bleed": "bleeding",
     "stunned": "stunned",
     "drunk": "drunk",
+    "overclock": "overclocked",
 }
 
 DRUNK_STAT_PENALTY = 3
+
+# How long the crash-Bleed lasts once an Overclock Injector's buff (see
+# engine/combat.py's OVERCLOCK_ATTACK_BONUS) wears off -- the high-risk
+# half of that item's high-risk/high-reward deal.
+OVERCLOCK_CRASH_BLEED_DURATION = 3
 
 
 def apply_effect(combatant: Any, effect: str, duration: int) -> bool:
@@ -74,6 +81,12 @@ def process_round_start(combatant: Any, console: Console, is_player: bool = Fals
             label = EFFECT_LABELS.get(effect, effect)
             possessive = "Your" if is_player else f"{combatant.name}'s"
             console.print(f"[{TEXT_DIM}]{possessive} {label} wears off.[/{TEXT_DIM}]")
+            if effect == "overclock":
+                # The crash -- an Overclock Injector's Attack buff always
+                # leaves you bleeding the moment it expires, win or lose.
+                apply_effect(combatant, "bleed", OVERCLOCK_CRASH_BLEED_DURATION)
+                verb = "start" if is_player else "starts"
+                console.print(f"[{DANGER}]The crash hits hard — {subject} {verb} bleeding.[/{DANGER}]")
 
     return stunned
 

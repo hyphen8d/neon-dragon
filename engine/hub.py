@@ -15,7 +15,7 @@ from engine.bestiary import TRAINING_DRONES, enemy_faction
 from engine.character import CYBERWARE_SLOTS, Character, hp_style
 from engine.combat import ABILITIES, run_combat
 from engine.encounters import roll_combat_encounter, roll_scavenge_encounter
-from engine.heat import AMBUSH_CHANCE, hot_factions, reset_daily_kills
+from engine.heat import AMBUSH_CHANCE, HEAT_FACTIONS, hot_factions, reset_daily_kills
 from engine.help import show_help
 from engine.inventory import buy_item, describe_effect, get_usable_item, load_usable_items
 from engine.leveling import xp_for_next_level
@@ -23,11 +23,15 @@ from engine.npcs import get_npc, npc_at, random_line
 from engine.pit import load_gladiators
 from engine.quests import (
     accept_quest,
+    advance_quest,
     available_quests,
+    check_fetch_steps,
     current_step,
     get_quest,
     locked_quests,
     notify_step,
+    pending_deliver_step,
+    pending_pay_step,
     print_quest_result,
 )
 from engine.shop import (
@@ -39,6 +43,7 @@ from engine.shop import (
     format_price,
     get_daily_catalog,
     get_item,
+    give_away,
     load_black_market,
     roll_daily_market,
     sell_back_value,
@@ -404,8 +409,36 @@ def _scavenge(character: Character) -> None:
     # "nothing" encounters just print their flavor line above.
 
 
+# Ambient, diegetic hints that a faction is closing in on Faction Heat's
+# ambush threshold (HEAT_KILL_THRESHOLD in engine/heat.py) -- shown a kill
+# or two before it actually triggers, so a kill spree telegraphs its own
+# rising risk instead of an ambush just appearing out of nowhere.
+HEAT_WARNING_FLAVOR: dict[str, dict[int, str]] = {
+    "Corp": {
+        2: "Corp drones have been circling the block more than once — you notice, even if they pretend not to.",
+        3: "Corp drones are aggressively scanning the perimeter now. They're close to calling it in.",
+    },
+    "Street Gang": {
+        2: "A couple of Street Gang lookouts keep clocking you as you pass.",
+        3: "Street Gang lookouts are unusually tense today — word's gotten around about you.",
+    },
+}
+
+
+def _heat_warnings(character: Character) -> list[str]:
+    warnings = []
+    for faction in HEAT_FACTIONS:
+        count = character.daily_kills.get(faction, 0)
+        line = HEAT_WARNING_FLAVOR.get(faction, {}).get(count)
+        if line:
+            warnings.append(line)
+    return warnings
+
+
 def visit_undercity(character: Character) -> None:
     print_arrival(character, "Undercity")
+    for warning in _heat_warnings(character):
+        console.print(f"[italic {WARNING}]{warning}[/italic {WARNING}]")
 
     print_menu_divider("The Streets")
     choice = hotkey_prompt(
@@ -460,6 +493,7 @@ def visit_netvault(character: Character) -> None:
 
     for result in notify_step(character, "talk", "NetVault"):
         print_quest_result(console, character, result)
+    _check_deliver_and_pay(character, "NetVault")
 
     print_menu_divider("Banking")
     right_panel = _station_data_panel(
@@ -569,6 +603,7 @@ def visit_doc_wires_clinic(character: Character) -> None:
 
     for result in notify_step(character, "talk", "Doc Wire's Clinic"):
         print_quest_result(console, character, result)
+    _check_deliver_and_pay(character, "Doc Wire's Clinic")
 
     print_menu_divider("Clinic Menu")
     hp_color = hp_style(character.hp, character.max_hp)
@@ -639,6 +674,7 @@ def visit_robodojo(character: Character) -> None:
 
     for result in notify_step(character, "talk", "RoboDOJO"):
         print_quest_result(console, character, result)
+    _check_deliver_and_pay(character, "RoboDOJO")
 
     print_menu_divider("Training")
     attempts_left = TRAINING_ATTEMPTS_PER_DAY - character.training_attempts_today
@@ -811,6 +847,7 @@ def visit_chrome_noodle_bar(character: Character) -> None:
 
     for result in notify_step(character, "talk", "Chrome Noodle Bar"):
         print_quest_result(console, character, result)
+    _check_deliver_and_pay(character, "Chrome Noodle Bar")
 
     rest_floor = int(character.max_hp * REST_THRESHOLD)
     if character.hp >= rest_floor:
@@ -957,12 +994,86 @@ def _browse_contract_board(character: Character, board: str) -> None:
     console.print(f"\n[{ACCENT}]Contract accepted:[/{ACCENT}] {chosen_quest['title']}")
     console.print(f"  {chosen_quest['steps'][0]['description']}")
 
+    # A quest that opens on a "fetch" step might already be satisfied —
+    # a player who bought the target item before ever taking the contract
+    # shouldn't have to sell it and buy it back to make it "count."
+    for result in check_fetch_steps(character):
+        print_quest_result(console, character, result)
+
+
+def _check_deliver_and_pay(character: Character, location: str) -> None:
+    """Check for an active "deliver" or "pay" step targeting this location
+    and, if the player can actually satisfy it right now, confirm before
+    acting on it — unlike "talk"/"kill", both hand over something real
+    (an equipped item, a chunk of credits), so this doesn't silently
+    auto-advance the way notify_step does. Called from the same location
+    visits that already call notify_step(character, "talk", location)."""
+    deliver = pending_deliver_step(character, location)
+    if deliver is not None:
+        quest_id, step = deliver
+        quest = get_quest(quest_id)
+        item_id = step["item"]
+        if item_id not in character.cyberware.values():
+            item = get_item(item_id)
+            console.print(
+                f"\n[{TEXT_DIM}]{quest['title']}: you don't have a {item['name']} on you yet — "
+                f"buy one from Hyphen8d's Hut first.[/{TEXT_DIM}]"
+            )
+        else:
+            item = get_item(item_id)
+            confirm = hotkey_prompt(
+                console,
+                [("Y", "Yes"), ("N", "No")],
+                prompt=f"Hand over your {item['name']} to complete '{quest['title']}'?",
+            )
+            if confirm == "Y":
+                give_away(character, item["slot"])
+                completed_quest = advance_quest(character, quest_id)
+                if completed_quest is not None:
+                    print_quest_result(console, character, {"quest": completed_quest, "completed": True})
+                else:
+                    print_quest_result(
+                        console,
+                        character,
+                        {"quest": quest, "completed": False, "next_step": current_step(character, quest_id)},
+                    )
+
+    pay = pending_pay_step(character, location)
+    if pay is not None:
+        quest_id, step = pay
+        quest = get_quest(quest_id)
+        amount = step["amount"]
+        if character.credits < amount:
+            shortfall = amount - character.credits
+            console.print(
+                f"\n[{TEXT_DIM}]{quest['title']}: you need {shortfall} more credits to pay this off "
+                f"({amount} total).[/{TEXT_DIM}]"
+            )
+        else:
+            confirm = hotkey_prompt(
+                console,
+                [("Y", "Yes"), ("N", "No")],
+                prompt=f"Pay off {amount} credits to complete '{quest['title']}'?",
+            )
+            if confirm == "Y":
+                character.credits -= amount
+                completed_quest = advance_quest(character, quest_id)
+                if completed_quest is not None:
+                    print_quest_result(console, character, {"quest": completed_quest, "completed": True})
+                else:
+                    print_quest_result(
+                        console,
+                        character,
+                        {"quest": quest, "completed": False, "next_step": current_step(character, quest_id)},
+                    )
+
 
 def visit_fixer_board(character: Character) -> None:
     print_arrival(character, "Fixer Board")
 
     for result in notify_step(character, "talk", "Fixer Board"):
         print_quest_result(console, character, result)
+    _check_deliver_and_pay(character, "Fixer Board")
 
     print_menu_divider("Contract Board")
     board_active = [
@@ -1088,6 +1199,9 @@ def _buy_cyberware(character: Character, catalog: list[dict]) -> None:
         f"(+{item['bonus']} {item['stat']}) for {price} credits."
     )
 
+    for result in check_fetch_steps(character):
+        print_quest_result(console, character, result)
+
 
 def _sell_cyberware(character: Character) -> None:
     equipped_slots = [slot for slot in CYBERWARE_SLOTS if character.cyberware[slot]]
@@ -1182,6 +1296,7 @@ def visit_hyphen8ds_hut(character: Character) -> None:
 
     for result in notify_step(character, "talk", "Hyphen8d's Hut"):
         print_quest_result(console, character, result)
+    _check_deliver_and_pay(character, "Hyphen8d's Hut")
 
     print_menu_divider("Shop Menu")
     if not character.market_stock:
@@ -1271,13 +1386,18 @@ def show_character_info(character: Character) -> None:
     else:
         abilities.add_row("None learned yet", "")
 
+    lifetime = _themed_table("Lifetime Record")
+    lifetime.add_row("Total Days", str(character.total_days))
+    lifetime.add_row("Total Credits Earned", str(character.total_credits_earned))
+    lifetime.add_row("Total Fights Won", str(character.total_fights_won))
+
     grid = Table.grid(padding=(0, 2))
     grid.add_column()
     grid.add_column()
     grid.add_row(attributes, economy)
     grid.add_row(contracts, loadout)
     grid.add_row(effects, inventory)
-    grid.add_row(abilities)
+    grid.add_row(abilities, lifetime)
     console.print(grid)
 
     kills = _themed_table("Kills by Faction")
@@ -1306,6 +1426,7 @@ def _sleep_and_advance_day(character: Character) -> None:
     )
 
     character.day += 1
+    character.total_days += 1
     hot = hot_factions(character)
     reset_daily_kills(character)
     roll_daily_market(character)

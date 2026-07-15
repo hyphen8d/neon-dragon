@@ -149,6 +149,19 @@ def unequip(character: Character, slot: str) -> dict[str, Any] | None:
     return item
 
 
+def give_away(character: Character, slot: str) -> dict[str, Any] | None:
+    """Remove whatever's in a slot with no refund — for quest "deliver"
+    steps, where the item is handed over to an NPC rather than sold back.
+    Same bonus removal as unequip(), just without the trade-in payout."""
+    item_id = character.cyberware.get(slot)
+    if item_id is None:
+        return None
+    item = get_item(item_id)
+    _apply_bonus(character, item, sign=-1)
+    character.cyberware[slot] = None
+    return item
+
+
 def buy_and_equip(character: Character, item_id: str) -> dict[str, Any]:
     """Buy an item, swapping out (and refunding) whatever currently fills its slot."""
     item = get_item(item_id)

@@ -106,6 +106,54 @@ def notify_step(character: Character, step_type: str, target: str) -> list[dict[
     return results
 
 
+def check_fetch_steps(character: Character) -> list[dict[str, Any]]:
+    """Check every active quest's current step for a satisfied "fetch"
+    (the target cyberware item currently equipped in any slot) and advance
+    it. Same return shape as notify_step, so print_quest_result handles it
+    unchanged. Unlike "talk"/"kill", a fetch isn't a one-off event — it's
+    a standing ownership check — so call this both right after a cyberware
+    purchase (engine/hub.py's _buy_cyberware) and right after accepting a
+    quest (a player who already owned the target item shouldn't have to
+    sell it and buy it back to satisfy the step)."""
+    results = []
+    for quest_id in list(character.active_quests.keys()):
+        step = current_step(character, quest_id)
+        if step["type"] != "fetch" or step["target"] not in character.cyberware.values():
+            continue
+        quest = get_quest(quest_id)
+        completed_quest = advance_quest(character, quest_id)
+        if completed_quest is not None:
+            results.append({"quest": completed_quest, "completed": True})
+        else:
+            results.append({"quest": quest, "completed": False, "next_step": current_step(character, quest_id)})
+    return results
+
+
+def pending_deliver_step(character: Character, location: str) -> tuple[str, dict[str, Any]] | None:
+    """The (quest_id, step) for an active quest whose current step is a
+    "deliver" targeting this location, or None. Checked separately from
+    notify_step because handing over the item needs a Y/N confirmation
+    and a "you don't have it yet" message first — see engine/hub.py's
+    _check_deliver_and_pay."""
+    for quest_id in character.active_quests:
+        step = current_step(character, quest_id)
+        if step["type"] == "deliver" and step["target"] == location:
+            return quest_id, step
+    return None
+
+
+def pending_pay_step(character: Character, location: str) -> tuple[str, dict[str, Any]] | None:
+    """The (quest_id, step) for an active quest whose current step is a
+    "pay" targeting this location, or None. Same reasoning as
+    pending_deliver_step — a real credit spend needs a confirmation and a
+    shortfall message, not a silent auto-advance."""
+    for quest_id in character.active_quests:
+        step = current_step(character, quest_id)
+        if step["type"] == "pay" and step["target"] == location:
+            return quest_id, step
+    return None
+
+
 def print_quest_result(console: Console, character: Character, result: dict[str, Any]) -> None:
     quest = result["quest"]
     if result["completed"]:

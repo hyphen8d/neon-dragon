@@ -33,6 +33,10 @@ def describe_effect(item: dict[str, Any]) -> str:
         return f"Heals {item['amount']} HP"
     if item["effect"] == "stun":
         return f"Stuns {item['faction']} enemies for {item['duration']} round(s)"
+    if item["effect"] == "attack_buff":
+        return f"Massive Attack boost for {item['duration']} round(s), then Bleed"
+    if item["effect"] == "guaranteed_flee":
+        return "Guarantees you escape the fight"
     return item["effect"]
 
 
@@ -44,12 +48,15 @@ def buy_item(character: Character, item_id: str) -> dict[str, Any]:
     return item
 
 
-def use_item(character: Character, item_id: str, console: Console, enemy: Any = None) -> None:
+def use_item(character: Character, item_id: str, console: Console, enemy: Any = None) -> bool:
     """Apply an item's effect and, only if it actually did something, consume
     one copy from inventory. `enemy` is required for enemy-targeted effects
     (e.g. stun); heal-type effects ignore it. A heal at full HP or a stun
     that fizzles on the wrong faction leaves the item uncharged rather than
-    burning it for nothing."""
+    burning it for nothing. Returns True if using the item ended the fight
+    immediately (only a guaranteed-flee item does this) — the caller
+    (engine/combat.py's run_combat) treats that exactly like a successful
+    Flee action."""
     item = get_usable_item(item_id)
 
     if item["effect"] == "heal":
@@ -57,7 +64,7 @@ def use_item(character: Character, item_id: str, console: Console, enemy: Any = 
         healed = min(missing, item["amount"])
         if healed <= 0:
             console.print(f"[{TEXT_DIM}]{item['name']} used, but you're already at full health.[/{TEXT_DIM}]")
-            return
+            return False
         character.inventory.remove(item_id)
         old_hp = character.hp
         character.hp += healed
@@ -65,25 +72,43 @@ def use_item(character: Character, item_id: str, console: Console, enemy: Any = 
             f"[{ACCENT}]{item['name']} used.[/{ACCENT}] +{healed} HP. "
             f"[{TEXT_DIM}](Your HP: {old_hp} -> {character.hp})[/{TEXT_DIM}]"
         )
-        return
+        return False
 
     if item["effect"] == "stun":
         if enemy is None:
             console.print(f"[{TEXT_DIM}]Nothing to use {item['name']} on right now.[/{TEXT_DIM}]")
-            return
+            return False
         target_faction = item.get("faction")
         if target_faction and enemy.faction != target_faction:
             console.print(
                 f"[{TEXT_DIM}]{item['name']} fizzles — {enemy.name} isn't running the systems "
                 f"it's built for.[/{TEXT_DIM}]"
             )
-            return
+            return False
         character.inventory.remove(item_id)
         apply_effect(enemy, "stunned", item["duration"])
         console.print(
             f"[{INFO}]{item['name']}![/{INFO}] {enemy.name}'s systems lock up — "
             f"stunned for {item['duration']} round(s)."
         )
-        return
+        return False
+
+    if item["effect"] == "attack_buff":
+        character.inventory.remove(item_id)
+        apply_effect(character, "overclock", item["duration"])
+        console.print(
+            f"[{ACCENT}]{item['name']}![/{ACCENT}] Your vision tunnels and everything gets very, "
+            f"very loud — Attack massively boosted for {item['duration']} round(s). It's going to hurt "
+            f"when this wears off."
+        )
+        return False
+
+    if item["effect"] == "guaranteed_flee":
+        character.inventory.remove(item_id)
+        console.print(
+            f"[{ACCENT}]{item['name']}![/{ACCENT}] The flare goes off and the world turns to white "
+            f"noise. By the time it clears, you're gone."
+        )
+        return True
 
     raise ValueError(f"Unknown usable item effect: {item['effect']!r}")

@@ -136,6 +136,35 @@
       "min_level": 9
     },
     {
+      "id": "debt_collector",
+      "title": "Debt Collector",
+      "board": "Fixer Board",
+      "hook": "\"I've got a debt hanging over my head with some very patient people. 150 credits clears it. Call it an investment in my good mood.\"",
+      "steps": [
+        {"type": "pay", "target": "Fixer Board", "amount": 150, "description": "Pay off the Fixer's 150-credit debt at the Fixer Board."}
+      ],
+      "reward": {"credits": 250, "xp": 20, "reputation": 15},
+      "complete_text": "\"Debt's clear. That's the kind of trust that gets you better jobs.\"",
+      "min_reputation": 10,
+      "min_charisma": 0,
+      "min_level": 1
+    },
+    {
+      "id": "clean_getaway",
+      "title": "Clean Getaway",
+      "board": "Fixer Board",
+      "hook": "\"Corp patrol's sniffing around one of my drop points. Handle the trooper, then grease the right palm at NetVault to make the paperwork disappear.\"",
+      "steps": [
+        {"type": "kill", "target": "Corp Patrol Trooper", "description": "Take down the Corp Patrol Trooper in the Undercity."},
+        {"type": "pay", "target": "NetVault", "amount": 100, "description": "Pay a 100-credit cleanup fee at NetVault to bury the paperwork."}
+      ],
+      "reward": {"credits": 180, "xp": 25, "reputation": 12},
+      "complete_text": "\"Paperwork's gone, trooper's gone. Nice and clean.\"",
+      "min_reputation": 5,
+      "min_charisma": 0,
+      "min_level": 2
+    },
+    {
       "id": "loose_ends",
       "title": "Loose Ends",
       "board": "Chrome Noodle Bar",
@@ -238,6 +267,21 @@
       "complete_text": "\"Discreet. I like that in a merc.\"",
       "min_reputation": 0,
       "min_charisma": 6,
+      "min_level": 1
+    },
+    {
+      "id": "a_gift_for_endr3am",
+      "title": "A Gift for Endr3am",
+      "board": "Chrome Noodle Bar",
+      "hook": "\"Buy me a Razor Claws rig from Hyphen8d's Hut — I've got a buyer lined up who'll owe us both. Bring it here when you've got it.\"",
+      "steps": [
+        {"type": "fetch", "target": "razor_claws", "description": "Buy a Razor Claws arm rig (150cr) from Hyphen8d's Hut."},
+        {"type": "deliver", "target": "Chrome Noodle Bar", "item": "razor_claws", "description": "Deliver the Razor Claws to Endr3am at the Chrome Noodle Bar."}
+      ],
+      "reward": {"credits": 100, "xp": 20, "reputation": 20},
+      "complete_text": "\"Now THAT'S a gift. My buyer's going to owe me for weeks.\"",
+      "min_reputation": 0,
+      "min_charisma": 5,
       "min_level": 1
     }
   ]

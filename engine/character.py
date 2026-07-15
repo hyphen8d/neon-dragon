@@ -64,6 +64,9 @@ class Character:
     learned_abilities: list = field(default_factory=list)  # RoboDOJO ability ids, permanent, independent of class
     rested_today: bool = False  # Chrome Noodle Bar's free rest, once per day, resets on sleep
     training_attempts_today: int = 0  # RoboDOJO sparring bouts used today, resets on sleep
+    total_days: int = 0  # lifetime day count, never resets — see hub.py's _sleep_and_advance_day
+    total_credits_earned: int = 0  # lifetime credits from combat victories — see combat.py's _handle_victory
+    total_fights_won: int = 0  # lifetime combat wins — see combat.py's _handle_victory
 
     @classmethod
     def new(cls, name: str, char_class: str) -> "Character":

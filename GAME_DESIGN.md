@@ -102,21 +102,39 @@ Starter NPC roster (flavor only — expand freely):
 
 ## 6. Contracts
 
-Multi-step contract objects: talk/kill chains (fetch/deliver not yet built)
-with a credit + XP + reputation reward. Two contract boards: the **Fixer
-Board** (gated by Reputation, run by The Fixer) and **Endr3am's board** at
-the Chrome Noodle Bar (gated by Charisma). A third gate, **Level**, applies
-to contracts on either board and is tied to the same tiers that unlock
-Undercity's tougher enemies (`min_reputation`, `min_charisma`, `min_level`
-in the schema). 16 contracts total as of this pass (9 Fixer Board, 7
-Chrome Noodle Bar) — weighted toward the higher reputation/level end,
-since that's where a repeat player ran out of new contracts first.
+Multi-step contract objects with a credit + XP + reputation reward. Two
+contract boards: the **Fixer Board** (gated by Reputation, run by The
+Fixer) and **Endr3am's board** at the Chrome Noodle Bar (gated by
+Charisma). A third gate, **Level**, applies to contracts on either board
+and is tied to the same tiers that unlock Undercity's tougher enemies
+(`min_reputation`, `min_charisma`, `min_level` in the schema). 19
+contracts total as of this pass (11 Fixer Board, 8 Chrome Noodle Bar) —
+weighted toward the higher reputation/level end, since that's where a
+repeat player ran out of new contracts first.
 Beyond gating
 Endr3am's board, Charisma also gets Hyphen8d's Hut prices down (2%
 off per point, capped at 40%) — a general economic lever any class can
 lean into, not tied to a specific class right now (see section 4). Some
 contracts unlock new hub locations or NPCs — not used yet, but the hook
 exists.
+
+Four step types now, not just talk/kill: **fetch** (`target` is an item
+id — checks the item is currently equipped in any cyberware slot, satisfied
+either by buying it or by already owning it when the contract's accepted)
+and **deliver** (`target` is a location, `item` is what's being handed
+over — a Y/N confirmation, then the item is removed with no trade-in
+refund, unlike a normal sell) are usually chained together, the way "A
+Gift for Endr3am" fetches a Razor Claws from Hyphen8d's Hut and delivers
+it to Endr3am. **pay** (`target` a location, `amount` a flat credit sum)
+is a straight, all-or-nothing spend, confirmed the same way — "Debt
+Collector" is a single-step example, "Clean Getaway" chains it after a
+kill step instead of standing alone. talk/kill steps auto-advance
+silently on the triggering event (`engine/quests.py`'s `notify_step`);
+fetch/deliver/pay all touch something the player would rather not lose by
+accident, so they either auto-advance only on a state the player already
+chose (fetch) or require the Y/N confirm (deliver, pay) — see
+`check_fetch_steps`/`pending_deliver_step`/`pending_pay_step` and
+`engine/hub.py`'s `_check_deliver_and_pay`.
 
 **Dynamic economy** (`engine/shop.py`, rolled by `roll_daily_market` in
 `_sleep_and_advance_day`): each day, Hyphen8d's Hut restocks to a
@@ -159,6 +177,16 @@ centrally in `status_effects.apply_effect`. `EFFECT_LABELS` in
 `status_effects.py` bakes in a colored glyph badge per effect (e.g.
 `[🩸 BLEED]`), pre-wrapped in the WARNING theme color, so every
 consumer gets the same styled badge for free.
+
+Two usable-item effect types beyond heal/stun: `attack_buff` (a temporary
+Attack boost — see `OVERCLOCK_ATTACK_BONUS` in `combat.py`, shared by the
+plain Attack action, Samurai Slash, and Kill Switch via one
+`_effective_attack` helper so the buff can't be missed in any of them) and
+`guaranteed_flee` (ends the fight immediately, same code path as a
+successful Flee). The Attack buff is high-risk/high-reward by design —
+`status_effects.py` special-cases its expiry to inflict Bleed the moment
+it wears off, the same module that already special-cases Bleed immunity
+for droids.
 
 `run_combat`'s round loop clears and redraws a two-panel HUD
 (`_print_combat_hud`) at the top of every round — player left, enemy

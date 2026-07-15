@@ -16,6 +16,21 @@
       "faction": "Corp",
       "duration": 2,
       "flavor": "Fries anything running on a chip. Corp hardware hates this trick — street muscle barely notices."
+    },
+    {
+      "id": "overclock_injector",
+      "name": "Overclock Injector",
+      "cost": 150,
+      "effect": "attack_buff",
+      "duration": 3,
+      "flavor": "Floods your bloodstream with combat stims and pure adrenaline synth. Your nervous system will send you the bill."
+    },
+    {
+      "id": "scrambler_flare",
+      "name": "Scrambler Flare",
+      "cost": 75,
+      "effect": "guaranteed_flee",
+      "flavor": "Pop it and the world goes white-noise for three seconds. Long enough to not be there anymore."
     }
   ]
 }

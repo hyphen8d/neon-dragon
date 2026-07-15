@@ -321,11 +321,20 @@ Bleeding and Target-Lock Eyes causes Stunned.
 
 ## Contracts
 
-16 contracts total across two boards — the Fixer Board and Endr3am's
-board at the Chrome Noodle Bar. Contracts chain "talk" (visit a
-location) and "kill" (defeat a named enemy) steps, accepted, tracked,
+19 contracts total across two boards — the Fixer Board and Endr3am's
+board at the Chrome Noodle Bar. Contracts chain steps — "talk" (visit a
+location), "kill" (defeat a named enemy), "fetch" (buy a specific
+cyberware item from Hyphen8d's Hut), "deliver" (hand a fetched item over
+to whoever asked for it — no trade-in refund, it's a gift, not a sale),
+and "pay" (pay a flat credit amount at a location) — accepted, tracked,
 and turned in at their own board even if the steps happen elsewhere.
 Completing one pays credits, XP, and reputation.
+
+Talk and kill steps advance the moment you visit the right place or land
+the killing blow. Deliver and pay don't — both take something real from
+you, so both ask you to confirm (Yes/No) before it happens, and both tell
+you exactly what you're still short on if you can't complete them yet
+(how much more you need to pay, or that you haven't bought the item yet).
 
 Three gates control what's on offer: **Reputation** (Fixer Board),
 **Charisma** (Endr3am's board), and **Level** (both boards, tied to
@@ -391,7 +400,6 @@ A few things mentioned in the game's design notes but not implemented:
 
 - Charisma still has no effect on dialogue.
 - A third, charisma-focused class is pulled pending a redesign.
-- No fetch/deliver contracts — only talk/kill steps exist so far.
 - RoboDOJO belt-rank milestones (permanent passives for hitting stat
   thresholds) are a floated idea, not built — likely folded into a
   future Achievement system rather than shipped on their own.

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import random
+from collections import deque
 from dataclasses import dataclass, field
 from typing import Callable
 
@@ -88,21 +89,59 @@ class Move:
     effect: Callable[[Character, "Enemy", int, Console], None]
 
 
+COMBAT_LOG_MAXLEN = 10
+
+# The last few rounds' narration lines for the current fight, in order --
+# cleared at the start of every run_combat() call. _player_line/_enemy_line
+# populate this as a side effect of formatting a line, so every existing
+# console.print(_player_line(...)) / console.print(_enemy_line(...)) call
+# site logs for free; nothing else needs to change to keep this in sync.
+# Fights don't nest or overlap (one CLI, one fight at a time), so a single
+# module-level deque is safe.
+_combat_log: deque[str] = deque(maxlen=COMBAT_LOG_MAXLEN)
+
+
 def _player_line(text: str) -> str:
     """Tag a player-turn resolution line (attacks, hacks, items, defend,
     flee) with a bright directional prefix, so it reads at a glance
     without parsing the sentence."""
-    return f"[{TELEMETRY_PLAYER}]{PLAYER_ARROW}[/{TELEMETRY_PLAYER}] {text}"
+    line = f"[{TELEMETRY_PLAYER}]{PLAYER_ARROW}[/{TELEMETRY_PLAYER}] {text}"
+    _combat_log.append(line)
+    return line
 
 
 def _enemy_line(text: str) -> str:
     """Tag an enemy-turn attack or status-effect hit with an indented,
     darker directional prefix — the mirror of _player_line."""
-    return f"  [{TELEMETRY_ENEMY}]{ENEMY_ARROW}[/{TELEMETRY_ENEMY}] {text}"
+    line = f"  [{TELEMETRY_ENEMY}]{ENEMY_ARROW}[/{TELEMETRY_ENEMY}] {text}"
+    _combat_log.append(line)
+    return line
+
+
+def _show_combat_log(console: Console) -> None:
+    """A pure peek -- shown mid-fight without spending a round, see the
+    'V' handling in run_combat's action loop."""
+    body = "\n".join(_combat_log)
+    console.print(Panel(body, title=f"[{LABEL}]Action Log[/{LABEL}]", border_style=BORDER, padding=(1, 2)))
+    press_any_key(console, "Press any key to return to combat...")
 
 
 CRIT_CHANCE = 0.2
 CRIT_MULTIPLIER = 1.5
+
+# The Overclock Injector's temporary Attack boost (see engine/inventory.py's
+# "attack_buff" effect) -- crashes into Bleed on expiry, handled centrally
+# in engine/status_effects.py's process_round_start.
+OVERCLOCK_ATTACK_BONUS = 12
+
+
+def _effective_attack(character: Character, drunk_penalty: int) -> int:
+    """Attack stat as it actually applies this round -- drunk knocks it
+    down, an active Overclock Injector buff (see OVERCLOCK_ATTACK_BONUS)
+    bumps it up. Shared by the plain Attack action, Samurai Slash, and
+    Kill Switch so the buff can't be missed in one of them by accident."""
+    bonus = OVERCLOCK_ATTACK_BONUS if has_effect(character, "overclock") else 0
+    return max(0, character.attack - drunk_penalty + bonus)
 
 
 def roll_damage(attack: int, defense: int) -> tuple[int, bool]:
@@ -223,7 +262,7 @@ def _samurai_slash(character: Character, enemy: Enemy, drunk_penalty: int, conso
         return
 
     old_hp = enemy.hp
-    stat_value = max(0, character.attack - drunk_penalty)
+    stat_value = _effective_attack(character, drunk_penalty)
     dmg, crit = roll_damage(stat_value, enemy.defense)
     dmg = max(1, int(dmg * SAMURAI_SLASH_MULTIPLIER))
     enemy.hp -= dmg
@@ -280,7 +319,7 @@ def _adrenal_surge(character: Character, enemy: Enemy, drunk_penalty: int, conso
 def _kill_switch(character: Character, enemy: Enemy, drunk_penalty: int, console: Console) -> None:
     """A guaranteed opening — ignores enemy dodge_chance entirely, unlike a
     normal Attack. Class-independent (RoboDOJO ability)."""
-    stat_value = max(0, character.attack - drunk_penalty) + KILL_SWITCH_BONUS
+    stat_value = _effective_attack(character, drunk_penalty) + KILL_SWITCH_BONUS
     old_hp = enemy.hp
     dmg, crit = roll_damage(stat_value, enemy.defense)
     enemy.hp -= dmg
@@ -514,6 +553,7 @@ def run_combat(character: Character, enemy_data: dict) -> bool:
     place. Returns True on a win, False on a loss or a successful flee."""
     enemy = Enemy(**enemy_data)
     enemy_max_hp = enemy.hp
+    _combat_log.clear()
 
     moves = _character_moves(character)
     moves_by_key = {move.key: move for move in moves}
@@ -546,6 +586,8 @@ def run_combat(character: Character, enemy_data: dict) -> bool:
                 options.append((move.key, label))
             if character.inventory:
                 options.append(("I", "Items"))
+            if _combat_log:
+                options.append(("V", "View Log"))
 
             while True:
                 action = hotkey_prompt(console, options)
@@ -553,17 +595,29 @@ def run_combat(character: Character, enemy_data: dict) -> bool:
                     move = moves_by_key[action]
                     console.print(f"[{TEXT_DIM}]{move.label} is still recharging ({cooldowns[action]} more round(s)).[/{TEXT_DIM}]")
                     continue
+                if action == "V":
+                    # A pure peek — doesn't spend the round, so redraw the
+                    # HUD (press_any_key already cleared the screen) and
+                    # loop back to the same action prompt.
+                    _show_combat_log(console)
+                    _print_combat_hud(character, enemy, enemy_max_hp, moves, cooldowns)
+                    console.print()
+                    continue
                 if action == "I":
                     item_id = _choose_inventory_item(character, console)
                     if item_id is None:
                         continue
-                    use_item(character, item_id, console, enemy=enemy)
+                    if use_item(character, item_id, console, enemy=enemy):
+                        # A guaranteed-flee item (Scrambler Flare) ends the
+                        # fight on the spot -- same as a successful Flee,
+                        # no enemy turn.
+                        return False
                 break
 
             drunk_penalty = DRUNK_STAT_PENALTY if has_effect(character, "drunk") else 0
 
             if action == "A":
-                stat_value = max(0, character.attack - drunk_penalty)
+                stat_value = _effective_attack(character, drunk_penalty)
                 if _player_hit(character, enemy, stat_value, "attack", console) and enemy.alive:
                     _gear_inflict(character, enemy, "arm", console)
             elif action == "T":
@@ -639,6 +693,8 @@ def _handle_victory(character: Character, enemy: Enemy) -> None:
     character.xp += enemy.xp_reward
     character.reputation += enemy.reputation_reward
     character.kills[enemy.name] = character.kills.get(enemy.name, 0) + 1
+    character.total_fights_won += 1
+    character.total_credits_earned += enemy.credits_reward
     record_kill(character, enemy.faction)
     reward_text = f"+{enemy.credits_reward} credits, +{enemy.xp_reward} XP"
     if enemy.reputation_reward:
@@ -648,6 +704,7 @@ def _handle_victory(character: Character, enemy: Enemy) -> None:
     if random.random() < BONUS_LOOT_CHANCE:
         bonus = max(1, int(enemy.credits_reward * random.uniform(0.2, 0.5)))
         character.credits += bonus
+        character.total_credits_earned += bonus
         console.print(f"[{CREDITS}]Bonus salvage![/{CREDITS}] +{bonus} credits.")
 
     check_level_up(character, console)
