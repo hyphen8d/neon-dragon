@@ -1467,14 +1467,18 @@ def _visit_black_market(character: Character) -> None:
     table.add_column("Special", style=WARNING)
     table.add_column("Cost", justify="right")
     table.add_column("Description", style=TEXT_DIM)
+    fetch_targets = _active_fetch_targets(character)
     for i, item in enumerate(catalog, start=1):
         special = ""
         if item.get("inflict_effect"):
             label = EFFECT_LABELS.get(item["inflict_effect"], item["inflict_effect"])
             special = f"Causes {label}"
+        name_text = item["name"]
+        if item["id"] in fetch_targets:
+            name_text += f"\n[{RARE}][QUEST TARGET][/{RARE}]"
         table.add_row(
             str(i),
-            item["name"],
+            name_text,
             item["slot"].capitalize(),
             f"+{item['bonus']} {item['stat']}",
             special,
@@ -1534,14 +1538,18 @@ def _visit_street_stash(character: Character) -> None:
     table.add_column("Special", style=WARNING)
     table.add_column("Cost", justify="right")
     table.add_column("Description", style=TEXT_DIM)
+    fetch_targets = _active_fetch_targets(character)
     for i, item in enumerate(catalog, start=1):
         special = ""
         if item.get("inflict_effect"):
             label = EFFECT_LABELS.get(item["inflict_effect"], item["inflict_effect"])
             special = f"Causes {label}"
+        name_text = item["name"]
+        if item["id"] in fetch_targets:
+            name_text += f"\n[{RARE}][QUEST TARGET][/{RARE}]"
         table.add_row(
             str(i),
-            item["name"],
+            name_text,
             item["slot"].capitalize(),
             f"+{item['bonus']} {item['stat']}",
             special,

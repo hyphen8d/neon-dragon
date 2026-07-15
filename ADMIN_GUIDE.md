@@ -343,7 +343,7 @@ Note: some kill targets are shared across both boards (e.g. Street Ganger, Corp 
 
 `content/items.json` (normal catalog, credits) and `content/black_market.json` (Quantum Cores, no discounts apply). 4 slots: arm, eyes, spine, skin. Buying swaps out (and sells back at 50%) whatever's currently in that slot.
 
-**Quest target tagging**: `build_catalog_table` (`engine/hub.py`) checks every item in today's stock against `_active_fetch_targets(character)` — the `target` of any active "fetch" quest step — and appends a `RARE`-styled `[QUEST TARGET]` badge under the item name when it matches, so a player doesn't have to cross-reference their quest log against the catalog by hand. Scoped to the regular daily catalog only (not the Black Market or Street-Modded stash tables, which build their rows separately).
+**Quest target tagging**: `build_catalog_table`, `_visit_black_market`, and `_visit_street_stash` (`engine/hub.py`) each check their catalog against `_active_fetch_targets(character)` — the `target` of any active "fetch" quest step — and append a `RARE`-styled `[QUEST TARGET]` badge under the item name when it matches, so a player doesn't have to cross-reference their quest log against any of the three shop screens by hand.
 
 ### Normal catalog (8 items)
 
