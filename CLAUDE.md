@@ -66,6 +66,30 @@ means adding a new NPC or quest later is a content edit, not a code change.
   practice, flag it and suggest an update to that file rather than
   silently deviating from it.
 
+## Playtesting
+
+Two different tools for two different questions — use both, not one instead
+of the other:
+
+- **Headless simulation** (a script that drives `run_combat`/`roll_combat_encounter`/
+  `check_level_up`/etc. directly, bot-controlled, no terminal UI) for
+  *quantitative* balance questions: XP/level pacing, encounter weight
+  distributions, drop rates, whether an achievement unlocks at a fair rate
+  across classes. A handful of manual playthroughs can't generate enough
+  data points to trust the answer to "does this curve actually behave the
+  way the numbers suggest" — a sim covering 100+ fights in seconds can.
+- **Scripted-stdin or hands-on CLI playthroughs** for anything that touches
+  UI, a new screen, or player-facing feel: menu flow, panel rendering,
+  text wrapping, a new hotkey actually showing up where expected, whether
+  something that measures fine on paper still *feels* tedious or confusing
+  in practice. A bot only exercises what it's scripted to do — it's blind
+  to everything outside that script, including the actual UX complaint
+  that often motivated the change in the first place.
+
+Rule of thumb: reach for headless sim when the question is "what does the
+data say," and a real (or scripted-stdin) playthrough when the question is
+"does this actually work/feel right."
+
 ## Save files
 
 - One JSON save file per character under `saves/`.
