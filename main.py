@@ -15,6 +15,7 @@ from engine.character import CLASSES, Character, hp_style
 from engine.help import show_help
 from engine.hub import enter_hub
 from engine.leveling import xp_for_next_level
+from engine.prologue import run_prologue
 from engine.save import delete_save, list_saves, load_character, save_character, save_exists
 from engine.theme import ACCENT, ACCENT_SOFT, BORDER, BORDER_ACCENT, DANGER, ITALIC, LABEL, NAME, RARE, SUBTITLE, TEXT, TEXT_DIM, WARNING
 from engine.ui import hotkey_bracket, hotkey_prompt, read_choice
@@ -245,6 +246,7 @@ def main() -> None:
 
         if choice == "N":
             character = create_character()
+            run_prologue(character, console)
         elif choice == "L":
             slug = choose_existing_save()
             if slug is None:
