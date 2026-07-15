@@ -197,6 +197,29 @@
       }
     },
     {
+      "id": "draxx_grudge_match",
+      "type": "combat",
+      "weight": 7,
+      "min_level": 4,
+      "requires_kill": "Kingpin Draxx",
+      "intro": "A wall of shadow peels off a parking structure and blocks the alley ahead of you. Kingpin Draxx, flanked by two of his ring crew, cracks his neck. \"You embarrassed me in front of my own crowd. Out here, there's no ref, no purse, and no crowd to save you. Just us.\"",
+      "enemy": {
+        "name": "Kingpin Draxx",
+        "faction": "Gladiator",
+        "hp": 46,
+        "attack": 16,
+        "defense": 10,
+        "credits_reward": 130,
+        "xp_reward": 45,
+        "reputation_reward": 30,
+        "dodge_chance": 0.2,
+        "scan_desc": "Record: Lost the belt, not the reach. Fighting angrier and looser than he did in the ring — that cuts both ways.",
+        "inflict_effect": "bleed",
+        "inflict_chance": 0.3,
+        "inflict_duration": 2
+      }
+    },
+    {
       "id": "scavenger_stash",
       "type": "loot",
       "weight": 18,

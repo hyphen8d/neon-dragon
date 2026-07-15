@@ -5,7 +5,10 @@ from __future__ import annotations
 import json
 import random
 from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
+
+if TYPE_CHECKING:
+    from engine.character import Character
 
 CONTENT_PATH = Path(__file__).resolve().parent.parent / "content" / "encounters.json"
 
@@ -15,8 +18,20 @@ def load_encounters() -> list[dict[str, Any]]:
     return data["encounters"]
 
 
-def _eligible(character_level: int) -> list[dict[str, Any]]:
-    return [e for e in load_encounters() if character_level >= e.get("min_level", 1)]
+def _eligible(character: "Character") -> list[dict[str, Any]]:
+    """Encounters the player's level qualifies for. A `requires_kill` entry
+    (e.g. the Draxx grudge match) only enters the pool once that enemy's
+    name shows up in character.kills — the Undercity noticing what
+    happened in the Pit, not a generic level gate."""
+    eligible = []
+    for e in load_encounters():
+        if character.level < e.get("min_level", 1):
+            continue
+        required = e.get("requires_kill")
+        if required and character.kills.get(required, 0) < 1:
+            continue
+        eligible.append(e)
+    return eligible
 
 
 def _weighted_pick(pool: list[dict[str, Any]]) -> dict[str, Any]:
@@ -24,16 +39,16 @@ def _weighted_pick(pool: list[dict[str, Any]]) -> dict[str, Any]:
     return random.choices(pool, weights=weights, k=1)[0]
 
 
-def roll_combat_encounter(character_level: int, faction: str | None = None) -> dict[str, Any]:
-    """Roll among combat encounters the player's level qualifies for, optionally
+def roll_combat_encounter(character: "Character", faction: str | None = None) -> dict[str, Any]:
+    """Roll among combat encounters the player qualifies for, optionally
     restricted to one faction (used for Jack In's "traced" consequence)."""
-    pool = [e for e in _eligible(character_level) if e["type"] == "combat"]
+    pool = [e for e in _eligible(character) if e["type"] == "combat"]
     if faction:
         pool = [e for e in pool if e["enemy"].get("faction") == faction]
     return _weighted_pick(pool)
 
 
-def roll_scavenge_encounter(character_level: int) -> dict[str, Any]:
+def roll_scavenge_encounter(character: "Character") -> dict[str, Any]:
     """Roll among the low-risk loot/nothing encounters."""
-    pool = [e for e in _eligible(character_level) if e["type"] in ("loot", "nothing")]
+    pool = [e for e in _eligible(character) if e["type"] in ("loot", "nothing")]
     return _weighted_pick(pool)

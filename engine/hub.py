@@ -13,6 +13,7 @@ from rich.table import Table
 
 from engine.bestiary import TRAINING_DRONES, enemy_faction
 from engine.character import CYBERWARE_SLOTS, Character, hp_style
+from engine.city import random_headline, random_weather
 from engine.combat import ABILITIES, run_combat
 from engine.encounters import roll_combat_encounter, roll_scavenge_encounter
 from engine.heat import AMBUSH_CHANCE, HEAT_FACTIONS, hot_factions, reset_daily_kills
@@ -45,8 +46,10 @@ from engine.shop import (
     get_item,
     give_away,
     load_black_market,
+    load_street_modded,
     roll_daily_market,
     sell_back_value,
+    street_modded_unlocked,
     unequip,
 )
 from engine.status_effects import EFFECT_LABELS, apply_effect, cure_all
@@ -350,8 +353,11 @@ def _jack_in(character: Character) -> None:
             character.quantum_cores += 1
             console.print(
                 f"[{INFO}]The sub-grid crypto-seal completely ruptures, exposing the vault's "
-                f"high-tier logic core.[/{INFO}] Tucked deep behind the primary cooling rails, a "
-                "glowing Quantum Core clicks free. +1 Quantum Core."
+                f"high-tier logic core.[/{INFO}] Tucked deep behind the primary cooling rails is "
+                "something that shouldn't be there — a Quantum Core, humming at a frequency that "
+                "gives you a migraine behind one eye. It doesn't look manufactured. It looks grown, "
+                "veined like something that used to be alive, and for a second you'd swear it pulsed "
+                "in time with your own heartbeat before you pocketed it. +1 Quantum Core."
             )
         return
 
@@ -360,13 +366,13 @@ def _jack_in(character: Character) -> None:
         f"through your deck, pinning your physical coordinates.[/{ALERT}] Overhead, an automated "
         "corporate containment team deploys to neutralize the breach!"
     )
-    encounter = roll_combat_encounter(character.level, faction="Corp")
+    encounter = roll_combat_encounter(character, faction="Corp")
     console.print(f"[{TEXT_DIM}]{encounter['intro']}[/{TEXT_DIM}]")
     run_combat(character, encounter["enemy"])
 
 
 def _find_a_fight(character: Character) -> None:
-    encounter = roll_combat_encounter(character.level)
+    encounter = roll_combat_encounter(character)
     console.print(f"[{TEXT_DIM}]{encounter['intro']}[/{TEXT_DIM}]")
     run_combat(character, encounter["enemy"])
 
@@ -382,7 +388,7 @@ def _scavenge(character: Character) -> None:
             f"[{DANGER}]{faction} muscle jumps you while you're focused on sweeping the sector "
             f"for low-frequency cache signals, looking for payback.[/{DANGER}]"
         )
-        encounter = roll_combat_encounter(character.level, faction=faction)
+        encounter = roll_combat_encounter(character, faction=faction)
         console.print(f"[{TEXT_DIM}]{encounter['intro']}[/{TEXT_DIM}]")
         run_combat(character, encounter["enemy"])
         return
@@ -394,12 +400,12 @@ def _scavenge(character: Character) -> None:
         console.print(
             f"[{DANGER}]Bad luck — you're not the only one sweeping this frequency tonight.[/{DANGER}]"
         )
-        encounter = roll_combat_encounter(character.level)
+        encounter = roll_combat_encounter(character)
         console.print(f"[{TEXT_DIM}]{encounter['intro']}[/{TEXT_DIM}]")
         run_combat(character, encounter["enemy"])
         return
 
-    encounter = roll_scavenge_encounter(character.level)
+    encounter = roll_scavenge_encounter(character)
     console.print(f"[{TEXT_DIM}]{encounter['intro']}[/{TEXT_DIM}]")
     if encounter["type"] == "loot":
         low, high = encounter["credits"]
@@ -803,7 +809,14 @@ def _learn_ability(character: Character) -> None:
 
 def visit_the_pit(character: Character) -> None:
     print_arrival(character, "The Pit")
-    console.print(f"[{TEXT_DIM}]The crowd wants blood. Pick your match.[/{TEXT_DIM}]")
+    if character.kills.get("Kingpin Draxx", 0) > 0:
+        console.print(
+            f"[{ACCENT}]The announcer still doesn't quite believe it, three fights later: "
+            f"\"...the reigning champion of the Pit!\"[/{ACCENT}] Draxx's old corner is empty. "
+            f"Nobody's claimed it since you took the belt off him."
+        )
+    else:
+        console.print(f"[{TEXT_DIM}]The crowd wants blood. Pick your match.[/{TEXT_DIM}]")
 
     print_menu_divider("The Ring")
     gladiators = load_gladiators()
@@ -835,7 +848,10 @@ def visit_the_pit(character: Character) -> None:
         character.quantum_cores += 1
         console.print(
             f"\n[{INFO}]Tucked in the gladiator's rig, something that isn't scrap — "
-            f"a Quantum Core, still warm.[/{INFO}] +1 Quantum Core."
+            f"a Quantum Core, still warm, still faintly humming.[/{INFO}] It doesn't look "
+            "manufactured. It looks grown, and for a moment you'd swear the hum synced itself to "
+            "your pulse before settling back into its own rhythm. Whatever it is, it wasn't built "
+            "to be carried around by someone like you. +1 Quantum Core."
         )
 
 
@@ -888,36 +904,119 @@ def visit_chrome_noodle_bar(character: Character) -> None:
 
 BUY_ROUND_COST = 25
 
+# Corp body count that gets you treated like a local hero at the Noodle Bar —
+# same threshold Static Rin's conditional_lines use in content/npcs.json.
+CORP_HERO_KILL_THRESHOLD = 15
+
 
 def _buy_a_round(character: Character) -> None:
     if character.bought_round_today:
         console.print(f"\n[{TEXT_DIM}]Rin cuts you off. \"One's your limit tonight, choom. Come back tomorrow.\"[/{TEXT_DIM}]")
         return
-    if character.credits < BUY_ROUND_COST:
+
+    corp_kills = sum(count for name, count in character.kills.items() if enemy_faction(name) == "Corp")
+    is_corp_hero = corp_kills >= CORP_HERO_KILL_THRESHOLD
+
+    if not is_corp_hero and character.credits < BUY_ROUND_COST:
         console.print(f"\n[{DANGER}]Can't even afford to buy yourself a drink right now.[/{DANGER}]")
         return
 
     character.bought_round_today = True
-    character.credits -= BUY_ROUND_COST
-    console.print(f"\n[{TEXT_DIM}]You slap {BUY_ROUND_COST} credits on the bar. Rin pours.[/{TEXT_DIM}]")
-
-    roll = random.random()
-    if roll < 0.12:
-        stat_key = random.choice(["attack", "defense", "tech"])
-        setattr(character, stat_key, getattr(character, stat_key) + 1)
+    if is_corp_hero:
         console.print(
-            f"[{ACCENT}]Rin tells a story that actually sticks with you.[/{ACCENT}] "
-            f"+1 {stat_key.capitalize()}, permanently."
+            f"\n[{ACCENT}]Rin waves off your credits. \"This one's on the house — anybody putting that many "
+            f"corp badges in the ground drinks free here.\"[/{ACCENT}]"
         )
-    elif roll < 0.70:
+    else:
+        character.credits -= BUY_ROUND_COST
+        console.print(f"\n[{TEXT_DIM}]You slap {BUY_ROUND_COST} credits on the bar. Rin pours.[/{TEXT_DIM}]")
+
+    _resolve_round_encounter(character)
+
+
+# Micro-narratives for "Buy a Round" — each fires before its mechanical
+# payoff so the bar feels like a place things happen, not a slot machine.
+# Weights keep the overall odds close to the old flat 12% stat / 58% rep /
+# 30% drunk split, just spread across flavor instead of one line per tier.
+ROUND_ENCOUNTERS: list[dict] = [
+    {
+        "weight": 4,
+        "kind": "stat",
+        "stat": "attack",
+        "intro": "A ganger at the next stool challenges you to synth-arm wrestling for bragging rights. You win, "
+        "but something in your forearm pops on the last push.",
+        "outcome": "+1 Attack, permanently.",
+    },
+    {
+        "weight": 4,
+        "kind": "stat",
+        "stat": "tech",
+        "intro": "A jittery netrunner two seats down rambles about ghosts haunting the local subnet, then face-plants "
+        "into the bar. You slide his untouched synth-beer over and actually listen this time.",
+        "outcome": "+1 Tech, permanently.",
+    },
+    {
+        "weight": 4,
+        "kind": "stat",
+        "stat": "defense",
+        "intro": "A grizzled old merc corners you about a firefight gone wrong twenty years back — where to plant your "
+        "feet, when to actually block instead of hoping. Free lesson, no charge.",
+        "outcome": "+1 Defense, permanently.",
+    },
+    {
+        "weight": 4,
+        "kind": "rep_scav",
+        "intro": "A Scav's fingers brush your pocket mid-toast. You catch his wrist before the credits move an inch. "
+        "He goes pale, then buys the whole bar a round to make it disappear.",
+        "outcome": "+2 reputation.",
+    },
+    {
+        "weight": 28,
+        "kind": "rep",
+        "intro": "Rin slides you a drink and leans in with the good stuff — who's hiring, who's hiding, who's already "
+        "dead and doesn't know it yet.",
+        "outcome": "+2 reputation.",
+    },
+    {
+        "weight": 28,
+        "kind": "rep",
+        "intro": "You buy a round for a table of off-duty mercs. Turns out one of them owed you a favor from a job "
+        "you don't even remember taking. Word gets around that you collect.",
+        "outcome": "+2 reputation.",
+    },
+    {
+        "weight": 14,
+        "kind": "drunk",
+        "intro": "You get loud, then sloppy, then horizontal on the noodle counter. Rin has you tossed out before "
+        "you can order another.",
+    },
+    {
+        "weight": 14,
+        "kind": "drunk",
+        "intro": "You challenge the jukebox to a staring contest and lose badly. Somewhere around round three you "
+        "started singing. Rin is not letting you forget it.",
+    },
+]
+
+
+def _resolve_round_encounter(character: Character) -> None:
+    encounter = random.choices(ROUND_ENCOUNTERS, weights=[e["weight"] for e in ROUND_ENCOUNTERS], k=1)[0]
+    console.print(f"\n[{TEXT_DIM}]{encounter['intro']}[/{TEXT_DIM}]")
+
+    if encounter["kind"] == "stat":
+        stat_key = encounter["stat"]
+        setattr(character, stat_key, getattr(character, stat_key) + 1)
+        message = f"[{ACCENT}]{encounter['outcome']}[/{ACCENT}]"
+        if stat_key == "attack" and random.random() < 0.10:
+            character.hp = max(1, character.hp - 5)
+            message += f" [{DANGER}]The wire you pulled doesn't stop stinging — 5 damage.[/{DANGER}]"
+        console.print(message)
+    elif encounter["kind"] in ("rep", "rep_scav"):
         character.reputation += 2
-        console.print(f"[{CREDITS}]Decent gossip tonight.[/{CREDITS}] +2 reputation.")
+        console.print(f"[{CREDITS}]{encounter['outcome']}[/{CREDITS}]")
     else:
         apply_effect(character, "drunk", 3)
-        console.print(
-            f"[{DANGER}]You get loud, then sloppy, then horizontal. Rin has you tossed out "
-            f"before you can order another.[/{DANGER}]"
-        )
+        console.print(f"[{DANGER}]Drunk for the next few rounds.[/{DANGER}]")
 
 
 def _visit_endr3am(character: Character) -> None:
@@ -1291,6 +1390,72 @@ def _visit_black_market(character: Character) -> None:
     )
 
 
+def _visit_street_stash(character: Character) -> None:
+    if not street_modded_unlocked(character):
+        console.print(
+            f"\n[{TEXT_DIM}]Hyphen8d shrugs. \"Got some Street-Modded gear under the counter, "
+            f"but that's earned, not bought. Put in the work against the gangs first.\"[/{TEXT_DIM}]"
+        )
+        return
+
+    catalog = load_street_modded()
+
+    console.rule(f"[{ACCENT}]Hyphen8d's Stash[/{ACCENT}]")
+    console.print(
+        f"[{TEXT_DIM}]Hyphen8d reaches under the counter without being asked. \"You've earned this, choom. "
+        f"Gang crews stopped sending people my way after what you did to their guys.\"[/{TEXT_DIM}]\n"
+    )
+
+    table = Table(border_style=BORDER_ACCENT, box=box.DOUBLE)
+    table.add_column("#", justify="right", style=LABEL)
+    table.add_column("Item", style=TEXT)
+    table.add_column("Slot")
+    table.add_column("Bonus")
+    table.add_column("Special", style=WARNING)
+    table.add_column("Cost", justify="right")
+    table.add_column("Description", style=TEXT_DIM)
+    for i, item in enumerate(catalog, start=1):
+        special = ""
+        if item.get("inflict_effect"):
+            label = EFFECT_LABELS.get(item["inflict_effect"], item["inflict_effect"])
+            special = f"Causes {label}"
+        table.add_row(
+            str(i),
+            item["name"],
+            item["slot"].capitalize(),
+            f"+{item['bonus']} {item['stat']}",
+            special,
+            format_price(item, item["cost"]),
+            item["flavor"],
+        )
+    console.print(table)
+
+    choice = read_choice(
+        console,
+        [str(i) for i in range(len(catalog) + 1)],
+        prompt="Buy which piece? (0 to cancel)",
+    )
+    if choice == "0":
+        return
+
+    item = catalog[int(choice) - 1]
+    old_id = character.cyberware[item["slot"]]
+    old_item = get_item(old_id) if old_id else None
+    trade_in = sell_back_value(old_item) if old_item and currency_of(old_item) == "credits" else 0
+    price = discounted_cost(character, item)
+    if character.credits + trade_in < price:
+        console.print(f"[{DANGER}]Not enough credits for that, even with a trade-in.[/{DANGER}]")
+        return
+
+    buy_and_equip(character, item["id"])
+    if old_id:
+        console.print(f"[{TEXT_DIM}]{get_item(old_id)['name']} pulled and sold back for parts.[/{TEXT_DIM}]")
+    console.print(
+        f"[{ACCENT}]Installed:[/{ACCENT}] {item['name']} "
+        f"(+{item['bonus']} {item['stat']}) for {price} credits."
+    )
+
+
 def visit_hyphen8ds_hut(character: Character) -> None:
     print_arrival(character, "Hyphen8d's Hut")
 
@@ -1311,12 +1476,14 @@ def visit_hyphen8ds_hut(character: Character) -> None:
     catalog = get_daily_catalog(character)
     _print_shop_dashboard(character, catalog)
 
-    # The Black Market ([M]) is a hidden option — deliberately left off the
-    # printed menu text. It's only worth anything once a player has found a
-    # Quantum Core, so there's nothing to advertise for most of a playthrough.
+    # The Black Market ([M]) and Hyphen8d's Street-Modded stash ([K]) are
+    # hidden options — deliberately left off the printed menu text. The
+    # Black Market is only worth anything once a player has found a
+    # Quantum Core; the stash only opens once Hyphen8d respects your body
+    # count against the Street Gangs (see street_modded_unlocked).
     visible = [("B", "Buy"), ("S", "Sell"), ("L", "Leave")]
     menu_text = OPTION_SEPARATOR.join(hotkey_bracket(key, label) for key, label in visible)
-    action = read_choice(console, [key for key, _ in visible] + ["M"], prompt=menu_text)
+    action = read_choice(console, [key for key, _ in visible] + ["M", "K"], prompt=menu_text)
     console.rule(style=TEXT_DIM)
     if action == "B":
         _buy_cyberware(character, catalog)
@@ -1324,6 +1491,8 @@ def visit_hyphen8ds_hut(character: Character) -> None:
         _sell_cyberware(character)
     elif action == "M":
         _visit_black_market(character)
+    elif action == "K":
+        _visit_street_stash(character)
 
 
 def _themed_table(title: str) -> Table:
@@ -1446,7 +1615,7 @@ def _sleep_and_advance_day(character: Character) -> None:
             f"\n[{DANGER}]You're barely through the door when {faction} muscle kicks it back "
             f"open — they tracked you home.[/{DANGER}]"
         )
-        encounter = roll_combat_encounter(character.level, faction=faction)
+        encounter = roll_combat_encounter(character, faction=faction)
         console.print(f"[{TEXT_DIM}]{encounter['intro']}[/{TEXT_DIM}]")
         run_combat(character, encounter["enemy"])
 
@@ -1466,6 +1635,8 @@ def _sleep_and_advance_day(character: Character) -> None:
     body = Table.grid(padding=(0, 2))
     body.add_column(style=ACCENT_SOFT)
     body.add_column(style=TEXT)
+    body.add_row("Weather", f"[{TEXT_DIM} italic]{random_weather()}[/{TEXT_DIM} italic]")
+    body.add_row("Headline", f"[{TEXT_DIM} italic]{random_headline()}[/{TEXT_DIM} italic]")
     body.add_row("Level", str(character.level))
     body.add_row("Credits", f"{character.credits} ({character.banked_credits} banked)")
     body.add_row("Reputation", str(character.reputation))

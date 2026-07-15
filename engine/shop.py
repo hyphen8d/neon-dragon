@@ -7,10 +7,17 @@ import random
 from pathlib import Path
 from typing import Any
 
+from engine.bestiary import enemy_faction
 from engine.character import Character
 
 CONTENT_PATH = Path(__file__).resolve().parent.parent / "content" / "items.json"
 BLACK_MARKET_PATH = Path(__file__).resolve().parent.parent / "content" / "black_market.json"
+STREET_MODDED_PATH = Path(__file__).resolve().parent.parent / "content" / "street_modded.json"
+
+# Hyphen8d respects a body count against Street Gangs — hit this many kills
+# and he'll pull his personal stash of scavenged gang chrome out from under
+# the counter.
+STREET_MODDED_KILL_THRESHOLD = 15
 
 SELL_BACK_RATE = 0.5
 
@@ -48,14 +55,31 @@ def load_black_market() -> list[dict[str, Any]]:
     return data["black_market"]
 
 
+def load_street_modded() -> list[dict[str, Any]]:
+    data = json.loads(STREET_MODDED_PATH.read_text())
+    return data["street_modded"]
+
+
+def street_gang_kills(character: Character) -> int:
+    return sum(count for name, count in character.kills.items() if enemy_faction(name) == "Street Gang")
+
+
+def street_modded_unlocked(character: Character) -> bool:
+    return street_gang_kills(character) >= STREET_MODDED_KILL_THRESHOLD
+
+
 def get_item(item_id: str) -> dict[str, Any]:
-    """Look up an item by id across both the regular catalog and the Black
-    Market — anything that can end up in character.cyberware needs to
-    resolve here, regardless of which shop it was bought from."""
+    """Look up an item by id across the regular catalog, the Black Market,
+    and Hyphen8d's Street-Modded stash — anything that can end up in
+    character.cyberware needs to resolve here, regardless of which shop it
+    was bought from."""
     for item in load_cyberware():
         if item["id"] == item_id:
             return item
     for item in load_black_market():
+        if item["id"] == item_id:
+            return item
+    for item in load_street_modded():
         if item["id"] == item_id:
             return item
     raise KeyError(item_id)

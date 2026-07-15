@@ -1,0 +1,35 @@
+{
+  "weather": [
+    "Acid rain is washing the neon into the gutters today.",
+    "Massive static storms in the upper atmosphere — the grid's flickering across three districts.",
+    "Smog's sitting low tonight, thick enough to taste the copper in it.",
+    "A rare clear sky. The stars are out, which nobody in the Undercity knows what to do with.",
+    "Ash is falling again — nobody's confirmed which factory, or if it's even a factory.",
+    "Humidity's spiking. Every chrome surface in the city is sweating condensation.",
+    "The rain's warm tonight, which everyone agrees is worse than cold rain.",
+    "Dust storms rolling in off the dead zone are painting the skyline the color of rust.",
+    "Solar flare warnings have half the corp towers running on backup power.",
+    "Fog's rolled in so thick the streetlights are just smears of pink and blue.",
+    "A light drizzle of something that isn't quite rain is beading on every window in the district.",
+    "The wind's carrying ash and ozone tonight — somewhere, something big got fried."
+  ],
+  "headlines": [
+    "Corp CEO Assassinated, Stock Plummets.",
+    "Sewer Mutants Claim Another Maintenance Crew.",
+    "NetVault Denies Data Breach Amid Rumors of Vault-Wide Lockdown.",
+    "Underground Cage Fights Linked to Three Missing Persons Cases.",
+    "City Council Approves New Surveillance Drone Contract, Citizens Not Consulted.",
+    "Black Market Cyberware Recall Ignored by Everyone Who Actually Bought It.",
+    "Local Fixer Board Legend Retires, Successor Unknown.",
+    "Rogue AI Rumors Resurface After Blackout in the Financial District.",
+    "Gang War Truce Brokered by Bartender, City Officials Reportedly Baffled.",
+    "Quantum Core Black Market Price Spikes After Latest 'Recovery'.",
+    "Chrome Beast Sightings Triple Near the Undercity Rail Line.",
+    "Anonymous Tip Leads Corp Security to Empty Warehouse, Again.",
+    "NetVault Teller Wins Employee of the Month, Says She 'Feels Nothing'.",
+    "RoboDOJO Drone Malfunctions Mid-Sparring Match, Front Desk Blames Waiver.",
+    "Static Storms Delay Corp Shipments, Street Prices Climb Overnight.",
+    "Missing Fixer's Terminal Found Still Broadcasting Job Postings.",
+    "Pit Champion Dethroned, Betting Odds Thrown Into Chaos."
+  ]
+}

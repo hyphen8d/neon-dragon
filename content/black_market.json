@@ -8,7 +8,7 @@
       "cost": 3,
       "stat": "attack",
       "bonus": 12,
-      "flavor": "A knuckle-mounted graviton emitter. Prototype. Not FDA approved. Not anyone-approved.",
+      "flavor": "A knuckle-mounted graviton emitter, back-engineered from a design nobody at Hyphen8d's level should've had access to. The schematics were flagged and purged from three separate corp archives on the same night. He won't say who sent them, only that the sender didn't have a name field.",
       "inflict_effect": "bleed",
       "inflict_chance": 0.4,
       "inflict_duration": 3
@@ -21,7 +21,7 @@
       "cost": 3,
       "stat": "tech",
       "bonus": 13,
-      "flavor": "Sees three seconds into the local net's future. Migraines are the price of prophecy.",
+      "flavor": "Sees three seconds into the local net's future. Migraines are the price of prophecy — and lately, in the quiet gap between blinks, you catch something looking back through the feed that isn't a corp trace and isn't you. Hyphen8d says the last owner stopped sleeping before he stopped showing up at all.",
       "inflict_effect": "stunned",
       "inflict_chance": 0.35,
       "inflict_duration": 2
@@ -34,7 +34,7 @@
       "cost": 4,
       "stat": "defense",
       "bonus": 13,
-      "flavor": "Salvaged alien-grade lattice. Nobody knows where Hyphen8d actually got this one."
+      "flavor": "Pulled from a sublevel that doesn't appear on any city survey, in a structure the excavation crew swore was already old when the city was built on top of it. The lattice isn't alien-grade so much as pre-everything. Nobody who asked Hyphen8d where he got this one liked the answer enough to ask twice."
     },
     {
       "id": "ghost_protocol_derm",
@@ -44,7 +44,7 @@
       "cost": 4,
       "stat": "charisma",
       "bonus": 12,
-      "flavor": "Adaptive camo-weave that reads a room before you walk into it. Illegal in every district that knows it exists."
+      "flavor": "Adaptive camo-weave that reads a room before you walk into it — and reads you back, adjusting to a version of your face you haven't made yet. Illegal in every district that knows it exists, which is fewer than it should be, and Hyphen8d swears the weave pattern updates itself overnight without anyone touching it."
     }
   ]
 }

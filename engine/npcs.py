@@ -56,6 +56,9 @@ def _condition_value(character: "Character", condition: str) -> float:
         return 1 if character.credits < 0 else 0
     if condition == "learned_abilities":
         return len(character.learned_abilities)
+    if condition.startswith("equipped_"):
+        item_id = condition[len("equipped_"):]
+        return 1 if item_id in character.cyberware.values() else 0
     return 0
 
 

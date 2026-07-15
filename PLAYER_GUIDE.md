@@ -56,7 +56,10 @@ main menu now shows how many contracts you've got active, so you don't
 have to hunt for a reminder. NPCs also aren't purely random flavor —
 a handful will start drawing from a different line pool once you've
 actually earned it (a body count, a debt, a stash of Quantum Cores,
-proven reliability) instead of repeating generic chatter forever.
+proven reliability) instead of repeating generic chatter forever. A
+few even notice what's physically on you — walk into Doc Wire's
+Clinic with the right piece of chrome bolted to your arm and he'll
+have something to say about it, not just about your credit balance.
 Locations:
 
 ### Chrome Noodle Bar
@@ -71,12 +74,18 @@ resets when you sleep.
 
 From there you pick one thing to do:
 
-- **Buy a round** (25 credits) — a gamble. Small chance (12%) of a
-  permanent +1 to Attack, Defense, or Tech. Most of the time (58%) just
-  a bit of gossip (+2 reputation). The rest of the time (30%) you get
-  thrown out **Drunk** — a status effect that weakens your next fight's
-  Attack/Tech rolls until it wears off or you pay Doc Wire to cure it.
-  Rin only pours you one round a day — the option resets when you sleep.
+- **Buy a round** (25 credits) — not a flat dice roll, a little
+  narrative each time. Something happens first — a Scav tries to
+  pick your pocket, a jittery netrunner rambles about ghosts in the
+  subnet, a ganger challenges you to synth-arm wrestling — and *then*
+  the payoff lands: most of the time it's gossip (+2 reputation),
+  sometimes a permanent +1 to Attack, Defense, or Tech, and sometimes
+  you get thrown out **Drunk** — a status effect that weakens your
+  next fight's Attack/Tech rolls until it wears off or you pay Doc
+  Wire to cure it. (The arm-wrestling win has its own downside risk —
+  read the flavor text before you celebrate.) Rin only pours you one
+  round a day — the option resets when you sleep. Put in enough work
+  against Corp targets and she starts comping it outright.
 - **Check the shady booth in the back** — Endr3am, a tall merc, runs
   his own contract board here, separate from the Fixer Board and
   gated by **Charisma** instead of Reputation. Charisma only comes
@@ -95,9 +104,9 @@ options and their risk profile, so check that before you choose:
   location, forcing a fight against a Corp-faction enemy (Rogue Drone,
   Corp Patrol Trooper, or Corp Strike Team) right then. This is Tech's
   main use outside combat. Rarely, a clean crack exposes the box's
-  logic core and a **Quantum Core** clicks free — check your Character
-  Info screen for a running count. What they're for isn't posted
-  anywhere.
+  logic core and a **Quantum Core** clicks free — it doesn't hum right,
+  and it doesn't look manufactured. Check your Character Info screen
+  for a running count. What they're for isn't posted anywhere.
 - **[F] Find a Fight** — guarantees a combat encounter (still random
   which enemy), for when you specifically want XP/credits without
   gambling on nothing happening.
@@ -198,6 +207,12 @@ toughest paying out the most. Wins grant credits, XP, and reputation
 Board contracts). Beating the current toughest gladiator has the
 same rare shot at a Quantum Core as a clean Slice Drop Box crack
 does.
+
+Beat **Kingpin Draxx**, the current top-tier gladiator, and it sticks:
+the announcer greets you as reigning champion on every future visit.
+It doesn't end there, either — he holds a grudge. Don't be surprised
+if he (and a couple of his crew) show up out in the Undercity to try
+to take the belt back the hard way.
 
 ### Fixer Board
 Accept, track, and turn in contracts from The Fixer. Each contract is
@@ -384,7 +399,10 @@ heals you, clears every status effect you're carrying, resolves
 Faction Heat (above), rolls a new day at Hyphen8d's Hut (fresh stock
 and market event), and prints a "Daily Data Feed" panel summarizing
 where you stand — level, credits, reputation, kills by faction, and
-today's Hyphen8d's Hut pricing. Your day only advances when you
+today's Hyphen8d's Hut pricing. The feed leads with a bit of city
+color first: a weather line and a fake news headline, different every
+morning. Purely cosmetic — Neo Meridian keeps existing while you're
+asleep, none of it changes your stats. Your day only advances when you
 choose to leave; there's still no limit on how much you do at the hub
 before then.
 

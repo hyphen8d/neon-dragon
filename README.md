@@ -1,6 +1,6 @@
 # Neon Dragon
 
-**Alpha 2.5**
+**Alpha 2.6**
 
 A single-player, terminal-based RPG set in a cyberpunk vaporwave city —
 Neo Meridian. No server, no accounts, no web frontend. Just a Python
@@ -55,7 +55,22 @@ python3 -m venv .venv
 - A day/night cycle — leaving the hub (with confirmation) sends your
   merc home to sleep: full heal, status effects cleared, daily caps
   reset (RoboDOJO sparring, Buy a Round, Chrome Noodle Bar's free
-  rest), and a "Daily Data Feed" panel summarizing where you stand
+  rest), and a "Daily Data Feed" panel summarizing where you stand,
+  led by a random **City Conditions** weather line and fake news
+  headline — pure worldbuilding, the city visibly still moving while
+  you sleep
+- NPCs react to who you are, not just generic flavor: kill-count and
+  reputation thresholds unlock new dialogue pools (a local-hero
+  welcome at 15+ Corp kills, a hidden gear stash at 15+ Street Gang
+  kills), and several NPCs comment directly on specific cyberware
+  you've got equipped when you walk in
+- A living arena — beat the Pit's toughest gladiator and The Pit
+  itself acknowledges you as reigning champion, while he starts
+  occasionally ambushing you out in the Undercity to reclaim his honor
+- Buy a Round at the Chrome Noodle Bar is a weighted micro-encounter
+  table, not a flat dice roll — 8 flavored mini-narratives (pickpocket
+  Scavs, rambling netrunners, synth-arm-wrestling gangers) each
+  precede their own stat/reputation/status payoff
 - Faction Heat — rack up too many kills against Corp or Street Gang in
   one day and you risk a retaliatory ambush, mid-Scavenge or the
   moment you wake up
@@ -67,11 +82,12 @@ python3 -m venv .venv
   consumed on a no-op use (full-HP heal, faction-mismatched stun)
 - Charisma has real mechanical weight: shop discounts, cheaper trauma
   bills after a lost fight, and gates on higher-tier contracts
-- A rare secondary currency and the black-market economy built around
-  it, for players who go looking
-- 10 Undercity enemies, 5 Pit gladiators, and 16 contracts across two
-  boards — enough variety that repeat play doesn't loop the same
-  handful of fights
+- A rare, eerie secondary currency (Quantum Cores — "grown, not
+  manufactured") and two black-market economies built around it and
+  around Street Gang kills, for players who go looking
+- 11 Undercity encounters (including a kill-gated nemesis fight), 5
+  Pit gladiators, and 16 contracts across two boards — enough variety
+  that repeat play doesn't loop the same handful of fights
 - In-game character info (`[I]`) and help (`[?]`) screens, accessible
   mid-session without spending a turn
 - Bracket-hotkey menus throughout — every screen shows a bold-bracketed
@@ -108,7 +124,7 @@ are the deliberate exceptions — see `ADMIN_GUIDE.md`'s content map.)
 
 ## Status
 
-Alpha 2.5. Every hub location has real mechanics; RoboDOJO trains
+Alpha 2.6. Every hub location has real mechanics; RoboDOJO trains
 stats through actual sparring fights and sells permanent combat
 abilities; the current "end game" is working through Fixer Board and
 Chrome Noodle Bar contracts (16 across both boards), with a

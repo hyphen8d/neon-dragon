@@ -3,7 +3,7 @@
 A single-file reference wiki for whoever's running/editing this game, as
 opposed to `PLAYER_GUIDE.md` (in-character, player-facing, also readable
 in-game via `?`). This doc pulls every number and gate from the actual
-`content/*.json` files and `engine/*.py` constants as of **Alpha 2.5** —
+`content/*.json` files and `engine/*.py` constants as of **Alpha 2.6** —
 if a number here ever disagrees with the code, the code wins; update this
 file to match rather than the other way around.
 
@@ -37,11 +37,11 @@ laid out for lookup rather than narrative reading.
 
 | | |
 |---|---|
-| Version | Alpha 2.5 |
+| Version | Alpha 2.6 |
 | Classes | 2 (Street Samurai, Netrunner) — third charisma-focused class pulled, pending redesign |
 | Hub locations | 8 |
 | NPCs | 8 |
-| Undercity combat encounters | 10 |
+| Undercity combat encounters | 11 (10 open + 1 kill-gated: the Draxx grudge match) |
 | Undercity scavenge/loot flavor entries | 6 (3 loot, 3 nothing) |
 | Pit gladiators | 5 (2 Tier 1, 1 Tier 2, 1 Tier 3, 1 Tier 4) |
 | RoboDOJO sparring drones | 3 (one per trainable stat) |
@@ -49,8 +49,11 @@ laid out for lookup rather than narrative reading.
 | Contracts | 16 (9 Fixer Board, 7 Chrome Noodle Bar) |
 | Cyberware (normal) | 8, across 4 slots |
 | Cyberware (Black Market) | 4, one per slot |
+| Cyberware (Street-Modded) | 1 (arm slot, credits, kill-gated) |
+| Buy a Round micro-encounters | 8 (weighted; 3 stat, 2 rep, 2 drunk, 1 rep-scav) |
 | Usable/consumable items | 2 |
 | Status effects | 3 (Bleed, Stunned, Drunk) |
+| City Conditions flavor entries | 12 weather + 17 headlines |
 | Save format | one JSON file per character under `saves/`, gitignored |
 
 ---
@@ -65,7 +68,7 @@ Defined in `engine/character.py`'s `CLASSES` dict.
 | Netrunner | 22 | 3 | 3 | 9 | 4 | Tech-focused. Special: Override System |
 | ~~Grifter~~ | 24 | 4 | 4 | 4 | 9 | **Pulled.** Was charisma-focused; no combat special existed for it. A redesigned third class is pending — see `GAME_DESIGN.md` §4 |
 
-Charisma remains a fully live stat regardless of class — see [Economy](#economy). It is **not** grown by leveling (`STAT_GROWTH` in `engine/leveling.py` omits it); the only ways to raise it post-creation are skin-slot cyberware or the 12% "Buy a Round" roll... actually that roll only touches Attack/Defense/Tech (`_buy_a_round` in `engine/hub.py`), so **cyberware is the only way to raise Charisma after character creation.**
+Charisma remains a fully live stat regardless of class — see [Economy](#economy). It is **not** grown by leveling (`STAT_GROWTH` in `engine/leveling.py` omits it); the "Buy a Round" stat-gain outcomes only touch Attack/Defense/Tech (`ROUND_ENCOUNTERS` in `engine/hub.py`), so **cyberware is the only way to raise Charisma after character creation.**
 
 ---
 
@@ -88,7 +91,7 @@ All defined in `engine/hub.py` (`LOCATION_HOTKEYS`, `LOCATIONS`, `LOCATION_DESCR
 | `C` | Chrome Noodle Bar | Free rest (once/day), Buy a Round (once/day), Endr3am's charisma-gated contract board |
 | `U` | Undercity | Slice Drop Box (hack), Find a Fight (guaranteed combat), Hunt Cache (scavenge) |
 | `N` | NetVault | Deposit/withdraw credits — banked credits are safe from trauma-bill loss |
-| `H` | Hyphen8d's Hut | Buy/sell cyberware; daily rotating 4-item stock + price event; hidden Black Market |
+| `H` | Hyphen8d's Hut | Buy/sell cyberware; daily rotating 4-item stock + price event; hidden Black Market; hidden Street-Modded stash (kill-gated) |
 | `D` | Doc Wire's Clinic | Heal HP for credits, cure status effects, buy consumables |
 | `R` | RoboDOJO | Spar to train stats (capped 3/day), buy permanent abilities |
 | `P` | The Pit | Gladiator fights for reputation/credits, rare Quantum Core on a top-tier win |
@@ -100,21 +103,24 @@ The main hub menu's Character Info action row shows a live `len(character.active
 
 ### Chrome Noodle Bar
 - **Free rest**: tops HP to `REST_THRESHOLD` (50%) of max, once per day (`Character.rested_today`). No-op if already at/above the floor.
-- **Buy a Round** (`BUY_ROUND_COST` = 25cr, once/day via `bought_round_today`): 12% chance +1 permanent Attack/Defense/Tech (random), 58% chance +2 reputation, 30% chance **Drunk** status (3 rounds, `-3` to Attack/Tech rolls in combat until cured or worn off).
+- **Buy a Round** (`BUY_ROUND_COST` = 25cr, once/day via `bought_round_today`; free if `corp_kills >= CORP_HERO_KILL_THRESHOLD` (15) — Static Rin comps "local hero" mercs): rolls a weighted micro-encounter table, `ROUND_ENCOUNTERS`/`_resolve_round_encounter` in `engine/hub.py` — 8 flavored outcomes, weighted to land close to the old flat split (~12% stat / ~58% rep / ~28% drunk): 3 stat entries (+1 permanent Attack/Defense/Tech each, weight 4 each — the Attack one also has a 10% chance of an extra 5 damage on top), 1 "Scav pickpocket" rep entry (weight 4, +2 rep), 2 generic gossip rep entries (weight 28 each, +2 rep), 2 drunk entries (weight 14 each, **Drunk** status, 3 rounds).
 - **Contract Booth** (`[C]`, `_visit_endr3am`): Endr3am's charisma-gated board (see [Contracts](#contracts)), reached via the back-booth sub-screen, not a separate hub location. Uses the same Interaction Deck treatment as every other primary-NPC screen (right panel: Charisma, Contracts Active/Completed for this board) — labeled "Check the shady booth in the back" and printed as plain unbordered text before this pass; both fixed for consistency with the rest of the hub.
 
 ### Undercity
 Three approaches, picked each visit (`_jack_in`, `_find_a_fight`, `_scavenge` in `engine/hub.py`):
 
-- **Slice Drop Box** — success chance `min(0.85, 0.30 + tech * 0.04)`. On success: `random(15,35) + tech//2` credits, plus a 4% (`QUANTUM_CORE_DROP_CHANCE`) chance of +1 Quantum Core. On failure: forces a Corp-faction combat encounter ("Black-ICE" trace).
+- **Slice Drop Box** — success chance `min(0.85, 0.30 + tech * 0.04)`. On success: `random(15,35) + tech//2` credits, plus a 4% (`QUANTUM_CORE_DROP_CHANCE`) chance of +1 Quantum Core (narrated as unsettling — "grown, not manufactured" — not a plain pickup). On failure: forces a Corp-faction combat encounter ("Black-ICE" trace).
 - **Find a Fight** — guaranteed combat, any level-eligible enemy.
 - **Hunt Cache** — layered risk: if any faction is "hot" (Faction Heat), 15% ambush chance rolls a combat encounter against that faction first; otherwise a flat 10% (`CACHE_BASE_RISK_CHANCE`) chance of a random combat encounter regardless of Heat; otherwise rolls the loot/nothing pool.
+
+`roll_combat_encounter`/`roll_scavenge_encounter` (`engine/encounters.py`) now take the full `Character`, not just level — `_eligible` filters on `min_level` as before, plus an optional `requires_kill` field (an enemy name that must already be in `character.kills`). Currently used only by the Draxx grudge match (see [Bestiary — The Pit](#bestiary--the-pit)), which is otherwise an ordinary weighted entry in the same combat pool Find a Fight and the Hunt Cache baseline-risk roll draw from — it never surfaces in the Corp-only Jack In trace or a Heat ambush, since its faction is `Gladiator`, not `Corp`/`Street Gang`.
 
 ### Hyphen8d's Hut
 - Now uses the Interaction Deck too (right panel: "Today's Event"); previously the only primary-location NPC printed as plain text instead of the bordered panel everyone else got.
 - Daily stock: 4 random cyberware items (`DAILY_STOCK_SIZE`), re-rolled on sleep.
 - Daily market event: one random slot gets a discount or surge, 10-30% (`MARKET_EVENT_MIN/MAX_PERCENT`), stacking with the Charisma discount.
-- **Black Market** (`[M]` hotkey, deliberately not shown in the visible menu text): 4 elite items priced in Quantum Cores, no Charisma/market modifiers apply.
+- **Black Market** (`[M]` hotkey, deliberately not shown in the visible menu text): 4 elite items priced in Quantum Cores, no Charisma/market modifiers apply. Flavor text now hints at a shared conspiracy thread (purged corp archives, something watching through the net, pre-city buried tech) rather than reading as a plain higher shop tier.
+- **Street-Modded stash** (`[K]` hotkey, also not shown in the visible menu text): unlocks once `street_gang_kills >= STREET_MODDED_KILL_THRESHOLD` (15, `engine/shop.py`'s `street_modded_unlocked`). Below the threshold, selecting it just prints Hyphen8d turning the player away in character. Above it, buys like the normal catalog — credits, Charisma discount, and the daily market event all apply (unlike the Black Market's fixed Quantum Core pricing). 1 item currently: Riot Knuckles (arm, 220cr, +9 Attack, Bleed 30%/2rd).
 - Sell-back rate: 50% of cost (`SELL_BACK_RATE`), refunded in whichever currency the item was priced in.
 
 ### Doc Wire's Clinic
@@ -130,7 +136,9 @@ Three approaches, picked each visit (`_jack_in`, `_find_a_fight`, `_scavenge` in
 ### The Pit
 - Fixed roster of 5 gladiators (see [Bestiary — The Pit](#bestiary--the-pit)), no level gating.
 - Win grants credits/XP/reputation.
-- Quantum Core drop (4% chance) only on beating whichever gladiator currently has the **highest tier** in `content/pit.json` (`top_tier = max(tier)`, computed dynamically — not hardcoded to a specific tier, so adding a new toughest gladiator moves the drop-eligible tier automatically).
+- Quantum Core drop (4% chance) only on beating whichever gladiator currently has the **highest tier** in `content/pit.json` (`top_tier = max(tier)`, computed dynamically — not hardcoded to a specific tier, so adding a new toughest gladiator moves the drop-eligible tier automatically). Narration is the same "grown, not manufactured" unsettling flavor as the Slice Drop Box drop.
+- **Reigning champion callout**: `visit_the_pit`'s arrival text checks `character.kills.get("Kingpin Draxx", 0) > 0` and, once true, permanently swaps the default "the crowd wants blood" line for a champion-acknowledgment line instead.
+- **Draxx grudge match**: see [Bestiary — Undercity](#bestiary--undercity)'s nemesis-encounter note — beating Draxx unlocks a kill-gated Undercity ambush where he (and his crew) show up to reclaim his honor, buffed above his Pit stats.
 
 ### Fixer Board
 - Reputation-gated contracts (see [Contracts](#contracts)).
@@ -160,8 +168,8 @@ Supported `condition` keys (add more by extending `_condition_value` — no new 
 
 | Condition | Reads | Current usage |
 |---|---|---|
-| `corp_kills` | Sum of `character.kills` for Corp-faction enemy names | Static Rin, min 5 |
-| `street_gang_kills` | Same, Street Gang faction | unused so far |
+| `corp_kills` | Sum of `character.kills` for Corp-faction enemy names | Static Rin, min 5 and min 15 (higher tier adds to the pool, doesn't replace it) |
+| `street_gang_kills` | Same, Street Gang faction | Hyphen8d, min 15 (also the Street-Modded stash unlock threshold) |
 | `total_kills` | Sum of all `character.kills` values | Agent Parker, min 10 |
 | `quantum_cores` | `character.quantum_cores` | Hyphen8d, min 1 |
 | `completed_quests` | `len(character.completed_quests)` | The Fixer, min 3 |
@@ -169,6 +177,7 @@ Supported `condition` keys (add more by extending `_condition_value` — no new 
 | `banked_credits` | `character.banked_credits` | Ms. Kessler, min 500 |
 | `in_debt` | `1` if `character.credits < 0` else `0` | Doc Wire, min 1 |
 | `learned_abilities` | `len(character.learned_abilities)` | Daryl, min 2 |
+| `equipped_<item_id>` | `1` if `item_id` is in `character.cyberware.values()` else `0` | Doc Wire (`equipped_singularity_fist`), Static Rin (`equipped_target_lock_eyes`), Hyphen8d (`equipped_razor_claws`), Agent Parker (`equipped_ghost_protocol_derm`), Ms. Kessler (`equipped_oracle_retinas`) — all min 1 |
 
 ---
 
@@ -228,6 +237,12 @@ Effects tick down once per round and don't clear on leaving combat (carry into t
 | Corp Strike Team | Corp | 5 | 12 | 35 | 13 | 8 | 85 | 35 | Ignores Defend |
 | Chrome Beast | Feral | 7 | 8 | 50 | 12 | 10 | 110 | 45 | Bleed 35%/3rd |
 | Corp Blacksite Enforcer | Corp | 9 | 6 | 60 | 15 | 12 | 140 | 55 | Dodge 15%; Stun 30%/1rd |
+
+**Nemesis encounter** — kill-gated, not level-gated, via the `requires_kill` field (only enters the pool once that enemy name is in `character.kills`):
+
+| Enemy | Faction | Min Lvl | Weight | Requires kill | HP | ATK | DEF | Credits | XP | Rep | Gimmick |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| Kingpin Draxx (grudge match) | Gladiator | 4 | 7 | Kingpin Draxx | 46 | 16 | 10 | 130 | 45 | 30 | Dodge 20%; Bleed 30%/2rd |
 
 **Scavenge/loot pool** (`roll_scavenge_encounter`, same `min_level`/`weight` mechanism, type `loot` or `nothing`):
 
@@ -334,6 +349,14 @@ Reached via the hidden `[M]` hotkey at Hyphen8d's Hut (not shown in the visible 
 | `monolith_spine` | Monolith Spine | spine | 4 | +13 Defense | — |
 | `ghost_protocol_derm` | Ghost Protocol Derm | skin | 4 | +12 Charisma | — |
 
+### Street-Modded stash (1 item, credits-priced, kill-gated)
+
+Reached via the hidden `[K]` hotkey at Hyphen8d's Hut, gated on `street_gang_kills >= 15` (`engine/shop.py`'s `street_modded_unlocked`). Unlike the Black Market, priced in credits and subject to the normal Charisma discount and daily market event.
+
+| ID | Name | Slot | Cost | Bonus | Gimmick |
+|---|---|---|---|---|---|
+| `riot_knuckles` | Riot Knuckles | arm | 220 | +9 Attack | Bleed 30%/2rd |
+
 ---
 
 ## Usable items
@@ -355,6 +378,8 @@ Items are only consumed on an actual effect — a heal at full HP or a faction-m
 - **Charisma → trauma bill discount**: 3%/point, capped at 45% (`engine/combat.py`).
 - **Charisma → contract gating**: Chrome Noodle Bar board only (Fixer Board is Reputation-gated).
 - **Quantum Cores**: rare secondary currency. 4% drop chance (`QUANTUM_CORE_DROP_CHANCE`) on a successful Slice Drop Box crack, and on a top-tier Pit win. Spent only at the hidden Black Market.
+- **Street Gang kills → Street-Modded stash**: at 15+ `street_gang_kills`, a second hidden Hyphen8d's Hut menu (`[K]`) unlocks — see [Cyberware](#cyberware). Credits-priced, unlike the Quantum-Core-only Black Market.
+- **Corp kills → free drinks**: at 15+ `corp_kills` (`CORP_HERO_KILL_THRESHOLD`), Buy a Round waives its 25cr cost — Static Rin treats the player as a local hero.
 - **Reputation**: earned from Fixer Board contracts and Pit wins (`reputation_reward`). Gates Fixer Board contracts.
 - **Banked credits** (NetVault): immune to trauma-bill loss on defeat — only credits on hand are at risk.
 
@@ -367,7 +392,7 @@ Leaving the hub (`L`, with Yes/No confirmation) triggers `_sleep_and_advance_day
 - Day counter +1, full HP heal, all status effects cleared.
 - **Resets**: `bought_round_today`, `rested_today`, `training_attempts_today`, `daily_kills` (Faction Heat), Hyphen8d's daily stock + market event (`roll_daily_market`).
 - Faction Heat resolves: if any faction is hot, a 15% (`AMBUSH_CHANCE`) chance of a waking ambush.
-- Prints the "Daily Data Feed" summary panel (level, credits, reputation, HP, cleared effects, heat, kills by faction, today's market event).
+- Prints the "Daily Data Feed" summary panel — now leads with two **City Conditions** rows (`engine/city.py`'s `random_weather()`/`random_headline()`, pulled from `content/city_conditions.json`: 12 weather lines, 17 fake headlines) before level, credits, reputation, HP, cleared effects, heat, kills by faction, and today's market event. Purely cosmetic — no mechanical effect, re-rolled fresh every sleep.
 
 ---
 
@@ -383,7 +408,7 @@ Leaving the hub (`L`, with Yes/No confirmation) triggers `_sleep_and_advance_day
 
 **Autosave triggers**: on returning to the main menu after Leave (normal path), and via a `try/finally` around the hub loop in `main.py` — so a crash or Ctrl+C mid-session also saves whatever state existed at that point, not just clean exits.
 
-**Known limitation**: `engine/ui.py`'s `read_choice` only ever reads a single keystroke, so numbered lists (Load Merc, Delete Merc, etc.) with 10+ entries can't select past position 9 through the normal UI. Tracked as a follow-up; not yet fixed as of Alpha 2.5.
+**Known limitation**: `engine/ui.py`'s `read_choice` only ever reads a single keystroke, so numbered lists (Load Merc, Delete Merc, etc.) with 10+ entries can't select past position 9 through the normal UI. Tracked as a follow-up; not yet fixed as of Alpha 2.6.
 
 ---
 
@@ -397,6 +422,8 @@ Leaving the hub (`L`, with Yes/No confirmation) triggers `_sleep_and_advance_day
 | Pit gladiators | `content/pit.json` |
 | Cyberware (normal) | `content/items.json` |
 | Cyberware (Black Market) | `content/black_market.json` |
+| Cyberware (Street-Modded) | `content/street_modded.json` |
+| City Conditions (weather/headlines) | `content/city_conditions.json` |
 | Consumable items | `content/usable_items.json` |
 | Class base stats/flavor | `engine/character.py` (`CLASSES`) — **not** JSON, unlike the above |
 | Class specials / RoboDOJO abilities | `engine/combat.py` (`CLASS_SPECIALS`, `ABILITIES`) — also Python, not JSON |

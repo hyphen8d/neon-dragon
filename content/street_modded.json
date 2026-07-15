@@ -1,0 +1,17 @@
+{
+  "street_modded": [
+    {
+      "id": "riot_knuckles",
+      "name": "Riot Knuckles",
+      "slot": "arm",
+      "currency": "credits",
+      "cost": 220,
+      "stat": "attack",
+      "bonus": 9,
+      "flavor": "Scavenged gang chrome, re-forged by hands that learned the hard way. No serial number.",
+      "inflict_effect": "bleed",
+      "inflict_chance": 0.3,
+      "inflict_duration": 2
+    }
+  ]
+}

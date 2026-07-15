@@ -43,7 +43,13 @@ A menu of locations the player travels between:
    sends the merc home to sleep: the day counter increments, HP fully
    restores, status effects clear, and a "Daily Data Feed" panel
    summarizes standing. This is also when Faction Heat (section 8)
-   resolves and daily kill counts reset.
+   resolves and daily kill counts reset. The feed also leads with two
+   **City Conditions** rows — a random weather line and a random fake
+   news headline, both pulled from `content/city_conditions.json` via
+   `engine/city.py`'s `random_weather()`/`random_headline()`. Pure
+   worldbuilding, no mechanical effect: the point is that Neo Meridian
+   is visibly still moving while the player sleeps, not that the
+   weather does anything.
 6. Save file persists between sessions.
 
 ## 4. Character
@@ -82,7 +88,16 @@ Data-driven (see CLAUDE.md) — not hardcoded. Each NPC has:
   the eligible conditional pool instead of the generic one — the world
   reacting to what this specific merc has actually done, reusing
   existing Character state rather than adding new tracking just for
-  flavor
+  flavor. Any `equipped_<item_id>` condition (e.g. `equipped_singularity_fist`)
+  resolves against `Character.cyberware`'s values instead of a stat —
+  NPCs physically reacting to whatever's currently bolted on, not just
+  to accumulated history. `corp_kills`/`street_gang_kills` both carry a
+  second, higher tier (15) on top of their original threshold (5) —
+  eligible lines stack (both tiers' lines are in the pool together once
+  the higher one's met), so the richer pool of reactions grows instead
+  of replacing the earlier one. At 15 Street Gang kills specifically,
+  Hyphen8d's line also functions as a hint that his hidden Street-Modded
+  stash (section 6) just unlocked.
 - Optionally: a contract hook, a shop inventory, or a relationship-track flag
 
 Starter NPC roster (flavor only — expand freely):
@@ -152,17 +167,54 @@ Pit win only (gladiators carry a `tier` field in `content/pit.json`;
 `visit_the_pit` computes the top tier from whatever's in the file
 rather than a hardcoded number, so adding a new toughest gladiator —
 as of this pass, tier 4's **Kingpin Draxx** — moves the drop
-eligibility with it instead of requiring a code change). Spent at a
-hidden **Black Market** inside Hyphen8d's Hut
+eligibility with it instead of requiring a code change). Both drop
+narrations are deliberately unsettling rather than a plain "+1 Quantum
+Core" — the core hums at a migraine-inducing frequency and reads as
+grown, not manufactured, hinting it isn't something that should be
+in a merc's pocket. Spent at a hidden **Black Market** inside
+Hyphen8d's Hut
 — reachable via an `[M]` hotkey deliberately left off the visible
 Buy/Sell/Leave menu text, so it's undiscoverable without either
 digging through the code or trying keys — selling four elite
 prototype cyberware pieces (`content/black_market.json`, one per
 slot, roughly double the top normal-tier bonus) priced only in Cores,
-no Charisma discount or market event. `engine/shop.py`'s `get_item`
-resolves ids across both catalogs so equipped Black Market gear works
-everywhere normal gear does (loadout, sell menu); `unequip` refunds
-whichever currency the item was actually priced in.
+no Charisma discount or market event. Each piece's flavor text hints
+at the same unexplained thread — purged corp archives, a rogue
+intelligence watching through the net, a buried structure older than
+the city on top of it — so the Black Market reads as tapping into
+something dangerous and half-understood, not just a higher shop tier.
+`engine/shop.py`'s `get_item` resolves ids across both catalogs so
+equipped Black Market gear works everywhere normal gear does (loadout,
+sell menu); `unequip` refunds whichever currency the item was
+actually priced in.
+
+**Street-Modded stash**: a second hidden Hyphen8d's Hut menu, `[K]`,
+unlocked once `street_gang_kills` (summed the same way as Faction
+Heat/`conditional_lines`) hits 15 — `engine/shop.py`'s
+`street_modded_unlocked`. Below the threshold, asking for it just gets
+Hyphen8d turning the player away in character; above it, it opens the
+same buy flow as the regular catalog (credits, Charisma discount,
+daily market event all apply — unlike the Black Market, this one isn't
+a separate currency), selling gear defined in
+`content/street_modded.json`. The pattern is meant to generalize: any
+future reputation-gated shop tier can reuse the same
+threshold-check-then-hidden-hotkey shape.
+
+**The Pit champion & Draxx's grudge match**: beating a gladiator
+records a kill the same as any other enemy (`character.kills[name]`),
+so beating **Kingpin Draxx** specifically is checked the same way as
+any other kill-based `conditional_lines` threshold. Once
+`character.kills["Kingpin Draxx"] >= 1`, `visit_the_pit`'s arrival text
+swaps to acknowledging the player as reigning champion instead of the
+default "the crowd wants blood" line. The Undercity also gains a new
+weighted combat encounter, `draxx_grudge_match`
+(`content/encounters.json`), gated by a `requires_kill` field
+`engine/encounters.py`'s `_eligible` checks against `character.kills`
+— Draxx and his crew occasionally ambush the player in Find a Fight or
+the baseline Hunt Cache risk roll to reclaim his honor, buffed up from
+his Pit stats. `requires_kill` is enemy-name-general, not
+Draxx-specific, so any future "boss holds a grudge" encounter can reuse
+it the same way.
 
 ## 7. Combat
 
@@ -237,6 +289,18 @@ Chrome Noodle Bar's Buy a Round. Learning an ability is unlimited and
 untouched by the cap, since it's a one-time purchase, not a repeatable
 action.
 
+**Buy a Round** (`engine/hub.py`'s `ROUND_ENCOUNTERS`/`_resolve_round_encounter`)
+is a weighted micro-encounter table, not a flat three-way roll —
+8 flavored narratives (a Scav pickpocket, a rambling netrunner, a
+synth-arm-wrestling ganger, a war-story veteran, two gossip variants,
+two drunk variants) each precede their own mechanical payoff (+1
+permanent stat, +2 reputation, or the `drunk` status effect), weighted
+to land close to the old flat 12%/58%/30% split. The arm-wrestling win
+also carries its own 10% downside roll (5 damage on top of the stat
+gain) — a self-contained example of a narrative outcome with a nested
+risk, worth reusing if other flat-roll mechanics get the same
+narrative-table treatment later.
+
 Charisma talks down the trauma bill from a lost fight: 3% off per
 point, capped at 45%. A high-Charisma build still goes down in a
 fight the same as anyone else, but pays less to get patched up.
@@ -263,7 +327,10 @@ L5+, Chrome Beast L7+, Corp Blacksite Enforcer L9+) so difficulty
 keeps rising instead of flattening out once a player out-levels
 Chrome Beast. Hunt Cache's loot/nothing pool is six entries (three
 loot, three nothing) for the same reason — no single flavor line
-repeating every single low-risk sweep.
+repeating every single low-risk sweep. `roll_combat_encounter`/
+`roll_scavenge_encounter` take the full `Character` (not just level)
+so an encounter can also gate on `requires_kill` — see section 6's
+Pit champion/Draxx grudge match for the current example.
 
 **Faction Heat** (`engine/heat.py`): killing more than 3 enemies of the
 same faction in a single day builds heat with that faction — currently

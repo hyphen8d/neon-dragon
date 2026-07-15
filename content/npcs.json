@@ -15,7 +15,9 @@
       ],
       "conditional_lines": [
         {"condition": "in_debt", "min": 1, "line": "You're running a tab with me now. Don't make it a habit."},
-        {"condition": "in_debt", "min": 1, "line": "Credits in the red and you're still walking in here like you own the place. Respect, I guess."}
+        {"condition": "in_debt", "min": 1, "line": "Credits in the red and you're still walking in here like you own the place. Respect, I guess."},
+        {"condition": "equipped_singularity_fist", "min": 1, "line": "Keep that thing away from my equipment. I've seen what a graviton emitter does to a heart monitor, and I don't want to see it again."},
+        {"condition": "equipped_singularity_fist", "min": 1, "line": "Hands on the table, not near the gurney. That fist of yours puts out a field my pacemaker patients feel from the waiting room."}
       ]
     },
     {
@@ -33,7 +35,9 @@
       ],
       "conditional_lines": [
         {"condition": "banked_credits", "min": 500, "line": "Your balance is... substantial. NetVault appreciates a customer who plans ahead."},
-        {"condition": "banked_credits", "min": 500, "line": "I don't usually notice account numbers. Yours, I noticed."}
+        {"condition": "banked_credits", "min": 500, "line": "I don't usually notice account numbers. Yours, I noticed."},
+        {"condition": "equipped_oracle_retinas", "min": 1, "line": "Please stop looking past me at the vault door. I know you can't help it, but the cameras log where your eyes go, and so do I."},
+        {"condition": "equipped_oracle_retinas", "min": 1, "line": "Your retinas are doing that thing again — twitching at something that hasn't happened yet. It's unsettling. Please stop."}
       ]
     },
     {
@@ -51,7 +55,9 @@
       ],
       "conditional_lines": [
         {"condition": "total_kills", "min": 10, "line": "Word travels. You've put a lot of people down out there. None of them in here, though. Keep it that way."},
-        {"condition": "total_kills", "min": 10, "line": "Rex growls different at mercs with a body count. He's growling at you."}
+        {"condition": "total_kills", "min": 10, "line": "Rex growls different at mercs with a body count. He's growling at you."},
+        {"condition": "equipped_ghost_protocol_derm", "min": 1, "line": "Rex keeps losing you in his heat scan, then finding you again a half-second late. Whatever that skin's doing, it's not legal, and it's making him twitchy."},
+        {"condition": "equipped_ghost_protocol_derm", "min": 1, "line": "You're standing right there and the sensors keep flagging you as 'unconfirmed.' I'd ask what that weave is, but I don't think I want the answer."}
       ]
     },
     {
@@ -68,8 +74,12 @@
         "You didn't see the guy who left before you. He didn't see you either."
       ],
       "conditional_lines": [
+        {"condition": "street_gang_kills", "min": 15, "line": "Word on the street is you've been thinning out the gangs. Respect. I've got Street-Modded gear under the counter for people who've put in that kind of work."},
+        {"condition": "street_gang_kills", "min": 15, "line": "The gangs stopped sending guys my way after what you did to their crews. That kind of hustle earns you a look at my real stash."},
         {"condition": "quantum_cores", "min": 1, "line": "You're carrying something rare, aren't you. I can always tell. Panel's in the back whenever you're ready to talk business."},
-        {"condition": "quantum_cores", "min": 1, "line": "That glow behind your eyes — that's a Quantum Core talking. Don't spend it stupid."}
+        {"condition": "quantum_cores", "min": 1, "line": "That glow behind your eyes — that's a Quantum Core talking. Don't spend it stupid."},
+        {"condition": "equipped_razor_claws", "min": 1, "line": "Those claws still holding an edge? I sold you good chrome. Just don't gesture at me with them, force of habit or not."},
+        {"condition": "equipped_razor_claws", "min": 1, "line": "Illegal in six districts and you're still wearing them into my shop. I respect the confidence. Keep them sheathed near the merchandise."}
       ]
     },
     {
@@ -87,7 +97,12 @@
       ],
       "conditional_lines": [
         {"condition": "corp_kills", "min": 5, "line": "Word's out you've been putting corp badges in the ground. Careful — that kind of reputation cuts both ways."},
-        {"condition": "corp_kills", "min": 5, "line": "Heard about your little corp problem. Or should I say, their little you problem."}
+        {"condition": "corp_kills", "min": 5, "line": "Heard about your little corp problem. Or should I say, their little you problem."},
+        {"condition": "corp_kills", "min": 15, "line": "Drinks are on the house tonight, choom. Anybody carving that big a hole in corp security earns a seat at my bar for free."},
+        {"condition": "corp_kills", "min": 15, "line": "You want the real gossip? NetVault's been quietly moving security drones out of the district — word is they're scared of you specifically."},
+        {"condition": "corp_kills", "min": 15, "line": "You're not just a regular anymore. Half the Undercity calls you the one who's actually hurting the corps, not just talking about it."},
+        {"condition": "equipped_target_lock_eyes", "min": 1, "line": "Can you not lock onto me while I'm pouring? Those eyes of yours are giving me a headache from across the bar."},
+        {"condition": "equipped_target_lock_eyes", "min": 1, "line": "Every time you look my way I feel like I'm being sighted down a scope. Military surplus does something to a stare that regular eyes don't."}
       ]
     },
     {
