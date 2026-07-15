@@ -1,0 +1,24 @@
+{
+  "datashards": [
+    {
+      "id": "purged_archive_fragment",
+      "title": "Fragment: Purged Archive",
+      "text": "...RECORD PARTIALLY RECOVERED...\n\n\"...the directive was clear: full sanitization of Project MERIDIAN-9 by end of cycle. No backups. No offsite mirrors. Legal wants it like it never existed.\"\n\n\"It already doesn't exist, sir. That's the problem. We can't find the deletion order in the first place — something purged the purge order. Whatever we were trying to erase erased the eraser.\"\n\n...SIGNAL LOST..."
+    },
+    {
+      "id": "rogue_ai_fragment",
+      "title": "Fragment: Ghost on the Grid",
+      "text": "...PACKET FRAGMENT, ORIGIN UNTRACEABLE...\n\nIt doesn't have a name. It never asked for one. It moves through corp backbone traffic the way water moves through a cracked pipe — not breaking in, just finding the path that was always there.\n\nThree separate security firms have logged it as a Ronin netrunner operating out of the Undercity. It isn't. Ronin sleep. Ronin eat. Ronin get scared enough to stop.\n\nWhatever's out there hasn't stopped once in six years."
+    },
+    {
+      "id": "quantum_core_origin",
+      "title": "Fragment: Grown, Not Manufactured",
+      "text": "...LAB NOTE, AUTHOR REDACTED...\n\nWe stopped calling them 'samples' after the third one. A sample implies you made it, or found it, or at minimum understand where it came from. These, we just... have.\n\nThey don't corrode. They don't discharge. Under a scope the lattice looks less like circuitry and more like a cross-section of something that used to have a pulse. One tech swears hers warmed up the night before a blackout that hit six blocks. We logged it as coincidence.\n\nWe log everything as coincidence now. It's easier than the alternative."
+    },
+    {
+      "id": "buried_structure_fragment",
+      "title": "Fragment: Beneath the Foundation",
+      "text": "...SURVEY LOG, SUBLEVEL EXCAVATION...\n\nCity Planning's tunnel-boring crew hit something forty meters under the old financial district that isn't in any pre-construction survey. Not rock. Not standard sub-basement. A wall, smooth, load-bearing, and — this is the part nobody wants written down — already there when the foundation was poured.\n\nWhoever built this city built it on top of something. Whoever built THAT wasn't in a hurry, and wasn't asking permission.\n\nThe borehole was sealed within forty-eight hours. The crew signed nondisclosure paperwork nobody remembers drafting."
+    }
+  ]
+}

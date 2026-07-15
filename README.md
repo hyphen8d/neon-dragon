@@ -111,11 +111,16 @@ python3 -m venv .venv
   panel the moment they're earned. Includes **RoboDOJO belt ranks**:
   hitting 10 base Attack or Defense unlocks a Black Belt achievement
   that grants a small permanent combat bonus on top of the stat itself
+- **Datashards** — corrupted lore fragments (`content/datashards.json`)
+  hinting at a rogue AI on the grid, purged corporate archives, and the
+  unsettling truth behind Quantum Cores. A rare find on a clean Slice
+  Drop Box crack or a successful Hunt Cache sweep, readable anytime from
+  the hub's Archives screen, rendered as a glitched-out terminal dump
 
 ### Quality of life
 
-- **In-game character info (`[I]`) and help (`[?]`) screens**,
-  accessible mid-session without spending a turn
+- **In-game character info (`[I]`), lore archives (`[A]`), and help
+  (`[?]`) screens**, accessible mid-session without spending a turn
 - **Bracket-hotkey menus throughout** — every screen shows a
   bold-bracketed letter, and on a real terminal you don't even need to
   press Enter

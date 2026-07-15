@@ -17,6 +17,7 @@ from engine.bestiary import TRAINING_DRONES, enemy_faction
 from engine.character import CYBERWARE_SLOTS, Character, hp_style
 from engine.city import random_headline, random_weather
 from engine.combat import ABILITIES, run_combat
+from engine.datashards import get_datashard, load_datashards, maybe_find_datashard
 from engine.encounters import get_enemy_by_name, roll_combat_encounter, roll_scavenge_encounter
 from engine.heat import AMBUSH_CHANCE, HEAT_FACTIONS, hot_factions, reset_daily_kills
 from engine.help import show_help
@@ -66,6 +67,7 @@ from engine.theme import (
     BORDER_RARE,
     CREDITS,
     DANGER,
+    DIVIDER_STATIC,
     INFO,
     LABEL,
     NAME_BOLD,
@@ -270,6 +272,8 @@ def print_hub_menu(character: Character) -> None:
         hotkey_bracket("I", "Character Info"),
         f"View your full stats, gear, contracts ({contracts_note}), and kills.",
     )
+    shard_note = f"{len(character.datashards)}/{len(load_datashards())} recovered"
+    actions.add_row(hotkey_bracket("A", "Archives"), f"Read recovered Datashard lore fragments ({shard_note}).")
     actions.add_row(f"[{ACCENT}][?][/{ACCENT}] Help", "Open the player guide.")
     actions.add_row(hotkey_bracket("L", "Leave"), "Head to the safehouse to sleep — advances the day, full heal.")
     console.print(actions)
@@ -372,6 +376,7 @@ def _jack_in(character: Character) -> None:
                 "veined like something that used to be alive, and for a second you'd swear it pulsed "
                 "in time with your own heartbeat before you pocketed it. +1 Quantum Core."
             )
+        maybe_find_datashard(character, console)
         return
 
     console.print(
@@ -426,6 +431,7 @@ def _scavenge(character: Character) -> None:
         character.credits += amount
         console.print(f"\n[{ACCENT}]Score![/{ACCENT}] +{format_credits(amount)}.")
     # "nothing" encounters just print their flavor line above.
+    maybe_find_datashard(character, console)
 
 
 # Ambient, diegetic hints that a faction is closing in on Faction Heat's
@@ -1595,6 +1601,67 @@ def visit_hyphen8ds_hut(character: Character) -> None:
         _visit_street_stash(character)
 
 
+def _print_datashard(shard: dict) -> None:
+    """Render one Datashard as a corrupted terminal readout — a noise band
+    of DIVIDER_STATIC glyphs, a fake signal-diagnostics line, and the lore
+    text itself, framed in a jagged HEAVY box instead of the game's usual
+    soft ROUNDED panels so it visually reads as recovered data, not a
+    normal UI screen."""
+    noise = DIVIDER_STATIC * 12
+    integrity = random.randint(22, 68)
+    body = Group(
+        Text.from_markup(f"[{WARNING}]{noise}[/{WARNING}]"),
+        Text.from_markup(
+            f"[{TEXT_DIM}]SIGNAL INTEGRITY: {integrity}%  //  RECOVERY: PARTIAL  //  SOURCE: UNKNOWN[/{TEXT_DIM}]"
+        ),
+        Text.from_markup(f"[{WARNING}]{noise}[/{WARNING}]"),
+        Text(""),
+        Text.from_markup(f"[italic {TEXT_PLAIN}]{shard['text']}[/italic {TEXT_PLAIN}]"),
+    )
+    console.print(
+        Panel(
+            body,
+            title=f"[{RARE}]:: DATASHARD // {shard['title']} ::[/{RARE}]",
+            border_style=ALERT,
+            box=box.HEAVY,
+            padding=(1, 3),
+        )
+    )
+    press_any_key(console, "[SYS] DECRYPTION BUFFER FLUSHED // PRESS ANY KEY_")
+
+
+def visit_archives(character: Character) -> None:
+    print_menu_divider("Data Archive")
+    all_shards = load_datashards()
+    console.print(
+        f"[{TEXT_DIM}]Fragments recovered: {len(character.datashards)}/{len(all_shards)}[/{TEXT_DIM}]\n"
+    )
+
+    if not character.datashards:
+        console.print(
+            f"[{TEXT_DIM}]No Datashards recovered yet. They turn up as rare finds on a clean Slice "
+            f"Drop Box crack or a successful Hunt Cache sweep in the Undercity.[/{TEXT_DIM}]"
+        )
+        return
+
+    shards = [get_datashard(shard_id) for shard_id in character.datashards]
+    table = Table(border_style=BORDER_RARE, show_header=False, box=box.DOUBLE)
+    table.add_column("#", justify="right", style=LABEL)
+    table.add_column("Title", style=RARE)
+    for i, shard in enumerate(shards, start=1):
+        table.add_row(str(i), shard["title"])
+    console.print(table)
+
+    choice = read_choice(
+        console,
+        [str(i) for i in range(len(shards) + 1)],
+        prompt="Read which fragment? (0 to cancel)",
+    )
+    if choice == "0":
+        return
+    _print_datashard(shards[int(choice) - 1])
+
+
 def _themed_table(title: str) -> Table:
     # min_width keeps the title from wrapping onto two lines when the row
     # content is narrower than the title itself (e.g. a "Kills by Faction"
@@ -1808,7 +1875,7 @@ def enter_hub(character: Character) -> None:
         console.print()
         print_hub_menu(character)
         choice = read_choice(
-            console, [*LOCATION_HOTKEYS.keys(), "I", "L", "?"], prompt="meridianOS v2.5 // SELECT ROUTING:"
+            console, [*LOCATION_HOTKEYS.keys(), "I", "A", "L", "?"], prompt="meridianOS v2.5 // SELECT ROUTING:"
         )
         if choice == "L":
             confirm = hotkey_prompt(
@@ -1826,6 +1893,10 @@ def enter_hub(character: Character) -> None:
             continue
         if choice == "I":
             show_character_info(character)
+            press_any_key(console, "[SYS] UPLINK IDLE // PRESS ANY KEY TO RETURN_")
+            continue
+        if choice == "A":
+            visit_archives(character)
             press_any_key(console, "[SYS] UPLINK IDLE // PRESS ANY KEY TO RETURN_")
             continue
 

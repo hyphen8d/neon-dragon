@@ -212,6 +212,25 @@ equipped Black Market gear works everywhere normal gear does (loadout,
 sell menu); `unequip` refunds whichever currency the item was
 actually priced in.
 
+**Datashards** (`content/datashards.json`, `engine/datashards.py`,
+`Character.datashards`): a pure lore collectible, no stat payoff,
+built to give the same unexplained thread the Black Market's flavor
+text hints at — purged corp archives, a rogue intelligence on the
+grid, the unsettling origin of Quantum Cores, a buried pre-city
+structure — actual readable text instead of one-line flavor. A modest
+12% chance (`DATASHARD_DROP_CHANCE`) to find one not already owned,
+rolled on a clean Slice Drop Box crack or any Hunt Cache sweep that
+doesn't end in an ambush (`maybe_find_datashard`, called from both
+`_jack_in` and `_scavenge` in `engine/hub.py`) — deliberately a bonus
+on top of the credit/Quantum Core payoff, never a competing roll.
+Found shards are announced with their own `RARE`-styled panel, and
+readable afterward from the hub's `[A]rchives` screen, rendered in a
+jagged HEAVY-box panel with a fake signal-diagnostics header to read
+as a corrupted terminal dump rather than a normal menu screen — the
+same instinct as the Black Market's undiscoverable hotkey and Quantum
+Cores' migraine-frequency flavor, worldbuilding that rewards curiosity
+rather than being spelled out.
+
 **Street-Modded stash**: a second hidden Hyphen8d's Hut menu, `[K]`,
 unlocked once `street_gang_kills` (summed the same way as Faction
 Heat/`conditional_lines`) hits 15 — `engine/shop.py`'s

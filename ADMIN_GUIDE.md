@@ -29,8 +29,9 @@ laid out for lookup rather than narrative reading.
 14. [Daily cycle](#daily-cycle)
 15. [Faction Heat](#faction-heat)
 16. [Achievements](#achievements)
-17. [Save files](#save-files)
-18. [Content map — what to edit where](#content-map--what-to-edit-where)
+17. [Datashards](#datashards)
+18. [Save files](#save-files)
+19. [Content map — what to edit where](#content-map--what-to-edit-where)
 
 ---
 
@@ -53,6 +54,8 @@ laid out for lookup rather than narrative reading.
 | Cyberware (Street-Modded) | 1 (arm slot, credits, kill-gated) |
 | Buy a Round micro-encounters | 8 (weighted; 3 stat, 2 rep, 2 drunk, 1 rep-scav) |
 | Usable/consumable items | 2 |
+| Achievements | 5 |
+| Datashards | 4 |
 | Status effects | 3 (Bleed, Stunned, Drunk) |
 | City Conditions flavor entries | 12 weather + 17 headlines |
 | Save format | one JSON file per character under `saves/`, gitignored |
@@ -98,7 +101,7 @@ All defined in `engine/hub.py` (`LOCATION_HOTKEYS`, `LOCATIONS`, `LOCATION_DESCR
 | `P` | The Pit | Gladiator fights for reputation/credits, rare Quantum Core on a top-tier win |
 | `F` | Fixer Board | Reputation-gated contract board |
 
-Plus `I` (Character Info), `?` (in-game help/PLAYER_GUIDE.md), `L` (Leave — sleep, advances the day).
+Plus `I` (Character Info), `A` (Archives — read unlocked Datashards, see [Datashards](#datashards)), `?` (in-game help/PLAYER_GUIDE.md), `L` (Leave — sleep, advances the day).
 
 The main hub menu's Character Info action row shows a live `len(character.active_quests)` count (`"contracts (N active)"` / `"contracts (none active)"`, `print_hub_menu` in `engine/hub.py`) so active contracts don't require a trip to a specific board or the Character Info screen to notice. Deliberately not added as a column to `print_status` — that HUD table is reused on every location screen, so widening it there would risk the fixed 120-column layout everywhere, not just the hub.
 
@@ -436,6 +439,17 @@ Called after anything that could plausibly unlock one: `combat._handle_victory` 
 
 ---
 
+## Datashards
+
+`content/datashards.json` — flat array of `{id, title, text}`, no gameplay effect, pure lore. Loaded/granted by `engine/datashards.py`.
+
+- `maybe_find_datashard(character, console)`: `DATASHARD_DROP_CHANCE` (12%) roll for a shard not already in `Character.datashards`. Called from two places in `engine/hub.py`: `_jack_in`, inside the clean-crack branch (after the Quantum Core roll), and `_scavenge`, after either the "loot" or "nothing" resolution — i.e. any Hunt Cache sweep that doesn't end in a fight, matching Jack In's "clean crack only" gating in spirit. A no-op once every shard is owned.
+- On a hit, the shard id is appended to `Character.datashards` (saved, permanent, same shape as `Character.achievements`) and announced with a `RARE`-bordered "DATASHARD FOUND" panel.
+- **Archives screen** (`[A]` from the main hub menu, `visit_archives` in `engine/hub.py`): lists unlocked shard titles plus an `N/total` recovered counter (pulled live from `load_datashards()`, so the total updates automatically as more shards are added to the JSON); selecting one renders it via `_print_datashard` — a `box.HEAVY`, `ALERT`-bordered panel with a fake "SIGNAL INTEGRITY: NN% // RECOVERY: PARTIAL // SOURCE: UNKNOWN" header framed in `DIVIDER_STATIC` noise bands, styled to read as a corrupted terminal dump rather than a normal menu screen.
+- 4 shards shipped as of this pass, each hinting at one of the game's unexplained threads (also echoed in the Black Market's item flavor text — see [Contracts](#contracts) → Quantum Cores): a purged corporate archive that erased its own deletion order, an untraceable rogue intelligence loose on the grid, the ungrown-yet-organic nature of Quantum Cores, and a pre-city structure discovered under the financial district.
+
+---
+
 ## Save files
 
 `engine/save.py`. One JSON file per character under `saves/` (gitignored), named by a sanitized slug of the character name (`re.sub(r"[^a-z0-9]+", "_", name.strip().lower())`, collapsing anything non-alphanumeric — prevents path traversal or crashes from stray characters like `/`).
@@ -460,6 +474,7 @@ Called after anything that could plausibly unlock one: `combat._handle_victory` 
 | City Conditions (weather/headlines) | `content/city_conditions.json` |
 | Consumable items | `content/usable_items.json` |
 | Achievements | `content/achievements.json` |
+| Datashards | `content/datashards.json` |
 | Class base stats/flavor | `engine/character.py` (`CLASSES`) — **not** JSON, unlike the above |
 | Class specials / RoboDOJO abilities | `engine/combat.py` (`CLASS_SPECIALS`, `ABILITIES`) — also Python, not JSON |
 | RoboDOJO sparring drones | `engine/bestiary.py` (`TRAINING_DRONES`) — also Python, not JSON |

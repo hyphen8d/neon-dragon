@@ -129,6 +129,11 @@ Defend), and a **Chrome Beast** (level 7+, heavy Bleed). The Undercity
 keeps getting more dangerous instead of staying exactly as easy as it
 was at level 1.
 
+A clean Slice Drop Box crack or a Hunt Cache sweep that doesn't end in
+a fight also has a small chance to turn up a **Datashard** — a
+corrupted lore fragment, no stat payoff, just worldbuilding. Read
+what you've found from the hub's **[A]rchives** screen.
+
 ### NetVault
 Deposit or withdraw credits with Ms. Kessler. Banked credits are safe
 from the trauma bill you take when a fight goes badly — on-hand
@@ -379,7 +384,8 @@ Enemies belong to a faction: **Street Gang** (Street Gangers), **Corp**
 Pit roster). The kill tally groups by faction first, then breaks down
 by individual enemy underneath.
 
-Press **[?]** the same way to reopen this guide mid-session.
+Press **[A]** the same way to open your Datashard Archives, and **[?]**
+to reopen this guide mid-session.
 
 ## Faction Heat
 
@@ -431,6 +437,17 @@ Defense up to 10 through RoboDOJO sparring (or any other means) and you
 unlock "Black Belt (Attack)" / "Black Belt (Defense)", each of which
 grants a small permanent bonus in combat on top of the stat itself —
 it doesn't go away even if the stat changes later.
+
+## Datashards
+
+Corrupted lore fragments hinting at what's really going on under Neo
+Meridian — a rogue intelligence loose on the grid, corporate archives
+that erased themselves, and the unsettling truth about where Quantum
+Cores actually come from. No mechanical payoff, just worldbuilding: a
+small chance to find one turns up on a clean Slice Drop Box crack or a
+successful Hunt Cache sweep in the Undercity, announced the moment you
+find it. Read anything you've recovered from the hub's **[A]rchives**
+screen, which also shows how many of the total you've found.
 
 ## Charisma and dialogue
 

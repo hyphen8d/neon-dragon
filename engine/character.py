@@ -68,6 +68,7 @@ class Character:
     total_credits_earned: int = 0  # lifetime credits from combat victories — see combat.py's _handle_victory
     total_fights_won: int = 0  # lifetime combat wins — see combat.py's _handle_victory
     achievements: list = field(default_factory=list)  # unlocked achievement ids, see engine/achievements.py
+    datashards: list = field(default_factory=list)  # unlocked Datashard lore ids, see engine/datashards.py
 
     @classmethod
     def new(cls, name: str, char_class: str) -> "Character":
