@@ -58,14 +58,16 @@ resolution (win/loss/flee) including any level-up prompts. Keep new
 personas playing 1-3 in-game days — enough to exercise the daily reset
 (training cap, market rotation, Faction Heat) without ballooning runtime.
 
-## Known limitation worth fixing upstream
+## Multi-digit selection bug — now fixed
 
-`read_key()` (`engine/ui.py`) only ever consumes the first character of
-an input line, on a real terminal *and* in the piped fallback this driver
-relies on. Any menu with 10+ selectable items (a shop list, a save list)
-can't have its 10th+ entry chosen — the second digit of a multi-digit
-choice is silently discarded. The `saves/` directory already has enough
-entries to trigger this; `driver.py` works around it for its own
-purposes (see `save_slug_index()`), but the underlying game bug is still
-there for a real player with 10+ saved characters or any list that grows
-past 9 entries.
+`read_key()` (`engine/ui.py`) used to only ever consume the first
+character of an input line, on a real terminal *and* in the piped
+fallback this driver relies on, so no menu with 10+ selectable items (a
+shop list, a save list) could have its 10th+ entry chosen. This is what
+this driver's `save_slug_index()` was originally working around. As of
+the `read_choice()`/`read_line()` split in `engine/ui.py`, numbered lists
+with any two-digit choice now read a full Enter-confirmed line instead,
+while hotkey-only menus (combat, hub nav, Y/N) are untouched. The
+`save_slug_index()` workaround is left in place here since it's still a
+harmless, cheap way to guarantee a low-digit index regardless of how many
+saves exist -- not because it's load-bearing anymore.

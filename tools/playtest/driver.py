@@ -18,12 +18,13 @@ reintroduce them:
    never hotkey-bracketed in the first place (arrival flavor paragraphs,
    custom prompt strings), never the raw label.
 
-2. read_key() -- on a real terminal *and* in the piped fallback -- only
-   ever consumes a single character of input, discarding the rest of a
-   multi-digit line. This means multi-digit menu choices (item #10+,
-   save #10+) cannot actually be selected in the shipped game today; see
-   save_slug_index() below for how this driver works around it for its
-   own purposes, and flag it to whoever's reading this if it's still true.
+2. read_key() used to -- on a real terminal *and* in the piped fallback --
+   only ever consume a single character of input, discarding the rest of
+   a multi-digit line, so item/save #10+ couldn't actually be selected.
+   Fixed in engine/ui.py (read_choice() now reads a full Enter-confirmed
+   line whenever a choice set has any two-digit entry). save_slug_index()
+   below predates that fix and is kept anyway -- it's a cheap, harmless
+   way to guarantee a low-digit index regardless of how many saves exist.
 """
 
 from __future__ import annotations

@@ -61,15 +61,32 @@ def read_key() -> str:
         termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
 
 
+def read_line() -> str:
+    """Read a full line, Enter required -- no raw/cbreak juggling needed,
+    since canonical (line-buffered) mode is the terminal's default state
+    when we simply don't touch termios. Used by read_choice() whenever a
+    choice can be more than one character long (a list with 10+ entries);
+    read_key() only ever returns a single character, which silently
+    discards the rest of a multi-digit line at a single-keystroke prompt."""
+    line = sys.stdin.readline()
+    if line == "":
+        raise EOFError("EOF when reading a line")
+    return line.strip()
+
+
 def read_choice(console: Console, choices: list[str], prompt: str = "") -> str:
-    """Read a single validated keypress (case-insensitive, auto-stripped)
-    against `choices`, reprompting on anything else. No Enter required."""
+    """Read a validated choice (case-insensitive, auto-stripped) against
+    `choices`, reprompting on anything else. Single hotkeys read as one
+    keypress with no Enter required; a choice set with any entry longer
+    than one character (a numbered list past 9 items) reads a full line
+    instead, since a single keystroke can't represent a two-digit number."""
     valid = {c.upper() for c in choices}
+    multi_char = any(len(c) > 1 for c in choices)
     while True:
         if prompt:
             console.print(prompt, end=" ")
         console.file.flush()
-        key = read_key()
+        key = read_line() if multi_char else read_key()
         if not key:
             continue
         key = key.strip().upper()
